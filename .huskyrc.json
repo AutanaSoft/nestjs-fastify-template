@@ -1,0 +1,6 @@
+{
+  "hooks": {
+    "pre-commit": "pnpm lint && pnpm test",
+    "commit-msg": "npx --no -- commitlint --edit $1"
+  }
+}
