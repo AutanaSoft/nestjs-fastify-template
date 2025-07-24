@@ -26,11 +26,11 @@ async function bootstrap() {
   const config = configService.get<AppConfig>('appConfig')!;
 
   // configure application settings
-  app.setGlobalPrefix(config.apiPrefix);
+  app.setGlobalPrefix(config.prefix);
   await app.listen(config.port, '0.0.0.0');
 
   // log application startup details
-  logger.log(`Running on: http://localhost:${config.port}/${config.apiPrefix}`);
+  logger.log(`Running on: http://localhost:${config.port}/${config.prefix}`);
   logger.log(`Environment: ${config.environment}`);
   logger.log(`Log Level: ${config.logLevel}`);
 }
