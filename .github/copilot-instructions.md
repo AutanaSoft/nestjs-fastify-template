@@ -31,6 +31,18 @@ export default registerAs('myConfig', (): MyConfig => ({
 
 Register new configs in `AppModule.imports` ConfigModule.forRoot({ load: [...] }).
 
+## Barrel Export Pattern
+
+Use `index.ts` files to create clean import paths and centralize exports:
+
+```typescript
+// src/config/index.ts - Example barrel export
+export { default as appConfig, AppConfig } from './appConfig';
+export { default as dbConfig, DbConfig } from './dbConfig';
+```
+
+This allows imports like `import { appConfig, AppConfig } from './config'` instead of relative paths.
+
 ## Development Workflow
 
 ### Essential Commands
@@ -52,6 +64,7 @@ Register new configs in `AppModule.imports` ConfigModule.forRoot({ load: [...] }
 - Configuration modules in `src/config/` with typed exports
 - Tests co-located with source files (`.spec.ts`)
 - E2E tests in separate `test/` directory
+- **Barrel Exports**: Use `index.ts` files for clean imports (see `src/config/index.ts`)
 
 ### TypeScript Settings
 - Target: ES2023, CommonJS modules
