@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { IncomingMessage } from 'node:http';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { appConfig } from './config';
+import { CorrelationIdInterceptor } from './interceptors';
+import { FastifyRequest } from 'fastify';
 
 @Module({
   imports: [
@@ -38,13 +41,20 @@ import { appConfig } from './config';
               err: 'error',
               responseTime: 'timeTaken',
             },
-            genReqId: (req) => {
-              return req.headers['x-correlation-id'] || crypto.randomUUID();
-            },
             timestamp: () => `,"time":"${new Date().toISOString()}"`,
             customProps: (req: IncomingMessage) => {
+              const headerValue = req.headers['x-correlation-id'];
+              const correlationIdFromRequest = (
+                req as unknown as FastifyRequest & { correlationId?: string }
+              ).correlationId;
+              const correlationId =
+                (Array.isArray(headerValue) ? headerValue[0] : headerValue) ||
+                correlationIdFromRequest ||
+                crypto.randomUUID();
+
               return {
                 context: req.url || 'http',
+                correlationId,
               };
             },
           },
@@ -53,6 +63,12 @@ import { appConfig } from './config';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CorrelationIdInterceptor,
+    },
+  ],
 })
 export class AppModule {}
