@@ -1,10 +1,10 @@
-import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { AppConfig } from './config';
 
@@ -18,7 +18,7 @@ async function bootstrap() {
   );
 
   // load logger from the application
-  const logger = new Logger('Bootstrap');
+  const logger = app.get(Logger);
   app.useLogger(logger);
 
   // load configuration from config service
