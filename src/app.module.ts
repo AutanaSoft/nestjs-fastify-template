@@ -8,6 +8,8 @@ import appConfig from './config/appConfig';
   imports: [
     ConfigModule.forRoot({
       load: [appConfig],
+      envFilePath: ['.env', '.env.local'],
+      isGlobal: true,
     }),
   ],
   controllers: [AppController],
