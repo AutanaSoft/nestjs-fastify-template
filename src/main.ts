@@ -1,3 +1,4 @@
+import fastifyCookie, { FastifyCookieOptions } from '@fastify/cookie';
 import fastifyCors from '@fastify/cors';
 import fastifyCsrf from '@fastify/csrf-protection';
 import helmet from '@fastify/helmet';
@@ -21,11 +22,13 @@ async function bootstrap() {
 
   // load configuration from config service
   const configService = app.get(ConfigService);
-  const config = configService.get<AppConfig>('appConfig')!;
+  const appConf = configService.get<AppConfig>('appConfig')!;
+  const cookieConf = configService.get<FastifyCookieOptions>('cookieConfig')!;
 
   // configure application settings
   await app.register(helmet);
   await app.register(fastifyCors, {});
+  await app.register(fastifyCookie, cookieConf);
   await app.register(fastifyCsrf);
   app.useGlobalPipes(
     new ValidationPipe({
@@ -33,24 +36,24 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
-  app.setGlobalPrefix(config.prefix);
+  app.setGlobalPrefix(appConf.prefix);
 
   // enable swagger
   const swaggerConfig = new DocumentBuilder()
-    .setTitle(config.name)
-    .setDescription(`API documentation for ${config.name}`)
-    .setVersion(config.version)
+    .setTitle(appConf.name)
+    .setDescription(`API documentation for ${appConf.name}`)
+    .setVersion(appConf.version)
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('v1/docs', app, document);
 
-  await app.listen(config.port, '0.0.0.0');
+  await app.listen(appConf.port, '0.0.0.0');
 
   // log application startup details
-  logger.log(`Running on: http://localhost:${config.port}/${config.prefix}`);
-  logger.log(`Environment: ${config.environment}`);
-  logger.log(`Log Level: ${config.logLevel}`);
+  logger.log(`Running on: http://localhost:${appConf.port}/${appConf.prefix}`);
+  logger.log(`Environment: ${appConf.environment}`);
+  logger.log(`Log Level: ${appConf.logLevel}`);
 }
 
 // start the application

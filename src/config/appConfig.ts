@@ -21,6 +21,6 @@ export default registerAs(
     port: parseInt(process.env.APP_PORT || '4200', 10),
     environment: process.env.APP_ENV || 'development',
     prefix: process.env.APP_PREFIX || 'v1',
-    logLevel: process.env.APP_LOG_LEVEL || 'info',
+    logLevel: process.env.APP_LOG_LEVEL || 'debug',
   }),
 );

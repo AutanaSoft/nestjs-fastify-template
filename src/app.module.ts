@@ -2,13 +2,13 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { appConfig } from './config';
+import { appConfig, cookieConfig } from './config';
 import { SharedModule } from './shared';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [appConfig],
+      load: [appConfig, cookieConfig],
       envFilePath: ['.env', '.env.local'],
       isGlobal: true,
     }),
