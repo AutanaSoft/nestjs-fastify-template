@@ -5,6 +5,7 @@ import { AppConfig } from '@config/appConfig';
 @Injectable()
 export class AppService {
   private readonly appConfig: AppConfig;
+
   constructor(private readonly configService: ConfigService) {
     this.appConfig = configService.get<AppConfig>('appConfig')!;
   }
