@@ -8,15 +8,16 @@ export class AppService {
   constructor(private readonly configService: ConfigService) {
     this.appConfig = configService.get<AppConfig>('appConfig')!;
   }
-  getHello(): string {
-    return 'Hello World!';
+
+  getAppInfo(): { message: string; name: string; version: string } {
+    return {
+      message: 'Welcome to NestJS Template API',
+      name: this.appConfig.name,
+      version: this.appConfig.version,
+    };
   }
 
   getAppSettings(): AppConfig {
     return this.appConfig;
-  }
-
-  sayHello(name: string): string {
-    return `Hello, ${name} from ${this.appConfig.name}!`;
   }
 }

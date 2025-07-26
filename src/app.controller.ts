@@ -1,52 +1,25 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiProperty, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { SkipThrottle, Throttle } from '@nestjs/throttler';
-import { Expose } from 'class-transformer';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { Controller, Get } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AppService } from './app.service';
 import { AppConfig } from './config';
 
-class SayHelloDto {
-  @ApiProperty({
-    description: 'Name of the user to greet',
-    example: 'John Doe',
-  })
-  @IsString()
-  @IsNotEmpty()
-  @Expose()
-  name: string;
-}
-
 @ApiTags('app')
-@Controller()
+@Controller('app')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get('hello')
-  @SkipThrottle() // Skip throttling for this endpoint
-  @ApiOperation({ summary: 'Get a hello message' })
-  @ApiResponse({ status: 200, description: 'Returns a hello message.' })
-  getHello(): string {
-    return this.appService.getHello();
+  @Get()
+  @ApiOperation({ summary: 'Get application info' })
+  @ApiResponse({ status: 200, description: 'Returns basic application information.' })
+  getAppInfo(): { message: string; name: string; version: string } {
+    return this.appService.getAppInfo();
   }
 
-  @Get('appSettings')
+  @Get('settings')
   @ApiOperation({ summary: 'Get application settings' })
   @ApiResponse({ status: 200, description: 'Returns application settings.' })
   @ApiResponse({ status: 404, description: 'Settings not found.' })
   getAppSettings(): AppConfig {
     return this.appService.getAppSettings();
-  }
-
-  @Post('sayHello')
-  @Throttle({ default: { limit: 3, ttl: 60000 } }) // Custom throttle: 3 requests per minute
-  @ApiOperation({ summary: 'Say hello to a user' })
-  @ApiResponse({ status: 200, description: 'Returns a hello message.' })
-  @ApiResponse({ status: 400, description: 'Bad request.' })
-  @ApiResponse({ status: 429, description: 'Too many requests.' })
-  @ApiBody({ type: SayHelloDto })
-  sayHello(@Body() body: SayHelloDto): string {
-    console.log(`Saying hello to ${body.name}`);
-    return this.appService.sayHello(body.name);
   }
 }

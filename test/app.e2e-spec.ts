@@ -24,13 +24,31 @@ describe('AppController (e2e)', () => {
     await app.close();
   });
 
-  it('/v1/hello (GET)', () => {
-    return request(app.getHttpServer()).get('/v1/hello').expect(200).expect('Hello World!');
+  it('/v1/app (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/v1/app')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toHaveProperty('message');
+        expect(res.body).toHaveProperty('name');
+        expect(res.body).toHaveProperty('version');
+      });
+  });
+
+  it('/v1/app/settings (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/v1/app/settings')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toHaveProperty('name');
+        expect(res.body).toHaveProperty('version');
+        expect(res.body).toHaveProperty('environment');
+      });
   });
 
   it('should add x-correlation-id header to response', () => {
     return request(app.getHttpServer())
-      .get('/v1/hello')
+      .get('/v1/app/settings')
       .expect(200)
       .expect((res) => {
         expect(res.headers['x-correlation-id']).toBeDefined();
@@ -41,7 +59,7 @@ describe('AppController (e2e)', () => {
   it('should use provided x-correlation-id', () => {
     const correlationId = 'test-correlation-id-123';
     return request(app.getHttpServer())
-      .get('/v1/hello')
+      .get('/v1/app/settings')
       .set('x-correlation-id', correlationId)
       .expect(200)
       .expect((res) => {
