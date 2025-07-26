@@ -39,8 +39,8 @@
 
 ```bash
 # Clonar el repositorio
-git clone <repository-url>
-cd nest-template
+git clone https://github.com/AutanaSoft/nestjs-fastify-template.git
+cd nestjs-fastify-template
 
 # Instalar dependencias
 pnpm install
