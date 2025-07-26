@@ -10,6 +10,7 @@ Esta carpeta contiene documentación técnica adicional para el proyecto NestJS 
 - [COOKIE_CONFIG.md](./COOKIE_CONFIG.md) - Configuración de cookies y seguridad
 - [CORS_CONFIG.md](./CORS_CONFIG.md) - Configuración de CORS y validación de orígenes
 - [THROTTLER_CONFIG.md](./THROTTLER_CONFIG.md) - Configuración de rate limiting y throttling
+- [PINO_LOGGER.md](./PINO_LOGGER.md) - Configuración de logging estructurado con rotación de archivos
 
 ## Guía de Configuración
 
@@ -21,6 +22,7 @@ Esta carpeta contiene documentación técnica adicional para el proyecto NestJS 
 | **Cookie Config**    | `COOKIE_SECRET`, `COOKIE_SAME_SITE`     | Seguridad de cookies                |
 | **CORS Config**      | `CORS_ORIGIN_WHITELIST`, `CORS_METHODS` | Control de acceso cross-origin      |
 | **Throttler Config** | `THROTTLER_TTL`, `THROTTLER_LIMIT`      | Límites de rate limiting            |
+| **Pino Logger**      | `LOG_LEVEL`, `LOG_DIR`, `LOG_MAX_SIZE`  | Sistema de logging estructurado     |
 
 ### Configuración por Entorno
 
@@ -30,6 +32,8 @@ Esta carpeta contiene documentación técnica adicional para el proyecto NestJS 
 # Variables mínimas para desarrollo
 APP_ENV=development
 APP_PORT=4200
+LOG_LEVEL=debug
+LOG_DIR=logs
 CORS_ORIGIN_WHITELIST=
 THROTTLER_LIMIT=200
 ```
@@ -40,6 +44,9 @@ THROTTLER_LIMIT=200
 # Variables requeridas para producción
 APP_ENV=production
 APP_PORT=3000
+LOG_LEVEL=info
+LOG_DIR=/var/log/app
+LOG_MAX_SIZE=50mb
 CORS_ORIGIN_WHITELIST=https://app.yourdomain.com
 COOKIE_SECRET=your-secure-secret
 THROTTLER_LIMIT=100

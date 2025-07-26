@@ -62,60 +62,55 @@ pnpm start:prod
 pnpm start:debug
 ```
 
-La aplicación estará disponible en `http://localhost:4200/v1`
+La aplicación estará disponible en `http://localhost:3000/v1`
 
 ## 📋 Scripts Disponibles
 
 ```bash
 # Desarrollo
+pnpm start              # Servidor básico
 pnpm start:dev          # Servidor con hot reload
 pnpm start:debug        # Servidor en modo debug
 
 # Testing
-pnpm test               # Unit tests
-pnpm test:watch         # Unit tests en modo watch
-pnpm test:e2e           # End-to-end tests
-pnpm test:cov           # Coverage report
+pnpm test               # Tests completos (unit + e2e + coverage merge)
+pnpm test:unit          # Solo unit tests
+pnpm test:e2e           # Solo end-to-end tests
+pnpm coverage:merge     # Fusionar reportes de coverage
 
 # Code Quality
 pnpm lint               # ESLint con auto-fix
 pnpm format             # Prettier formatting
 
-# Build
+# Build y Producción
 pnpm build              # Compilar para producción
 pnpm start:prod         # Ejecutar build de producción
+
+# Herramientas
+pnpm prepare            # Configurar hooks de Husky
 ```
 
 ## ⚙️ Configuración
 
 ### Variables de Entorno
 
+````bash
 ```bash
-# Aplicación
-APP_PORT=4200
-APP_PREFIX=v1
-APP_NAME="NestJS Template"
-APP_DESCRIPTION="NestJS Template Application"
-APP_VERSION="1.0.0"
-APP_ENV=development
-APP_HOST=localhost
-APP_LOG_LEVEL=debug
+```bash
+# Variables requeridas para producción
+APP_ENV=production
+APP_PORT=3000
+APP_HOST=0.0.0.0
+LOG_LEVEL=info
+LOG_DIR=/var/log/app
+LOG_MAX_SIZE=50mb
+CORS_ORIGIN_WHITELIST=https://app.yourdomain.com
+COOKIE_SECRET=your-secure-secret
+THROTTLER_LIMIT=100
+````
 
-# Rate Limiting
-THROTTLER_TTL=60000     # Ventana de tiempo en ms (60 segundos)
-THROTTLER_LIMIT=100     # Límite de requests por ventana
+```
 
-# CORS
-CORS_ORIGIN_WHITELIST=http://localhost:3000,http://localhost:4200
-CORS_METHODS=GET,HEAD,PUT,PATCH,POST,DELETE
-CORS_ALLOWED_HEADERS=Content-Type,Authorization,Accept,Origin,X-Requested-With,X-Correlation-Id
-CORS_EXPOSED_HEADERS=X-Total-Count,X-Correlation-Id
-
-# Cookies
-COOKIE_SECRET=your-secure-secret-key-change-in-production
-COOKIE_HTTP_ONLY=true
-COOKIE_SAME_SITE=lax
-COOKIE_DOMAIN=          # Opcional: dominio específico
 ```
 
 ### Configuración de Módulos
@@ -127,7 +122,7 @@ El proyecto utiliza configuración centralizada y tipada en `src/config/`:
 - **`cookieConfig.ts`** - Configuración segura de cookies con FastifyCookieOptions
 - **`throttlerConfig.ts`** - Configuración de rate limiting con desactivación automática en tests
 
-> 📖 **Documentación detallada**: Cada módulo de configuración tiene documentación completa en [`/docs`](./docs/)
+> 📖 **Documentación detallada**: Cada módulo de configuración tiene documentación completa en [`/docs`](./docs/) incluyendo [PINO_LOGGER.md](./docs/PINO_LOGGER.md) para el sistema de logging estructurado
 
 ## 🛡️ Seguridad
 
@@ -172,7 +167,7 @@ Configuración adaptativa según el entorno:
 
 ## 📚 Documentación API
 
-Swagger UI disponible en: `http://localhost:4200/v1/docs`
+Swagger UI disponible en: `http://localhost:3000/v1/docs`
 
 ## 🏗️ Arquitectura
 
@@ -225,16 +220,17 @@ pnpm test:cov
 pnpm test:watch
 ```
 
-### Configuración de Testing
+### Testing
 
-- **Jest**: Framework de testing
-- **Supertest**: Testing de endpoints
+- **Jest**: Framework de testing con @swc/jest para compilación rápida
+- **Supertest**: Testing de endpoints HTTP
 - **TestingModule**: Módulos de testing de NestJS
+- **Coverage**: Reportes separados para unit tests y e2e tests
 - **Environment**: Throttling deshabilitado automáticamente en tests
 
 ## 📦 Dependencias Principales
 
-### Runtime
+### Dependencias Principales
 
 - `@nestjs/core` - Framework principal
 - `@nestjs/platform-fastify` - Adaptador Fastify
@@ -243,14 +239,19 @@ pnpm test:watch
 - `@nestjs/throttler` - Rate limiting
 - `nestjs-pino` - Logging estructurado
 - `fastify` - Servidor HTTP de alto rendimiento
+- `pino-roll` - Rotación de archivos de log
+- `class-validator` - Validación de datos
 
-### Development
+### Dependencias de Desarrollo
 
 - `typescript` - Lenguaje principal
-- `eslint` - Linting
+- `eslint` - Linting con typescript-eslint
 - `prettier` - Formateo de código
 - `jest` - Framework de testing
+- `@swc/core` - Compilador rápido para tests
 - `commitlint` - Validación de commits
+- `husky` - Git hooks
+- `supertest` - Testing de endpoints
 
 ## 🔗 Recursos Útiles
 
@@ -260,7 +261,7 @@ pnpm test:watch
 - **[Configuración de Cookies](./docs/COOKIE_CONFIG.md)** - Seguridad y manejo de cookies
 - **[Configuración de CORS](./docs/CORS_CONFIG.md)** - Cross-origin resource sharing y whitelist
 - **[Configuración de Throttling](./docs/THROTTLER_CONFIG.md)** - Rate limiting y protección contra abuso
-- **[Documentación Adicional](./docs/)** - Más guías y configuraciones
+- **[Configuración de Logging](./docs/PINO_LOGGER.md)** - Sistema de logging estructurado con rotación de archivos
 
 ### Documentación Externa
 

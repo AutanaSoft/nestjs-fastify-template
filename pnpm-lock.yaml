@@ -134,6 +134,9 @@ importers:
       nyc:
         specifier: ^17.1.0
         version: 17.1.0
+      pino-roll:
+        specifier: ^3.1.0
+        version: 3.1.0
       prettier:
         specifier: ^3.4.2
         version: 3.6.2
@@ -3187,6 +3190,12 @@ packages:
       }
     engines: { node: '>=12' }
 
+  date-fns@4.1.0:
+    resolution:
+      {
+        integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==,
+      }
+
   dateformat@4.6.3:
     resolution:
       {
@@ -5711,6 +5720,12 @@ packages:
         integrity: sha512-cQBBIVG3YajgoUjo1FdKVRX6t9XPxwB9lcNJVD5GCnNM4Y6T12YYx8c6zEejxQsU0wrg9TwmDulcE9LR7qcJqA==,
       }
     hasBin: true
+
+  pino-roll@3.1.0:
+    resolution:
+      {
+        integrity: sha512-UimuzDe5FJSqzHZjBOQIgXArc6GE8rcJ7XsmhMkTI37msWqeI8yOqNKdPH3qucrvSxdL+y+GksqPTgQlSFWFEQ==,
+      }
 
   pino-std-serializers@7.0.0:
     resolution:
@@ -9282,6 +9297,8 @@ snapshots:
 
   dargs@8.1.0: {}
 
+  date-fns@4.1.0: {}
+
   dateformat@4.6.3: {}
 
   debug@4.4.1:
@@ -10911,6 +10928,11 @@ snapshots:
       secure-json-parse: 2.7.0
       sonic-boom: 4.2.0
       strip-json-comments: 3.1.1
+
+  pino-roll@3.1.0:
+    dependencies:
+      date-fns: 4.1.0
+      sonic-boom: 4.2.0
 
   pino-std-serializers@7.0.0: {}
 
