@@ -1,53 +1,244 @@
+# NestJS Template with Fastify
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+<p align="center">
+  Un template avanzado de <a href="http://nestjs.com/" target="_blank">NestJS</a> con <a href="https://fastify.dev/" target="_blank">Fastify</a>, configuración centralizada y mejores prácticas de desarrollo.
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-^20.0.0-green" alt="Node.js Version" />
+  <img src="https://img.shields.io/badge/NestJS-^11.0.0-red" alt="NestJS Version" />
+  <img src="https://img.shields.io/badge/Fastify-^5.4.0-blue" alt="Fastify Version" />
+  <img src="https://img.shields.io/badge/TypeScript-^5.7.3-blue" alt="TypeScript Version" />
+  <img src="https://img.shields.io/badge/pnpm-^9.0.0-orange" alt="pnpm Version" />
+</p>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## ✨ Características Principales
 
-## Project setup
+- 🚀 **Fastify**: Adaptador de alto rendimiento en lugar de Express
+- ⚙️ **Configuración Centralizada**: Sistema robusto con `@nestjs/config` y variables de entorno
+- 🛡️ **Seguridad**: CORS, CSRF protection, Helmet, y Rate Limiting con `@nestjs/throttler`
+- 📝 **Logging**: Integración con Pino para logging estructurado y de alto rendimiento
+- 📚 **Documentación**: Swagger/OpenAPI automático
+- 🧪 **Testing**: Jest configurado para unit tests y e2e tests
+- 📏 **Code Quality**: ESLint, Prettier, y Commitlint configurados
+- 🏗️ **Arquitectura**: Patrón de barrel exports y módulos bien estructurados
+- 🔍 **Interceptors**: Correlation ID para trazabilidad de requests
+
+## 🚀 Inicio Rápido
+
+### Prerequisitos
+
+- Node.js >= 20.0.0
+- pnpm >= 9.0.0
+
+### Instalación
 
 ```bash
-$ pnpm install
+# Clonar el repositorio
+git clone <repository-url>
+cd nest-template
+
+# Instalar dependencias
+pnpm install
+
+# Configurar variables de entorno (opcional)
+cp .env.example .env
 ```
 
-## Compile and run the project
+### Desarrollo
 
 ```bash
-# development
-$ pnpm run start
+# Modo desarrollo con hot reload
+pnpm start:dev
 
-# watch mode
-$ pnpm run start:dev
+# Modo producción
+pnpm start:prod
 
-# production mode
-$ pnpm run start:prod
+# Modo debug
+pnpm start:debug
 ```
 
-## Run tests
+La aplicación estará disponible en `http://localhost:4200/v1`
+
+## 📋 Scripts Disponibles
 
 ```bash
-# unit tests
+# Desarrollo
+pnpm start:dev          # Servidor con hot reload
+pnpm start:debug        # Servidor en modo debug
+
+# Testing
+pnpm test               # Unit tests
+pnpm test:watch         # Unit tests en modo watch
+pnpm test:e2e           # End-to-end tests
+pnpm test:cov           # Coverage report
+
+# Code Quality
+pnpm lint               # ESLint con auto-fix
+pnpm format             # Prettier formatting
+
+# Build
+pnpm build              # Compilar para producción
+pnpm start:prod         # Ejecutar build de producción
+```
+
+## ⚙️ Configuración
+
+### Variables de Entorno
+
+```bash
+# Aplicación
+APP_PORT=4200
+APP_PREFIX=v1
+APP_NAME="NestJS Template"
+APP_VERSION="1.0.0"
+APP_ENV=development
+APP_LOG_LEVEL=debug
+
+# Rate Limiting
+THROTTLER_TTL=60000     # Ventana de tiempo (ms)
+THROTTLER_LIMIT=10      # Límite de requests por ventana
+
+# CORS (separadas por comas)
+CORS_ORIGINS=http://localhost:3000,http://localhost:4200
+CORS_METHODS=GET,POST,PUT,DELETE,PATCH
+CORS_CREDENTIALS=true
+
+# Cookies
+COOKIE_SECRET=your-secret-key
+COOKIE_SECURE=false     # true en producción
+```
+
+### Configuración de Módulos
+
+El proyecto utiliza configuración centralizada en `src/config/`:
+
+- `appConfig.ts` - Configuración general de la aplicación
+- `corsConfig.ts` - Configuración de CORS
+- `cookieConfig.ts` - Configuración de cookies
+- `throttlerConfig.ts` - Configuración de rate limiting
+
+## 🛡️ Seguridad
+
+### Rate Limiting
+
+```typescript
+// Global: 10 requests por minuto (configurable)
+// Personalizado por endpoint:
+@Throttle({ default: { limit: 3, ttl: 60000 } })
+
+// Omitir throttling:
+@SkipThrottle()
+```
+
+### CORS
+
+Configuración robusta con whitelist de orígenes permitidos.
+
+### Protecciones Adicionales
+
+- **Helmet**: Headers de seguridad
+- **CSRF Protection**: Protección contra ataques CSRF
+- **Validation**: Validación automática con `class-validator`
+
+## 📚 Documentación API
+
+Swagger UI disponible en: `http://localhost:4200/v1/docs`
+
+## 🏗️ Arquitectura
+
+```
+src/
+├── config/              # Configuraciones centralizadas
+├── shared/              # Módulos compartidos e infraestructura
+│   ├── infrastructure/  # Interceptors, middleware, adapters
+│   ├── application/     # Decorators y servicios de aplicación
+│   └── domain/         # Entidades e interfaces de dominio
+├── app.module.ts       # Módulo principal
+├── app.controller.ts   # Controlador principal
+├── app.service.ts      # Servicio principal
+└── main.ts            # Bootstrap de la aplicación
+```
+
+### Patrones Implementados
+
+- **Barrel Exports**: Imports limpios con `index.ts`
+- **Configuración por Factory**: Configuración asíncrona tipada
+- **Guards Globales**: Rate limiting y autenticación
+- **Interceptors Globales**: Correlation ID y logging
+
+## 🧪 Testing
+
+```bash
+# Unit tests
+pnpm test
+
+# E2E tests
+pnpm test:e2e
+
+# Coverage
+pnpm test:cov
+
+# Watch mode
+pnpm test:watch
+```
+
+### Configuración de Testing
+
+- **Jest**: Framework de testing
+- **Supertest**: Testing de endpoints
+- **TestingModule**: Módulos de testing de NestJS
+- **Environment**: Throttling deshabilitado automáticamente en tests
+
+## 📦 Dependencias Principales
+
+### Runtime
+- `@nestjs/core` - Framework principal
+- `@nestjs/platform-fastify` - Adaptador Fastify
+- `@nestjs/config` - Gestión de configuración
+- `@nestjs/swagger` - Documentación automática
+- `@nestjs/throttler` - Rate limiting
+- `nestjs-pino` - Logging estructurado
+- `fastify` - Servidor HTTP de alto rendimiento
+
+### Development
+- `typescript` - Lenguaje principal
+- `eslint` - Linting
+- `prettier` - Formateo de código
+- `jest` - Framework de testing
+- `commitlint` - Validación de commits
+
+## 🔗 Recursos Útiles
+
+- [Documentación de NestJS](https://docs.nestjs.com)
+- [Documentación de Fastify](https://fastify.dev/docs)
+- [Guía de Throttler](./docs/THROTTLER.md)
+
+## 📄 Licencia
+
+Este proyecto está licenciado bajo la [Licencia MIT](LICENSE).
+
+## 🤝 Contribuciones
+
+Las contribuciones son bienvenidas. Por favor:
+
+1. Fork el repositorio
+2. Crea una branch para tu feature (`git checkout -b feature/amazing-feature`)
+3. Commit tus cambios siguiendo conventional commits
+4. Push a la branch (`git push origin feature/amazing-feature`)
+5. Abre un Pull Request
+
+## 📞 Soporte
+
+Si tienes preguntas o necesitas ayuda:
+
+- Abre un [Issue](https://github.com/AutanaSoft/nestjs-fastify-template/issues)
+- Revisa la [documentación](./docs/)
+- Contacta al equipo de desarrollo
 $ pnpm run test
 
 # e2e tests

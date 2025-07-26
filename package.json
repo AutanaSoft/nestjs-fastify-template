@@ -1,10 +1,31 @@
 {
-  "name": "nest-template",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
-  "private": true,
-  "license": "UNLICENSED",
+  "name": "nestjs-fastify-template",
+  "version": "1.0.0",
+  "description": "NestJS template with Fastify, centralized configuration, and production-ready best practices",
+  "author": "AutanaSoft <admin@autanasoft.com>",
+  "private": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AutanaSoft/nestjs-fastify-template.git"
+  },
+  "keywords": [
+    "nestjs",
+    "fastify",
+    "typescript",
+    "template",
+    "starter",
+    "boilerplate",
+    "rest-api",
+    "microservice",
+    "throttling",
+    "cors",
+    "swagger"
+  ],
+  "homepage": "https://github.com/AutanaSoft/nestjs-fastify-template#readme",
+  "bugs": {
+    "url": "https://github.com/AutanaSoft/nestjs-fastify-template/issues"
+  },
   "scripts": {
     "start": "nest start",
     "start:dev": "nest start --watch",
