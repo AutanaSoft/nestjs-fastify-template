@@ -3,12 +3,13 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { appConfig, cookieConfig } from './config';
+import corsConfig from './config/corsConfig';
 import { SharedModule } from './shared';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [appConfig, cookieConfig],
+      load: [appConfig, cookieConfig, corsConfig],
       envFilePath: ['.env', '.env.local'],
       isGlobal: true,
     }),

@@ -1,5 +1,5 @@
 import fastifyCookie, { FastifyCookieOptions } from '@fastify/cookie';
-import fastifyCors from '@fastify/cors';
+import fastifyCors, { FastifyCorsOptions } from '@fastify/cors';
 import fastifyCsrf from '@fastify/csrf-protection';
 import helmet from '@fastify/helmet';
 import { ValidationPipe } from '@nestjs/common';
@@ -24,10 +24,11 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const appConf = configService.get<AppConfig>('appConfig')!;
   const cookieConf = configService.get<FastifyCookieOptions>('cookieConfig')!;
+  const corsConf = configService.get<FastifyCorsOptions>('corsConfig')!;
 
   // configure application settings
   await app.register(helmet);
-  await app.register(fastifyCors, {});
+  await app.register(fastifyCors, corsConf);
   await app.register(fastifyCookie, cookieConf);
   await app.register(fastifyCsrf);
   app.useGlobalPipes(
