@@ -207,17 +207,17 @@ src/
 ## 🧪 Testing
 
 ```bash
-# Unit tests
+# Tests completos (unit + e2e + merge de coverage)
 pnpm test
 
-# E2E tests
+# Solo unit tests con coverage
+pnpm test:unit
+
+# Solo e2e tests con coverage
 pnpm test:e2e
 
-# Coverage
-pnpm test:cov
-
-# Watch mode
-pnpm test:watch
+# Fusionar reportes de coverage
+pnpm coverage:merge
 ```
 
 ### Testing
