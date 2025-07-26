@@ -10,7 +10,7 @@ import { HelloModule } from '@modules/hello/hello.module';
   imports: [
     ConfigModule.forRoot({
       load: [appConfig, cookieConfig, corsConfig, throttlerConfig],
-      envFilePath: ['.env', '.env.local'],
+      envFilePath: ['.env'],
       isGlobal: true,
     }),
     SharedModule,
