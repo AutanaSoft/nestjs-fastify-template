@@ -95,55 +95,80 @@ pnpm start:prod         # Ejecutar build de producción
 APP_PORT=4200
 APP_PREFIX=v1
 APP_NAME="NestJS Template"
+APP_DESCRIPTION="NestJS Template Application"
 APP_VERSION="1.0.0"
 APP_ENV=development
+APP_HOST=localhost
 APP_LOG_LEVEL=debug
 
 # Rate Limiting
-THROTTLER_TTL=60000     # Ventana de tiempo (ms)
-THROTTLER_LIMIT=10      # Límite de requests por ventana
+THROTTLER_TTL=60000     # Ventana de tiempo en ms (60 segundos)
+THROTTLER_LIMIT=100     # Límite de requests por ventana
 
-# CORS (separadas por comas)
-CORS_ORIGINS=http://localhost:3000,http://localhost:4200
-CORS_METHODS=GET,POST,PUT,DELETE,PATCH
-CORS_CREDENTIALS=true
+# CORS
+CORS_ORIGIN_WHITELIST=http://localhost:3000,http://localhost:4200
+CORS_METHODS=GET,HEAD,PUT,PATCH,POST,DELETE
+CORS_ALLOWED_HEADERS=Content-Type,Authorization,Accept,Origin,X-Requested-With,X-Correlation-Id
+CORS_EXPOSED_HEADERS=X-Total-Count,X-Correlation-Id
 
 # Cookies
-COOKIE_SECRET=your-secret-key
-COOKIE_SECURE=false     # true en producción
+COOKIE_SECRET=your-secure-secret-key-change-in-production
+COOKIE_HTTP_ONLY=true
+COOKIE_SAME_SITE=lax
+COOKIE_DOMAIN=          # Opcional: dominio específico
 ```
 
 ### Configuración de Módulos
 
-El proyecto utiliza configuración centralizada en `src/config/`:
+El proyecto utiliza configuración centralizada y tipada en `src/config/`:
 
-- `appConfig.ts` - Configuración general de la aplicación
-- `corsConfig.ts` - Configuración de CORS
-- `cookieConfig.ts` - Configuración de cookies
-- `throttlerConfig.ts` - Configuración de rate limiting
+- **`appConfig.ts`** - Configuración general de la aplicación (puerto, entorno, logging)
+- **`corsConfig.ts`** - Configuración de CORS con whitelist inteligente de orígenes
+- **`cookieConfig.ts`** - Configuración segura de cookies con FastifyCookieOptions
+- **`throttlerConfig.ts`** - Configuración de rate limiting con desactivación automática en tests
+
+> 📖 **Documentación detallada**: Cada módulo de configuración tiene documentación completa en [`/docs`](./docs/)
 
 ## 🛡️ Seguridad
 
-### Rate Limiting
+### Rate Limiting (Throttling)
+
+Protección automática contra ataques de fuerza bruta y abuso de API:
 
 ```typescript
-// Global: 10 requests por minuto (configurable)
+// Configuración global: 100 requests por minuto (configurable)
 // Personalizado por endpoint:
-@Throttle({ default: { limit: 3, ttl: 60000 } })
+@Throttle({ default: { limit: 10, ttl: 60000 } })
+@Get('sensitive')
+getSensitiveData() { /* ... */ }
 
 // Omitir throttling:
 @SkipThrottle()
+@Get('public')
+getPublicData() { /* ... */ }
 ```
 
-### CORS
+### CORS (Cross-Origin Resource Sharing)
 
-Configuración robusta con whitelist de orígenes permitidos.
+Configuración robusta con whitelist de orígenes:
+
+- **Desarrollo**: Permite cualquier origen si la whitelist está vacía
+- **Producción**: Solo orígenes explícitamente permitidos
+- **Credentials**: Habilitado para autenticación con cookies
+
+### Cookies Seguras
+
+Configuración adaptativa según el entorno:
+
+- **Producción**: `secure: true`, `signed: true`, `sameSite: 'lax'`
+- **Desarrollo**: `secure: false`, `signed: false`, `sameSite: 'none'`
+- **Tests**: Automáticamente configurado para testing
 
 ### Protecciones Adicionales
 
-- **Helmet**: Headers de seguridad
-- **CSRF Protection**: Protección contra ataques CSRF
+- **Helmet**: Headers de seguridad HTTP automáticos
 - **Validation**: Validación automática con `class-validator`
+- **Correlation ID**: Trazabilidad de requests con interceptor global
 
 ## 📚 Documentación API
 
@@ -153,23 +178,36 @@ Swagger UI disponible en: `http://localhost:4200/v1/docs`
 
 ```
 src/
-├── config/              # Configuraciones centralizadas
+├── config/              # Configuraciones centralizadas y tipadas
+│   ├── appConfig.ts     # Configuración general de la aplicación
+│   ├── corsConfig.ts    # Configuración CORS con whitelist
+│   ├── cookieConfig.ts  # Configuración segura de cookies
+│   ├── throttlerConfig.ts # Configuración de rate limiting
+│   └── index.ts         # Barrel export para imports limpios
+├── modules/             # Módulos de funcionalidad específica
+│   └── hello/           # Ejemplo de módulo con arquitectura hexagonal
+│       ├── hello.module.ts
+│       ├── application/ # Casos de uso y servicios de aplicación
+│       ├── domain/      # Entidades y lógica de negocio
+│       └── infrastructure/ # Adapters y detalles técnicos
 ├── shared/              # Módulos compartidos e infraestructura
 │   ├── infrastructure/  # Interceptors, middleware, adapters
 │   ├── application/     # Decorators y servicios de aplicación
 │   └── domain/         # Entidades e interfaces de dominio
-├── app.module.ts       # Módulo principal
-├── app.controller.ts   # Controlador principal
+├── app.module.ts       # Módulo principal con configuración global
+├── app.controller.ts   # Controlador principal (health checks)
 ├── app.service.ts      # Servicio principal
-└── main.ts            # Bootstrap de la aplicación
+└── main.ts            # Bootstrap de la aplicación con Fastify
 ```
 
 ### Patrones Implementados
 
-- **Barrel Exports**: Imports limpios con `index.ts`
-- **Configuración por Factory**: Configuración asíncrona tipada
-- **Guards Globales**: Rate limiting y autenticación
-- **Interceptors Globales**: Correlation ID y logging
+- **Barrel Exports**: Imports limpios con archivos `index.ts`
+- **Configuración Tipada**: Factory pattern con tipos TypeScript
+- **Arquitectura Hexagonal**: Separación clara de capas (domain, application, infrastructure)
+- **Guards Globales**: Rate limiting aplicado automáticamente
+- **Interceptors Globales**: Correlation ID para trazabilidad de requests
+- **Environment-Aware**: Comportamiento adaptativo según el entorno
 
 ## 🧪 Testing
 
@@ -197,6 +235,7 @@ pnpm test:watch
 ## 📦 Dependencias Principales
 
 ### Runtime
+
 - `@nestjs/core` - Framework principal
 - `@nestjs/platform-fastify` - Adaptador Fastify
 - `@nestjs/config` - Gestión de configuración
@@ -206,6 +245,7 @@ pnpm test:watch
 - `fastify` - Servidor HTTP de alto rendimiento
 
 ### Development
+
 - `typescript` - Lenguaje principal
 - `eslint` - Linting
 - `prettier` - Formateo de código
@@ -214,9 +254,61 @@ pnpm test:watch
 
 ## 🔗 Recursos Útiles
 
-- [Documentación de NestJS](https://docs.nestjs.com)
-- [Documentación de Fastify](https://fastify.dev/docs)
-- [Guía de Throttler](./docs/THROTTLER.md)
+### Documentación del Template
+
+- **[Configuración de la Aplicación](./docs/APP_CONFIG.md)** - Variables de entorno y configuración general
+- **[Configuración de Cookies](./docs/COOKIE_CONFIG.md)** - Seguridad y manejo de cookies
+- **[Configuración de CORS](./docs/CORS_CONFIG.md)** - Cross-origin resource sharing y whitelist
+- **[Configuración de Throttling](./docs/THROTTLER_CONFIG.md)** - Rate limiting y protección contra abuso
+- **[Documentación Adicional](./docs/)** - Más guías y configuraciones
+
+### Documentación Externa
+
+- [Documentación de NestJS](https://docs.nestjs.com) - Framework principal
+- [Documentación de Fastify](https://fastify.dev/docs) - Servidor HTTP de alto rendimiento
+- [Pino Logger](https://getpino.io/) - Logging estructurado y rápido
+- [Class Validator](https://github.com/typestack/class-validator) - Validación de datos
+
+## 🚀 Despliegue
+
+### Preparación para Producción
+
+```bash
+# Build de producción
+pnpm build
+
+# Ejecutar en producción
+pnpm start:prod
+```
+
+### Variables de Entorno de Producción
+
+```bash
+APP_ENV=production
+APP_PORT=3000
+APP_HOST=0.0.0.0
+APP_LOG_LEVEL=info
+
+# Seguridad
+COOKIE_SECRET=your-very-secure-random-string-min-32-chars
+COOKIE_HTTP_ONLY=true
+COOKIE_SAME_SITE=lax
+
+# CORS con orígenes específicos
+CORS_ORIGIN_WHITELIST=https://app.yourdomain.com,https://admin.yourdomain.com
+
+# Rate limiting conservador
+THROTTLER_TTL=60000
+THROTTLER_LIMIT=100
+```
+
+### Consideraciones de Despliegue
+
+- **Secrets**: Usa gestores de secretos para `COOKIE_SECRET` y otras claves
+- **Monitoring**: Configura logs estructurados con Pino para observabilidad
+- **Health Checks**: Endpoint `/health` disponible para load balancers
+- **CORS**: Define explícitamente todos los orígenes permitidos
+- **Rate Limiting**: Ajusta según tu patrón de tráfico esperado
 
 ## 📄 Licencia
 
@@ -236,54 +328,13 @@ Las contribuciones son bienvenidas. Por favor:
 
 Si tienes preguntas o necesitas ayuda:
 
-- Abre un [Issue](https://github.com/AutanaSoft/nestjs-fastify-template/issues)
-- Revisa la [documentación](./docs/)
-- Contacta al equipo de desarrollo
-$ pnpm run test
+- 📖 **Documentación**: Revisa la [documentación completa](./docs/) del template
+- 🐛 **Issues**: Abre un [Issue](https://github.com/AutanaSoft/nestjs-fastify-template/issues) para bugs o preguntas
+- 💬 **Discusiones**: Usa las [GitHub Discussions](https://github.com/AutanaSoft/nestjs-fastify-template/discussions) para ideas y feedback
+- 📧 **Contacto**: Contacta al equipo de desarrollo de AutanaSoft
 
-# e2e tests
-$ pnpm run test:e2e
+---
 
-# test coverage
-$ pnpm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+<p align="center">
+  Desarrollado con ❤️ por <a href="https://github.com/AutanaSoft">AutanaSoft</a>
+</p>
