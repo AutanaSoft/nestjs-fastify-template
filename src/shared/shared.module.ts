@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { ThrottlerConfig } from '../config';
+import { ThrottlerConfig } from '@config/throttlerConfig';
 import { CorrelationIdInterceptor } from './infrastructure/interceptors';
 import { PinoLoggerModule } from './pino-logger.module';
 

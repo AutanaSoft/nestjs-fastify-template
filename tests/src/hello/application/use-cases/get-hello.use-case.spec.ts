@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GetHelloUseCase } from '../../../../src/modules/hello/application/use-cases/get-hello.use-case';
-import { HelloService } from '../../../../src/modules/hello/domain/services/hello.service';
-import { HelloResponseDto } from '../../../../src/modules/hello/application/dto';
+import { GetHelloUseCase } from '../../../../../src/modules/hello/application/use-cases/get-hello.use-case';
+import { HelloService } from '../../../../../src/modules/hello/domain/services/hello.service';
+import { HelloResponseDto } from '../../../../../src/modules/hello/application/dto';
 
 describe('GetHelloUseCase', () => {
   let useCase: GetHelloUseCase;

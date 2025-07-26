@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SayHelloUseCase } from '../../../../src/modules/hello/application/use-cases/say-hello.use-case';
-import { HelloService } from '../../../../src/modules/hello/domain/services/hello.service';
+import { SayHelloUseCase } from '../../../../../src/modules/hello/application/use-cases/say-hello.use-case';
+import { HelloService } from '../../../../../src/modules/hello/domain/services/hello.service';
 import {
   HelloResponseDto,
   SayHelloRequestDto,
-} from '../../../../src/modules/hello/application/dto';
+} from '../../../../../src/modules/hello/application/dto';
 
 describe('SayHelloUseCase', () => {
   let useCase: SayHelloUseCase;

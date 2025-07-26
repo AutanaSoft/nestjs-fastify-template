@@ -1,13 +1,7 @@
+import { HelloResponseDto, SayHelloRequestDto } from '@modules/hello/application/dto';
+import { GetHelloUseCase, SayHelloUseCase } from '@modules/hello/application/use-cases';
+import { HelloController } from '@modules/hello/infrastructure/controllers/hello.controller';
 import { Test, TestingModule } from '@nestjs/testing';
-import { HelloController } from '../../../../src/modules/hello/infrastructure/controllers/hello.controller';
-import {
-  GetHelloUseCase,
-  SayHelloUseCase,
-} from '../../../../src/modules/hello/application/use-cases';
-import {
-  HelloResponseDto,
-  SayHelloRequestDto,
-} from '../../../../src/modules/hello/application/dto';
 
 describe('HelloController', () => {
   let controller: HelloController;

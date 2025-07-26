@@ -8,8 +8,8 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
-import { AppModule } from './app.module';
-import { AppConfig } from './config';
+import { AppModule } from '@/app.module';
+import { AppConfig } from '@config/appConfig';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
@@ -38,7 +38,7 @@ async function bootstrap() {
     }),
   );
 
-  app.setGlobalPrefix(appConf.prefix);
+  // app.setGlobalPrefix(appConf.prefix);
 
   // enable swagger
   const swaggerConfig = new DocumentBuilder()
@@ -48,18 +48,18 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('v1/docs', app, document);
+  SwaggerModule.setup('docs', app, document);
 
   await app.listen(appConf.port, '0.0.0.0');
 
   // log application startup details
-  logger.log(`Running on: http://localhost:${appConf.port}/${appConf.prefix}`);
+  logger.log(`Running on: http://localhost:${appConf.port}/`);
   logger.log(`Environment: ${appConf.environment}`);
   logger.log(`Log Level: ${appConf.logLevel}`);
 }
 
 // start the application
-bootstrap().catch((err) => {
+bootstrap().catch(err => {
   console.error('Error starting the application:', err);
   process.exit(1);
 });
