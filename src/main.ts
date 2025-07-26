@@ -37,6 +37,7 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
+
   app.setGlobalPrefix(appConf.prefix);
 
   // enable swagger

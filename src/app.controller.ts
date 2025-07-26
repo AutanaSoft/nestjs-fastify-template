@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiProperty, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { Expose } from 'class-transformer';
 import { IsNotEmpty, IsString } from 'class-validator';
 import { AppService } from './app.service';
@@ -22,6 +23,7 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get('hello')
+  @SkipThrottle() // Skip throttling for this endpoint
   @ApiOperation({ summary: 'Get a hello message' })
   @ApiResponse({ status: 200, description: 'Returns a hello message.' })
   getHello(): string {
@@ -37,9 +39,11 @@ export class AppController {
   }
 
   @Post('sayHello')
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // Custom throttle: 3 requests per minute
   @ApiOperation({ summary: 'Say hello to a user' })
   @ApiResponse({ status: 200, description: 'Returns a hello message.' })
   @ApiResponse({ status: 400, description: 'Bad request.' })
+  @ApiResponse({ status: 429, description: 'Too many requests.' })
   @ApiBody({ type: SayHelloDto })
   sayHello(@Body() body: SayHelloDto): string {
     console.log(`Saying hello to ${body.name}`);
