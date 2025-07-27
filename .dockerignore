@@ -1,0 +1,15 @@
+node_modules
+dist
+coverage
+logs
+.git
+.env*
+!.env.example
+!.env.devcontainer
+Dockerfile*
+docker-compose*
+*.md
+.vscode
+.devcontainer
+tests/
+*.log

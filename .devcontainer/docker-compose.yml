@@ -1,0 +1,24 @@
+services:
+  # NestJS Application - Development Override
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    environment:
+      - APP_ENV=development
+    volumes:
+      # Mount source code for hot reload using devcontainer standard path
+      - ..:/workspaces:cached
+
+    command: sleep infinity # Keep container running
+
+  # MariaDB - Expose port for development tools
+  mariadb:
+    ports:
+      - '3306:3306'
+
+  # Redis - Expose port for development tools
+  redis:
+    ports:
+      - '6379:6379'

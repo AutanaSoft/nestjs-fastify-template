@@ -1,4 +1,4 @@
-# Build stage
+# Build stage - Using Alpine for optimized build
 FROM node:alpine AS builder
 
 # Install pnpm
@@ -21,6 +21,21 @@ RUN pnpm prisma generate
 
 # Build the application
 RUN pnpm build
+
+# Development stage - Using Microsoft's official devcontainer image
+FROM mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm AS development
+
+# Set working directory to devcontainer standard path
+WORKDIR /workspaces/nest-template
+
+# Switch to node user
+USER node
+
+# Expose port
+EXPOSE 4200
+
+# Keep container running for devcontainer
+CMD ["sh", "-c", "while sleep 1000; do :; done"]
 
 # Production stage
 FROM node:alpine AS production
