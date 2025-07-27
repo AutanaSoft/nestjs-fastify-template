@@ -1,12 +1,18 @@
 import { Controller, Get } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AppService } from '@/app.service';
-import { AppConfig } from '@/config';
+import { AppConfig } from '@config/appConfig';
+import { PrismaService } from '@shared/infrastructure/adapters';
 
 @ApiTags('Application')
 @Controller('app')
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly configService: ConfigService,
+    private readonly prismaService: PrismaService,
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -30,30 +36,28 @@ export class AppController {
     return this.appService.getAppInfo();
   }
 
+  @Get('health')
+  @ApiOperation({ summary: 'Health check endpoint' })
+  @ApiResponse({ status: 200, description: 'Application is healthy' })
+  async getHealth() {
+    const dbHealth = await this.prismaService.healthCheck();
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      database: dbHealth,
+      ...this.appService.getAppInfo(),
+    };
+  }
+
   @Get('settings')
-  @ApiOperation({
-    summary: 'Get application settings',
-    description: 'Returns current application configuration settings',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Application settings retrieved successfully',
-    type: 'object',
-    schema: {
-      type: 'object',
-      properties: {
-        port: { type: 'number', example: 4200 },
-        prefix: { type: 'string', example: 'v1' },
-        env: { type: 'string', example: 'development' },
-        name: { type: 'string', example: 'nest-template' },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Settings not found',
-  })
-  getAppSettings(): AppConfig {
-    return this.appService.getAppSettings();
+  @ApiOperation({ summary: 'Get application settings' })
+  @ApiResponse({ status: 200, description: 'Application settings' })
+  getSettings() {
+    const appConfig = this.configService.get<AppConfig>('appConfig')!;
+    return {
+      name: appConfig.name,
+      version: appConfig.version,
+      environment: appConfig.environment,
+    };
   }
 }

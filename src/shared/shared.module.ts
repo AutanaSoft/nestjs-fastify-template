@@ -4,11 +4,13 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerConfig } from '@config/throttlerConfig';
 import { CorrelationIdInterceptor } from './infrastructure/interceptors';
+import { DatabaseModule } from './infrastructure/adapters';
 import { PinoLoggerModule } from './pino-logger.module';
 
 @Module({
   imports: [
     PinoLoggerModule,
+    DatabaseModule,
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
