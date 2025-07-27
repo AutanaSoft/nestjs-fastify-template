@@ -1,0 +1,63 @@
+# Build stage
+FROM node:alpine AS builder
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Generate Prisma client
+RUN pnpm prisma generate
+
+# Build the application
+RUN pnpm build
+
+# Production stage
+FROM node:alpine AS production
+
+# Install pnpm and wget for health checks
+RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN apk add --no-cache wget
+
+# Create app user for security
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nestjs -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Install only production dependencies
+RUN pnpm install --frozen-lockfile --production --ignore-scripts
+
+# Copy built application and prisma schema from builder stage
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# Create logs directory
+RUN mkdir -p logs && chown -R nestjs:nodejs logs
+
+# Change ownership of the app directory
+RUN chown -R nestjs:nodejs /app
+
+# Switch to non-root user
+USER nestjs
+
+# Expose port
+EXPOSE 4200
+
+# Start the application
+CMD ["node", "dist/main"]
