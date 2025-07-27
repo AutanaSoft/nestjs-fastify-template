@@ -7,13 +7,7 @@ services:
     container_name: nestjs-app
     restart: unless-stopped
     ports:
-      - '${APP_PORT:-4200}:4200'
-    environment:
-      - APP_ENV=production
-      - APP_PORT=4200
-      - DATABASE_URL=mysql://${MYSQL_USER:-nestjs}:${MYSQL_PASSWORD:-nestjs123}@mariadb:3306/${MYSQL_DATABASE:-nestjs_app}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - '${APP_PORT:-4200}:${APP_PORT:-4200}'
     depends_on:
       mariadb:
         condition: service_healthy
@@ -23,7 +17,14 @@ services:
       - app-network
     healthcheck:
       test:
-        ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:4200/app/health']
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:${APP_PORT:-4200}/app/health',
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -35,8 +36,8 @@ services:
     container_name: nestjs-mariadb
     restart: unless-stopped
     # Comment out ports for production - only internal access
-    # ports:
-    #   - "${DB_PORT:-3306}:3306"
+    ports:
+      - '${DB_PORT:-3306}:3306'
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root123}
       - MYSQL_DATABASE=${MYSQL_DATABASE:-nestjs_app}

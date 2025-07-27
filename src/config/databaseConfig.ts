@@ -19,7 +19,7 @@ export default registerAs('databaseConfig', (): DatabaseConfig => {
     : 'postgresql';
 
   return {
-    url: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/nestdb',
+    url: process.env.DATABASE_URL || 'mysql://nestjs:nestjs@mariadb:3306/nestjs_app',
     provider: selectedProvider,
     logging: process.env.DATABASE_LOGGING === 'true',
     ssl: process.env.DATABASE_SSL === 'true',
