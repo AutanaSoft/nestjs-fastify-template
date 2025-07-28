@@ -62,7 +62,7 @@ pnpm start:prod
 pnpm start:debug
 ```
 
-La aplicación estará disponible en `http://localhost:3000/v1`
+La aplicación estará disponible en `http://localhost:4200/`
 
 ## 📋 Scripts Disponibles
 
@@ -99,7 +99,7 @@ pnpm prepare            # Configurar hooks de Husky
 ```bash
 # Variables requeridas para producción
 APP_ENV=production
-APP_PORT=3000
+APP_PORT=4200
 APP_HOST=0.0.0.0
 LOG_LEVEL=info
 LOG_DIR=/var/log/app
@@ -167,7 +167,7 @@ Configuración adaptativa según el entorno:
 
 ## 📚 Documentación API
 
-Swagger UI disponible en: `http://localhost:3000/v1/docs`
+Swagger UI disponible en: `http://localhost:4200/v1/docs`
 
 ## 🏗️ Arquitectura
 
@@ -286,7 +286,7 @@ pnpm start:prod
 
 ```bash
 APP_ENV=production
-APP_PORT=3000
+APP_PORT=4200
 APP_HOST=0.0.0.0
 APP_LOG_LEVEL=info
 
