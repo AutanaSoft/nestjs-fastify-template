@@ -1,10 +1,11 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerConfig } from '@config/throttlerConfig';
-import { CorrelationIdInterceptor } from './infrastructure/interceptors';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { CorrelationService } from './application/services';
 import { DatabaseModule } from './infrastructure/adapters';
+import { CorrelationIdMiddleware } from './infrastructure/middleware';
 import { PinoLoggerModule } from './pino-logger.module';
 
 @Module({
@@ -27,15 +28,16 @@ import { PinoLoggerModule } from './pino-logger.module';
     }),
   ],
   providers: [
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: CorrelationIdInterceptor,
-    },
+    CorrelationService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
   ],
-  exports: [],
+  exports: [CorrelationService],
 })
-export class SharedModule {}
+export class SharedModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(CorrelationIdMiddleware).forRoutes('*');
+  }
+}

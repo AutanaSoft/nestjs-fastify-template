@@ -1,5 +1,3 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { AppController } from '@/app.controller';
 import { AppService } from '@/app.service';
 import {
@@ -9,9 +7,11 @@ import {
   databaseConfig,
   throttlerConfig,
 } from '@config/index';
-import { SharedModule } from '@shared/shared.module';
 import { HelloModule } from '@modules/hello/hello.module';
 import { UserModule } from '@modules/user/user.module';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { SharedModule } from '@shared/shared.module';
 
 @Module({
   imports: [

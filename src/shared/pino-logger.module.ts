@@ -1,16 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { FastifyRequest } from 'fastify';
 import { LoggerModule } from 'nestjs-pino';
-import { IncomingMessage } from 'node:http';
 import { join } from 'node:path';
+import { CorrelationService } from './application/services';
 
 @Module({
   imports: [
     LoggerModule.forRootAsync({
       imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
+      inject: [ConfigService, CorrelationService],
+      useFactory: (config: ConfigService, correlationService: CorrelationService) => {
         const logLevel = config.get<string>('LOG_LEVEL', 'info');
         const logDir = config.get<string>('LOG_DIR', join(process.cwd(), 'logs'));
         const logMaxSize = config.get<number>('LOG_MAX_SIZE', 10485760);
@@ -71,19 +70,10 @@ import { join } from 'node:path';
               responseTime: 'timeTaken',
             },
             timestamp: () => `,"time":"${new Date().toISOString()}"`,
-            customProps: (req: IncomingMessage) => {
-              const headerValue = req.headers['x-correlation-id'];
-              const correlationIdFromRequest = (
-                req as unknown as FastifyRequest & { correlationId?: string }
-              ).correlationId;
-              const correlationId =
-                (Array.isArray(headerValue) ? headerValue[0] : headerValue) ||
-                correlationIdFromRequest ||
-                crypto.randomUUID();
-
+            customProps: () => {
               return {
-                context: req.url || 'HTTP',
-                correlationId,
+                context: 'HTTP',
+                correlationId: correlationService.getCorrelationId(),
               };
             },
             redact: {
