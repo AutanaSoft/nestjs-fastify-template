@@ -3,12 +3,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import { join } from 'node:path';
 import { CorrelationService } from './application/services';
+import { IncomingMessage } from 'node:http';
 
 @Module({
   imports: [
     LoggerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService, CorrelationService],
+      providers: [CorrelationService],
       useFactory: (config: ConfigService, correlationService: CorrelationService) => {
         const logLevel = config.get<string>('LOG_LEVEL', 'info');
         const logDir = config.get<string>('LOG_DIR', join(process.cwd(), 'logs'));
@@ -70,9 +72,9 @@ import { CorrelationService } from './application/services';
               responseTime: 'timeTaken',
             },
             timestamp: () => `,"time":"${new Date().toISOString()}"`,
-            customProps: () => {
+            customProps: (req: IncomingMessage) => {
               return {
-                context: 'HTTP',
+                context: req.url || 'HTTP',
                 correlationId: correlationService.getCorrelationId(),
               };
             },
@@ -96,7 +98,7 @@ import { CorrelationService } from './application/services';
       },
     }),
   ],
-  providers: [],
+  providers: [CorrelationService],
   exports: [],
 })
 export class PinoLoggerModule {}
