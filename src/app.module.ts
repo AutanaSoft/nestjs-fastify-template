@@ -11,6 +11,7 @@ import {
 } from '@config/index';
 import { SharedModule } from '@shared/shared.module';
 import { HelloModule } from '@modules/hello/hello.module';
+import { UserModule } from '@modules/user/user.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { HelloModule } from '@modules/hello/hello.module';
     }),
     SharedModule,
     HelloModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
