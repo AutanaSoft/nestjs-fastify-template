@@ -39,10 +39,10 @@ services:
     ports:
       - '${DB_PORT:-3306}:3306'
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root123}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-nestjs}
       - MYSQL_DATABASE=${MYSQL_DATABASE:-nestjs_app}
       - MYSQL_USER=${MYSQL_USER:-nestjs}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-nestjs123}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-nestjs}
     volumes:
       - mariadb_data:/var/lib/mysql
     networks:
