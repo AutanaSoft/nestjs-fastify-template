@@ -4,27 +4,22 @@ import { AsyncLocalStorage } from 'async_hooks';
 
 @Injectable()
 export class CorrelationService {
-  private readonly als = new AsyncLocalStorage<Map<string, string>>();
+  private readonly als = new AsyncLocalStorage<string>();
 
-  run(callback: () => void) {
-    this.als.run(new Map(), callback);
+  /**
+   * Runs a function within an asynchronous context with a correlation ID.
+   * @param correlationId The correlation ID for the current request.
+   * @param callback The function to execute.
+   */
+  run(correlationId: string, callback: () => void): void {
+    this.als.run(correlationId, callback);
   }
 
-  set(key: string, value: string) {
-    const store = this.als.getStore();
-    console.log('Store:', store);
-    if (store) {
-      store.set(key, value);
-    }
-    console.log(`Set ${key} to ${value} in correlation store`, store);
-  }
-
-  get(key: string): string | undefined {
-    return this.als.getStore()?.get(key);
-  }
-
-  getCorrelationId(): string | undefined {
-    console.log('Retrieving correlation ID', this.als.getStore());
-    return this.get('correlationId');
+  /**
+   * Gets the correlation ID for the current request.
+   * @returns The correlation ID or undefined if not in context.
+   */
+  get(): string | undefined {
+    return this.als.getStore();
   }
 }

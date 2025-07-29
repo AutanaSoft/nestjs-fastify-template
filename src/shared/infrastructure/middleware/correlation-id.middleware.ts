@@ -23,11 +23,9 @@ export class CorrelationIdMiddleware implements NestMiddleware {
    * @param next - The next function in the middleware chain
    */
   use(req: FastifyRequest, res: ServerResponse, next: () => void): void {
-    this.correlationService.run(() => {
-      const correlationId = (req.headers['x-correlation-id'] as string) || randomUUID();
-      console.log('Setting correlation ID:', correlationId);
-      this.correlationService.set('correlationId', correlationId);
+    const correlationId = (req.headers['x-correlation-id'] as string) || randomUUID();
 
+    this.correlationService.run(correlationId, () => {
       res.setHeader('x-correlation-id', correlationId);
       next();
     });

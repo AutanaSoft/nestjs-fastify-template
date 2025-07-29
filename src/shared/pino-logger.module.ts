@@ -1,17 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
+import { IncomingMessage, ServerResponse } from 'node:http';
 import { join } from 'node:path';
-import { CorrelationService } from './application/services';
-import { IncomingMessage } from 'node:http';
 
 @Module({
   imports: [
     LoggerModule.forRootAsync({
       imports: [ConfigModule],
-      inject: [ConfigService, CorrelationService],
-      providers: [CorrelationService],
-      useFactory: (config: ConfigService, correlationService: CorrelationService) => {
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
         const logLevel = config.get<string>('LOG_LEVEL', 'info');
         const logDir = config.get<string>('LOG_DIR', join(process.cwd(), 'logs'));
         const logMaxSize = config.get<number>('LOG_MAX_SIZE', 10485760);
@@ -72,10 +70,10 @@ import { IncomingMessage } from 'node:http';
               responseTime: 'timeTaken',
             },
             timestamp: () => `,"time":"${new Date().toISOString()}"`,
-            customProps: (req: IncomingMessage) => {
+            customProps: (req: IncomingMessage, res: ServerResponse) => {
               return {
                 context: req.url || 'HTTP',
-                correlationId: correlationService.getCorrelationId(),
+                correlationId: res.getHeader('x-correlation-id'),
               };
             },
             redact: {
@@ -98,7 +96,7 @@ import { IncomingMessage } from 'node:http';
       },
     }),
   ],
-  providers: [CorrelationService],
+  providers: [],
   exports: [],
 })
 export class PinoLoggerModule {}
