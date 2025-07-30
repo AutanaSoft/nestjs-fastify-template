@@ -1,22 +1,31 @@
-import { Controller, Get } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AppService } from '@/app.service';
-import { AppConfig } from '@config/appConfig';
+import { Controller, Get } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { AppInfoResponseDto, HealthCheckResponseDto } from '@shared/application/dto';
 import { PrismaService } from '@shared/infrastructure/adapters';
-import { CorrelationService } from './shared/application/services';
 
+/**
+ * Main application controller for handling application-level requests.
+ * Provides endpoints for application information and health checks.
+ */
 @ApiTags('Application')
 @Controller('app')
 export class AppController {
+  /**
+   * Initializes the AppController with the AppService.
+   * @param appService - The application service for business logic.
+   * @param prismaService - The Prisma service for database interactions.
+   */
   constructor(
     private readonly appService: AppService,
-    private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-    private readonly correlationService: CorrelationService,
   ) {}
 
-  @Get()
+  /**
+   * Retrieves basic application information.
+   * @returns An object containing application details.
+   */
+  @Get('info')
   @ApiOperation({
     summary: 'Get application info',
     description:
@@ -25,43 +34,24 @@ export class AppController {
   @ApiResponse({
     status: 200,
     description: 'Application information retrieved successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        message: { type: 'string', example: 'Welcome to NestJS Template API' },
-        name: { type: 'string', example: 'nest-template' },
-        version: { type: 'string', example: '1.0.0' },
-      },
-    },
+    type: AppInfoResponseDto,
   })
-  getAppInfo(): { message: string; name: string; version: string } {
+  getAppInfo(): AppInfoResponseDto {
     return this.appService.getAppInfo();
   }
 
+  /**
+   * Provides an endpoint to check the health of the application.
+   * @returns A promise that resolves to the application's health status.
+   */
   @Get('health')
   @ApiOperation({ summary: 'Health check endpoint' })
-  @ApiResponse({ status: 200, description: 'Application is healthy' })
-  async getHealth() {
-    const dbHealth = await this.prismaService.healthCheck();
-    const correlationId = this.correlationService.get();
-    return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      database: dbHealth,
-      ...this.appService.getAppInfo(),
-      correlationId,
-    };
-  }
-
-  @Get('settings')
-  @ApiOperation({ summary: 'Get application settings' })
-  @ApiResponse({ status: 200, description: 'Application settings' })
-  getSettings() {
-    const appConfig = this.configService.get<AppConfig>('appConfig')!;
-    return {
-      name: appConfig.name,
-      version: appConfig.version,
-      environment: appConfig.environment,
-    };
+  @ApiResponse({
+    status: 200,
+    description: 'Application is healthy',
+    type: HealthCheckResponseDto,
+  })
+  async getHealth(): Promise<HealthCheckResponseDto> {
+    return this.appService.getHealth();
   }
 }

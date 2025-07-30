@@ -1,24 +1,59 @@
+import { AppConfig } from '@config/appConfig';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AppConfig } from '@config/appConfig';
+import { AppInfoResponseDto, HealthCheckResponseDto } from '@shared/application/dto';
+import { CorrelationService } from './shared/application';
+import { PrismaService } from './shared/infrastructure/adapters';
 
+/**
+ * Service responsible for handling application-level logic,
+ * such as retrieving application information and health status.
+ */
 @Injectable()
 export class AppService {
   private readonly appConfig: AppConfig;
 
-  constructor(private readonly configService: ConfigService) {
+  /**
+   * Initializes the AppService with required dependencies.
+   * @param configService - Service for accessing configuration.
+   * @param prismaService - Service for database interactions.
+   * @param correlationService - Service for managing correlation IDs.
+   */
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly prismaService: PrismaService,
+    private readonly correlationService: CorrelationService,
+  ) {
     this.appConfig = configService.get<AppConfig>('appConfig')!;
   }
 
-  getAppInfo(): { message: string; name: string; version: string } {
+  /**
+   * Retrieves basic application information.
+   * @returns An object containing the application name, version, message, and correlation ID.
+   */
+  getAppInfo(): AppInfoResponseDto {
     return {
-      message: 'Welcome to NestJS Template API',
       name: this.appConfig.name,
       version: this.appConfig.version,
+      message: 'Welcome to NestJS Template API',
+      correlationId: this.correlationService.get() || '',
     };
   }
 
-  getAppSettings(): AppConfig {
-    return this.appConfig;
+  /**
+   * Performs a health check of the application and its database connection.
+   * @returns A promise that resolves to an object with the application's health status.
+   */
+  async getHealth(): Promise<HealthCheckResponseDto> {
+    const appInfo = this.getAppInfo();
+    const dbHealth = await this.prismaService.healthCheck(); // Assuming this method returns the database health status
+    return {
+      status: 'ok',
+      name: appInfo.name,
+      version: appInfo.version,
+      database: dbHealth,
+      correlationId: appInfo.correlationId || '',
+      timestamp: new Date().toISOString(),
+    };
   }
 }
