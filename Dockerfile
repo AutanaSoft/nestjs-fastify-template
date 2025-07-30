@@ -5,7 +5,7 @@ FROM node:alpine AS builder
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Set working directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
 # Copy package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -25,8 +25,8 @@ RUN pnpm build
 # Development stage - Using Microsoft's official devcontainer image
 FROM mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm AS development
 
-# Set working directory to devcontainer standard path
-WORKDIR /workspaces/nest-template
+# Set working directory
+WORKDIR /usr/src/app
 
 # Switch to node user
 USER node
@@ -49,7 +49,7 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nestjs -u 1001
 
 # Set working directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
 # Copy package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -58,15 +58,15 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile --production --ignore-scripts
 
 # Copy built application and prisma schema from builder stage
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/prisma ./prisma
+COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
 
 # Create logs directory
 RUN mkdir -p logs && chown -R nestjs:nodejs logs
 
 # Change ownership of the app directory
-RUN chown -R nestjs:nodejs /app
+RUN chown -R nestjs:nodejs /usr/src/app
 
 # Switch to non-root user
 USER nestjs
