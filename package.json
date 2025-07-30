@@ -38,6 +38,7 @@
     "test:unit": "jest tests/src --coverageDirectory coverage/unit",
     "test:e2e": "jest tests/e2e --coverageDirectory coverage/e2e",
     "coverage:merge": "ts-node scripts/merge-coverage.ts",
+    "seed": "ts-node prisma/seed.ts",
     "prepare": "husky"
   },
   "dependencies": {
@@ -101,5 +102,8 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   }
 }
