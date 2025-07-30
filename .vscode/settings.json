@@ -10,5 +10,8 @@
     "nestjs",
     "redis",
     "requirepass"
-  ]
+  ],
+  "prisma.scriptRunner": "pnpm",
+  "npm.scriptExplorerAction": "run",
+  "npm.enableRunFromFolder": true
 }
