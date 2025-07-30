@@ -15,6 +15,7 @@ async function main() {
       email,
       password: hashedPassword,
       role: 'ADMIN',
+      userName: 'Admin',
     },
   });
 }

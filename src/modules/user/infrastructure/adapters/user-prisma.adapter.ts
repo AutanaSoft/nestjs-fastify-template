@@ -29,6 +29,7 @@ export class UserPrismaAdapter extends UserRepository {
       data: {
         email: data.email,
         password: data.password_hash,
+        userName: data.userName,
       },
     });
     return this.toDomain(createdUser);

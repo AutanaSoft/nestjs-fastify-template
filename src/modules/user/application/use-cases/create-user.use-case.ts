@@ -22,6 +22,7 @@ export class CreateUserUseCase {
     const createdUser = await this.userRepository.create({
       email: createUserDto.email,
       password_hash,
+      userName: createUserDto.userName,
     });
 
     return new UserDto(createdUser);
