@@ -7,7 +7,6 @@ import {
   databaseConfig,
   throttlerConfig,
 } from '@config/index';
-import { HelloModule } from '@modules/hello/hello.module';
 import { UserModule } from '@modules/user/user.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -21,7 +20,6 @@ import { SharedModule } from '@shared/shared.module';
       isGlobal: true,
     }),
     SharedModule,
-    HelloModule,
     UserModule,
   ],
   controllers: [AppController],
