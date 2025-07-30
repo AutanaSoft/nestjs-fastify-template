@@ -1,7 +1,7 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { AppInfoResponseDto } from './app-info-response.dto';
 
-class DatabaseHealthDto {
+export class DatabaseHealthDto {
   @ApiProperty({
     description: 'Database health status',
     example: 'ok',

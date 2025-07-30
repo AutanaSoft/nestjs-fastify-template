@@ -13,9 +13,6 @@ describe('AppController (e2e)', () => {
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
 
-    // Set the same global prefix as in main.ts
-    app.setGlobalPrefix('v1');
-
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
   });
@@ -24,33 +21,34 @@ describe('AppController (e2e)', () => {
     await app.close();
   });
 
-  it('/v1/app (GET)', () => {
+  it('/app/info (GET)', () => {
     return request(app.getHttpServer())
-      .get('/v1/app')
+      .get('/app/info')
       .expect(200)
-      .expect((res) => {
+      .expect(res => {
         expect(res.body).toHaveProperty('message');
         expect(res.body).toHaveProperty('name');
         expect(res.body).toHaveProperty('version');
       });
   });
 
-  it('/v1/app/settings (GET)', () => {
+  it('/app/health (GET)', () => {
     return request(app.getHttpServer())
-      .get('/v1/app/settings')
+      .get('/app/health')
       .expect(200)
-      .expect((res) => {
+      .expect(res => {
+        expect(res.body).toHaveProperty('status');
         expect(res.body).toHaveProperty('name');
         expect(res.body).toHaveProperty('version');
-        expect(res.body).toHaveProperty('environment');
+        expect(res.body).toHaveProperty('database');
       });
   });
 
   it('should add x-correlation-id header to response', () => {
     return request(app.getHttpServer())
-      .get('/v1/app/settings')
+      .get('/app/info')
       .expect(200)
-      .expect((res) => {
+      .expect(res => {
         expect(res.headers['x-correlation-id']).toBeDefined();
         expect(typeof res.headers['x-correlation-id']).toBe('string');
       });
@@ -59,10 +57,10 @@ describe('AppController (e2e)', () => {
   it('should use provided x-correlation-id', () => {
     const correlationId = 'test-correlation-id-123';
     return request(app.getHttpServer())
-      .get('/v1/app/settings')
+      .get('/app/info')
       .set('x-correlation-id', correlationId)
       .expect(200)
-      .expect((res) => {
+      .expect(res => {
         expect(res.headers['x-correlation-id']).toBe(correlationId);
       });
   });
