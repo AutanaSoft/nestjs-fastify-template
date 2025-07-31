@@ -65,13 +65,190 @@ Follow this structure for new modules:
 ```
 src/modules/moduleName/
 ├── module-name.module.ts    # Module registration (controllers + providers)
-├── application/             # Use cases and DTOs (app layer)
+├── application/             # Application layer (use cases and DTOs)
 │   ├── dto/                # Request/response DTOs with validation
+│   │   ├── create-entity.dto.ts      # Creation DTOs
+│   │   ├── update-entity.dto.ts      # Update DTOs
+│   │   ├── entity-response.dto.ts    # Response DTOs
+│   │   └── index.ts                  # Barrel exports
 │   └── use-cases/          # Business logic orchestration
-├── domain/                 # Pure business logic (no dependencies)
-│   └── services/           # Domain services
-└── infrastructure/         # External concerns (controllers, adapters)
+│       ├── create-entity.use-case.ts # Creation use cases
+│       ├── find-entity.use-case.ts   # Query use cases
+│       ├── update-entity.use-case.ts # Update use cases
+│       ├── delete-entity.use-case.ts # Deletion use cases
+│       └── index.ts                  # Barrel exports
+├── domain/                 # Domain layer (pure business logic)
+│   ├── entities/           # Domain entities
+│   │   ├── entity.entity.ts          # Domain entity classes
+│   │   └── index.ts                  # Barrel exports
+│   ├── repositories/       # Repository interfaces (contracts)
+│   │   ├── entity.repository.ts      # Abstract repository interface
+│   │   └── index.ts                  # Barrel exports
+│   ├── services/           # Domain services (business rules)
+│   │   ├── entity-domain.service.ts  # Domain logic services
+│   │   └── index.ts                  # Barrel exports
+│   └── types/              # Domain types and interfaces
+│       ├── entity.types.ts           # Type definitions
+│       └── index.ts                  # Barrel exports
+└── infrastructure/         # Infrastructure layer (external concerns)
+    ├── adapters/           # Repository implementations and external APIs
+    │   ├── entity-prisma.adapter.ts   # Prisma implementations
+    │   ├── entity-redis.adapter.ts    # Cache implementations
+    │   └── index.ts                   # Barrel exports
     └── controllers/        # HTTP controllers with Swagger docs
+        ├── entity.controller.ts       # REST endpoints
+        └── index.ts                   # Barrel exports
+
+```
+
+## Shared Module Structure
+
+The shared module follows hexagonal architecture with clear separation of concerns:
+
+```
+src/shared/
+├── application/            # Application layer
+│   ├── decorators/         # Custom decorators
+│   ├── dto/               # Common DTOs
+│   └── services/          # Application services (correlation, audit, etc.)
+├── domain/                # Domain layer (pure business logic)
+│   ├── entities/          # Shared domain entities
+│   ├── enums/             # Domain enums
+│   ├── interfaces/        # Domain interfaces
+│   ├── types/             # Domain types
+│   └── value-objects/     # Value objects
+├── infrastructure/        # Infrastructure layer
+│   ├── adapters/          # External system adapters (Prisma, Redis, etc.)
+│   ├── guards/            # NestJS guards
+│   ├── interceptors/      # NestJS interceptors
+│   ├── middleware/        # Express/Fastify middleware
+│   ├── services/          # Infrastructure services (external APIs)
+│   └── utils/             # Infrastructure utilities (bcrypt, crypto, etc.)
+├── pino-logger.module.ts  # Pino logger configuration
+├── shared.module.ts       # Shared module registration
+└── index.ts              # Barrel exports
+```
+
+## Module Layer Responsibilities
+
+### Application Layer (`application/`)
+
+- **DTOs**: Data Transfer Objects with validation decorators
+- **Use Cases**: Orchestrate business logic, handle transactions
+- **No external dependencies**: Only domain and infrastructure interfaces
+
+### Domain Layer (`domain/`)
+
+- **Entities**: Core business objects with behavior
+- **Repositories**: Abstract interfaces (contracts only)
+- **Services**: Pure business logic, domain rules
+- **Types**: Domain-specific types and interfaces
+- **No framework dependencies**: Pure TypeScript/business logic
+
+### Infrastructure Layer (`infrastructure/`)
+
+- **Adapters**: Implement repository interfaces (Prisma, Redis, APIs)
+- **Controllers**: HTTP endpoints, request/response handling
+- **External dependencies**: Database, cache, third-party services
+
+## Module Implementation Guidelines
+
+### 1. Entity Example:
+
+```typescript
+// domain/entities/user.entity.ts
+export class UserEntity {
+  constructor(
+    public readonly id: string,
+    public readonly email: string,
+    public readonly userName: string,
+    public readonly status: UserStatus,
+    public readonly role: UserRole,
+  ) {}
+
+  // Domain methods
+  canUpdateProfile(): boolean {
+    return this.status === UserStatus.ACTIVE;
+  }
+}
+```
+
+### 2. Repository Contract:
+
+```typescript
+// domain/repositories/user.repository.ts
+export abstract class UserRepository {
+  abstract findById(id: string): Promise<UserEntity | null>;
+  abstract findByEmail(email: string): Promise<UserEntity | null>;
+  abstract create(data: CreateUserData): Promise<UserEntity>;
+  abstract update(id: string, data: UpdateUserData): Promise<UserEntity>;
+}
+```
+
+### 3. Use Case:
+
+```typescript
+// application/use-cases/create-user.use-case.ts
+@Injectable()
+export class CreateUserUseCase {
+  constructor(
+    @Inject(UserRepository)
+    private readonly userRepository: UserRepository,
+  ) {}
+
+  async execute(dto: CreateUserDto): Promise<UserResponseDto> {
+    // Business logic orchestration
+  }
+}
+```
+
+### 4. Adapter Implementation:
+
+```typescript
+// infrastructure/adapters/user-prisma.adapter.ts
+@Injectable()
+export class UserPrismaAdapter extends UserRepository {
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
+
+  async findById(id: string): Promise<UserEntity | null> {
+    // Prisma implementation
+  }
+}
+```
+
+## Services vs Utils Guidelines
+
+**Use Services when:**
+
+- Need dependency injection
+- Complex business logic
+- Stateful operations
+- Integration with NestJS lifecycle
+- Example: `CorrelationService`, `EmailService`, `CacheService`
+
+**Use Utils when:**
+
+- Stateless operations
+- Simple helper functions
+- External library wrappers
+- No dependency injection needed
+- Example: `HashUtils`, `DateUtils`, `StringUtils`
+
+```typescript
+// Service example (injectable)
+@Injectable()
+export class EmailService {
+  constructor(private readonly configService: ConfigService) {}
+  async sendEmail(to: string, template: string): Promise<void> { ... }
+}
+
+// Utils example (static methods)
+export class HashUtils {
+  static async hashPassword(password: string): Promise<string> { ... }
+  static async comparePassword(password: string, hash: string): Promise<boolean> { ... }
+}
 ```
 
 ## Development Commands
@@ -105,9 +282,33 @@ Use barrel exports with `index.ts` files for clean imports:
 // src/config/index.ts
 export { default as appConfig, AppConfig } from './appConfig';
 export { default as corsConfig } from './corsConfig';
+
+// src/shared/infrastructure/utils/index.ts
+export { HashUtils } from './hash.utils';
+
+// src/modules/user/application/dto/index.ts
+export { CreateUserDto } from './create-user.dto';
+export { UpdateUserDto } from './update-user.dto';
+export { UserResponseDto } from './user-response.dto';
 ```
 
-This enables `import { appConfig, AppConfig } from '@config'` instead of relative paths.
+This enables clean imports:
+
+```typescript
+import { appConfig, AppConfig } from '@config';
+import { HashUtils } from '@shared/utils';
+import { CreateUserDto, UserResponseDto } from '@modules/user/application/dto';
+```
+
+## Path Mapping
+
+The project uses TypeScript path mapping for clean imports:
+
+- `@/` - src/ directory
+- `@config/` - src/config/
+- `@shared/` - src/shared/
+- `@modules/` - src/modules/
+- `@shared/utils` - src/shared/infrastructure/utils/
 
 ## Environment Configuration
 

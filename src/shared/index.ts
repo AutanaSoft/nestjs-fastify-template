@@ -14,6 +14,7 @@
 // export * from './infrastructure/interceptors';
 // export * from './infrastructure/middleware';
 // export * from './infrastructure/adapters';
+export * from './infrastructure/utils';
 
 // Module export
 export { PinoLoggerModule } from './pino-logger.module';

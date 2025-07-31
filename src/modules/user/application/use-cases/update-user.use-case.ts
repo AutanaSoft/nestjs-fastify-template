@@ -1,6 +1,5 @@
 import { UpdateUserData, UserRepository } from '@modules/user/domain/repositories/user.repository';
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { UserDto } from '../dto/user.dto';
 
@@ -17,25 +16,19 @@ export class UpdateUserUseCase {
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
 
-    if (updateUserDto.email && updateUserDto.email !== userToUpdate.email) {
-      const existingUser = await this.userRepository.findByEmail(updateUserDto.email);
-      if (existingUser) {
-        throw new ConflictException('User with this email already exists.');
-      }
+    // Build update data with only role and status
+    const updateData: UpdateUserData = {};
+
+    if (updateUserDto.status !== undefined) {
+      updateData.status = updateUserDto.status;
     }
 
-    // Construir datos para actualización, transformando password a password_hash
-    const updateData: UpdateUserData = {
-      email: updateUserDto.email,
-      status: updateUserDto.status,
-    };
-
-    if (updateUserDto.password) {
-      updateData.password_hash = await bcrypt.hash(updateUserDto.password, 10);
+    if (updateUserDto.role !== undefined) {
+      updateData.role = updateUserDto.role;
     }
 
     const updatedUser = await this.userRepository.update(id, updateData);
 
-    return new UserDto(updatedUser);
+    return new UserDto(updatedUser.toResponseObject());
   }
 }

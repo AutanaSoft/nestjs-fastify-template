@@ -24,11 +24,16 @@ export class UserPrismaAdapter extends UserRepository {
     return user ? this.toDomain(user) : null;
   }
 
+  async findByUserName(userName: string): Promise<UserEntity | null> {
+    const user = await this.prisma.user.findUnique({ where: { userName } });
+    return user ? this.toDomain(user) : null;
+  }
+
   async create(data: CreateUserData): Promise<UserEntity> {
     const createdUser = await this.prisma.user.create({
       data: {
         email: data.email,
-        password: data.password_hash,
+        password: data.password,
         userName: data.userName,
       },
     });
@@ -36,21 +41,9 @@ export class UserPrismaAdapter extends UserRepository {
   }
 
   async update(id: string, data: UpdateUserData): Promise<UserEntity> {
-    const { password_hash, ...rest } = data;
-
-    const prismaData: {
-      email?: string;
-      status?: any;
-      password?: string;
-    } = { ...rest };
-
-    if (password_hash) {
-      prismaData.password = password_hash;
-    }
-
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: prismaData,
+      data,
     });
     return this.toDomain(updatedUser);
   }
@@ -59,7 +52,10 @@ export class UserPrismaAdapter extends UserRepository {
     return new UserEntity({
       id: prismaUser.id,
       email: prismaUser.email,
+      password: prismaUser.password,
+      userName: prismaUser.userName,
       status: prismaUser.status,
+      role: prismaUser.role,
       createdAt: prismaUser.createdAt,
       updatedAt: prismaUser.updatedAt,
     });

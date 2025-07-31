@@ -1,7 +1,17 @@
-import { Controller, Post, Body, Get, Param, Patch, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Query,
+  Patch,
+  Param,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { CreateUserUseCase } from '@modules/user/application/use-cases/create-user.use-case';
-import { FindUserByIdUseCase } from '@modules/user/application/use-cases/find-user-by-id.use-case';
+import { FindUserByEmailUseCase } from '@modules/user/application/use-cases/find-user-by-email.use-case';
 import { UpdateUserUseCase } from '@modules/user/application/use-cases/update-user.use-case';
 import { CreateUserDto } from '@modules/user/application/dto/create-user.dto';
 import { UpdateUserDto } from '@modules/user/application/dto/update-user.dto';
@@ -12,7 +22,7 @@ import { UserDto } from '@modules/user/application/dto/user.dto';
 export class UserController {
   constructor(
     private readonly createUserUseCase: CreateUserUseCase,
-    private readonly findUserByIdUseCase: FindUserByIdUseCase,
+    private readonly findUserByEmailUseCase: FindUserByEmailUseCase,
     private readonly updateUserUseCase: UpdateUserUseCase,
   ) {}
 
@@ -25,26 +35,26 @@ export class UserController {
     type: UserDto,
   })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
-  @ApiResponse({ status: 409, description: 'Conflict.' })
+  @ApiResponse({ status: 409, description: 'Conflict - Email or username already exists.' })
   async create(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
     return this.createUserUseCase.execute(createUserDto);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get a user by ID' })
-  @ApiParam({ name: 'id', description: 'User ID', type: 'string' })
+  @Get('by-email')
+  @ApiOperation({ summary: 'Find a user by email' })
+  @ApiQuery({ name: 'email', description: 'User email address', type: 'string' })
   @ApiResponse({
     status: 200,
     description: 'The found user record',
     type: UserDto,
   })
   @ApiResponse({ status: 404, description: 'User not found.' })
-  async findOne(@Param('id') id: string): Promise<UserDto> {
-    return this.findUserByIdUseCase.execute(id);
+  async findByEmail(@Query('email') email: string): Promise<UserDto> {
+    return this.findUserByEmailUseCase.execute(email);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a user' })
+  @ApiOperation({ summary: 'Update a user (role and status only)' })
   @ApiParam({ name: 'id', description: 'User ID', type: 'string' })
   @ApiResponse({
     status: 200,
@@ -52,7 +62,6 @@ export class UserController {
     type: UserDto,
   })
   @ApiResponse({ status: 404, description: 'User not found.' })
-  @ApiResponse({ status: 409, description: 'Conflict.' })
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<UserDto> {
     return this.updateUserUseCase.execute(id, updateUserDto);
   }

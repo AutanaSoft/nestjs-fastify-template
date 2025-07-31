@@ -2,7 +2,7 @@ import { Injectable, Inject, ConflictException } from '@nestjs/common';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UserDto } from '../dto/user.dto';
-import * as bcrypt from 'bcrypt';
+import { HashUtils } from '@shared/infrastructure/utils';
 
 @Injectable()
 export class CreateUserUseCase {
@@ -12,19 +12,29 @@ export class CreateUserUseCase {
   ) {}
 
   async execute(createUserDto: CreateUserDto): Promise<UserDto> {
-    const existingUser = await this.userRepository.findByEmail(createUserDto.email);
-    if (existingUser) {
+    // Check if user with email already exists
+    const existingUserByEmail = await this.userRepository.findByEmail(createUserDto.email);
+    if (existingUserByEmail) {
       throw new ConflictException('User with this email already exists.');
     }
 
-    const password_hash = await bcrypt.hash(createUserDto.password, 10);
+    // Check if user with userName already exists
+    const existingUserByUserName = await this.userRepository.findByUserName(createUserDto.userName);
+    if (existingUserByUserName) {
+      throw new ConflictException('User with this username already exists.');
+    }
 
+    // Hash password using utils
+    const hashedPassword = await HashUtils.hashPassword(createUserDto.password);
+
+    // Create user
     const createdUser = await this.userRepository.create({
       email: createUserDto.email,
-      password_hash,
+      password: hashedPassword,
       userName: createUserDto.userName,
     });
 
-    return new UserDto(createdUser);
+    // Return user response without password
+    return new UserDto(createdUser.toResponseObject());
   }
 }
