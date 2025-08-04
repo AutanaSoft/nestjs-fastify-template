@@ -29,8 +29,8 @@ enum UserRole {
 // User model
 model User {
   id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email     String     @unique
-  password  String     @db.VarChar(72)
+  email     String     @unique @db.VarChar(64)
+  password  String     @db.VarChar(64)
   userName  String     @unique @map("user_name") @db.VarChar(20)
   status    UserStatus @default(REGISTERED)
   role      UserRole   @default(USER)
