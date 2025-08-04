@@ -44,7 +44,8 @@ export class UserController {
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   @ApiResponse({ status: 409, description: 'Conflict - Email or username already exists.' })
   async create(@Body() userCreateInputDto: UserCreateInputDto): Promise<UserDto> {
-    return this.createUserUseCase.execute(userCreateInputDto);
+    console.log('Creating user with data:', userCreateInputDto);
+    return await this.createUserUseCase.execute(userCreateInputDto);
   }
 
   @Patch(':id')

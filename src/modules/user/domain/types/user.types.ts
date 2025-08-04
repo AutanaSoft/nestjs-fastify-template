@@ -19,10 +19,11 @@ export type UserPaginateData = {
 
 export type UserFindAllData = {
   email?: string;
-  username?: string;
+  userName?: string;
   status?: UserStatus;
   role?: UserRole;
-  createdAt?: Date;
+  createdAtFrom?: Date;
+  createdAtTo?: Date;
 };
 
 export type UserFindAllPaginateData = UserPaginateData & UserFindAllData;

@@ -1,11 +1,16 @@
 import { UserEntity } from '@modules/user/domain/entities/user.entity';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
-import { Injectable, Logger } from '@nestjs/common';
-import { User } from '@prisma/client';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '@shared/infrastructure/adapters/prisma.service';
 import { InjectPinoLogger } from 'nestjs-pino';
-import { UserQueryParamsDto } from '../../application/dto';
-import { UserCreateData, UserUpdateData } from '../../domain/types';
+import { UserCreateData, UserFindAllData, UserUpdateData } from '../../domain/types';
 
 @Injectable()
 export class UserPrismaAdapter extends UserRepository {
@@ -33,43 +38,87 @@ export class UserPrismaAdapter extends UserRepository {
   }
 
   async create(data: UserCreateData): Promise<UserEntity> {
-    // se tiene que crear un build de la data antes de crear el usuario
-    if (!data.email || !data.password || !data.userName) {
-      throw new Error('Email, password, and userName are required to create a user.');
+    try {
+      const createdUser = await this.prisma.user.create({
+        data,
+      });
+      return this.toDomain(createdUser);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // Prisma's error code for unique constraint violation
+        if (error.code === 'P2002') {
+          const fields = error.meta?.target as string[];
+          const message = `User with this ${fields.join(' or ')} already exists.`;
+          this.logger.warn(message, { fields });
+          throw new ConflictException(message);
+        }
+      }
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error('Failed to create user', { errorMessage, errorStack });
+      throw new InternalServerErrorException('Could not create user.');
     }
-
-    // Validate that the user does not already exist
-    const existingUser = await this.findByEmail(data.email);
-    if (existingUser) {
-      throw new Error(`User with email ${data.email} already exists.`);
-    }
-
-    // Create the user in the database
-    if (!data.userName) {
-      data.userName = data.email; // Default userName to email if not provided
-    }
-    if (!data.password) {
-      throw new Error('Password is required to create a user.');
-    }
-
-    const createdUser = await this.prisma.user.create({
-      data,
-    });
-
-    return this.toDomain(createdUser);
   }
 
   async update(id: string, data: UserUpdateData): Promise<UserEntity> {
-    const updatedUser = await this.prisma.user.update({
-      where: { id },
-      data,
-    });
-    return this.toDomain(updatedUser);
+    try {
+      const updatedUser = await this.prisma.user.update({
+        where: { id },
+        data,
+      });
+      return this.toDomain(updatedUser);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          const message = `User with id ${id} not found.`;
+          this.logger.warn(message, { id });
+          throw new NotFoundException(message);
+        }
+        if (error.code === 'P2002') {
+          const fields = error.meta?.target as string[];
+          const message = `User with this ${fields.join(' or ')} already exists.`;
+          this.logger.warn(message, { fields });
+          throw new ConflictException(message);
+        }
+      }
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error('Failed to create user', { errorMessage, errorStack });
+      throw new InternalServerErrorException('Could not update user.');
+    }
   }
 
-  async findAll(query: UserQueryParamsDto): Promise<UserEntity[]> {
-    console.debug('Finding users with query', { query });
-    const users = await this.prisma.user.findMany({ where: { ...query } });
+  async findAll(query: UserFindAllData): Promise<UserEntity[]> {
+    this.logger.debug('Finding users with query', { query });
+
+    const conditions: Prisma.UserWhereInput[] = [];
+
+    if (query.email) {
+      conditions.push({ email: { contains: query.email, mode: 'insensitive' } });
+    }
+    if (query.userName) {
+      conditions.push({ userName: { contains: query.userName, mode: 'insensitive' } });
+    }
+    if (query.status) {
+      conditions.push({ status: query.status });
+    }
+    if (query.role) {
+      conditions.push({ role: query.role });
+    }
+    if (query.createdAtFrom || query.createdAtTo) {
+      const createdAtCondition: Prisma.DateTimeFilter = {};
+      if (query.createdAtFrom) {
+        createdAtCondition.gte = query.createdAtFrom; // Greater than or equal
+      }
+      if (query.createdAtTo) {
+        createdAtCondition.lte = query.createdAtTo; // Less than or equal
+      }
+      conditions.push({ createdAt: createdAtCondition });
+    }
+
+    const where: Prisma.UserWhereInput = conditions.length > 0 ? { AND: conditions } : {};
+
+    const users = await this.prisma.user.findMany({ where });
     return users.map(user => this.toDomain(user));
   }
 
@@ -78,9 +127,9 @@ export class UserPrismaAdapter extends UserRepository {
       id: prismaUser.id,
       email: prismaUser.email,
       password: prismaUser.password,
-      // userName: prismaUser.userName,
+      userName: prismaUser.userName,
       status: prismaUser.status,
-      // role: prismaUser.role,
+      role: prismaUser.role,
       createdAt: prismaUser.createdAt,
       updatedAt: prismaUser.updatedAt,
     });

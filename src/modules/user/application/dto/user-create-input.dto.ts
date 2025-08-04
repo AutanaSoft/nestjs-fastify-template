@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
 import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength, Matches } from 'class-validator';
 
 export class UserCreateInputDto {
@@ -10,11 +11,12 @@ export class UserCreateInputDto {
   @IsEmail()
   @IsNotEmpty()
   @MaxLength(50)
+  @Expose()
   email: string;
 
   @ApiProperty({
     description: 'User password',
-    example: 'StrongP@ss1',
+    example: 'StrongP@ss.1',
     minLength: 6,
     maxLength: 16,
   })
@@ -26,6 +28,7 @@ export class UserCreateInputDto {
     message:
       'password must contain at least one uppercase letter, one number, and one special character (@#$.-_)',
   })
+  @Expose()
   password: string;
 
   @ApiProperty({
@@ -41,5 +44,6 @@ export class UserCreateInputDto {
   @Matches(/^[\w.-_]+$/, {
     message: 'userName can only contain alphanumeric characters and the symbols . - _',
   })
+  @Expose()
   userName: string;
 }
