@@ -4,6 +4,7 @@ import { UserCreateEntity, UserUpdateEntity } from '@modules/user/domain/types';
 import { Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from '@shared/infrastructure/adapters/prisma.service';
+import { UserQueryParamsDto } from '../../application/dto';
 
 @Injectable()
 export class UserPrismaAdapter extends UserRepository {
@@ -43,6 +44,12 @@ export class UserPrismaAdapter extends UserRepository {
       data,
     });
     return this.toDomain(updatedUser);
+  }
+
+  async findAll(query: UserQueryParamsDto): Promise<UserEntity[]> {
+    console.debug('Finding users with query', { query });
+    const users = await this.prisma.user.findMany({ where: { ...query } });
+    return users.map(user => this.toDomain(user));
   }
 
   private toDomain(prismaUser: User): UserEntity {

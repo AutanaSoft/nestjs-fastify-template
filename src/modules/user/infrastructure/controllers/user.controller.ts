@@ -1,24 +1,26 @@
 import {
-  Controller,
-  Post,
-  Body,
-  Get,
-  Query,
-  Patch,
-  Param,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
-import { CreateUserUseCase } from '@modules/user/application/use-cases/create-user.use-case';
-import { FindUserByEmailUseCase } from '@modules/user/application/use-cases/find-user-by-email.use-case';
-import { UpdateUserUseCase } from '@modules/user/application/use-cases/update-user.use-case';
-import {
   UserCreateInputDto,
-  UserUpdateInputDto,
   UserDto,
   UserQueryParamsDto,
+  UserUpdateInputDto,
 } from '@modules/user/application/dto';
+import { CreateUserUseCase } from '@modules/user/application/use-cases/create-user.use-case';
+import { FindUserByEmailUseCase } from '@modules/user/application/use-cases/find-user-by-email.use-case';
+import { FindUserByIdUseCase } from '@modules/user/application/use-cases/find-user-by-id.use-case';
+import { UpdateUserUseCase } from '@modules/user/application/use-cases/update-user.use-case';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { FindUsersUseCase } from '../../application/use-cases';
 
 @ApiTags('users')
 @Controller('users')
@@ -26,7 +28,9 @@ export class UserController {
   constructor(
     private readonly createUserUseCase: CreateUserUseCase,
     private readonly findUserByEmailUseCase: FindUserByEmailUseCase,
+    private readonly findUserByIdUseCase: FindUserByIdUseCase,
     private readonly updateUserUseCase: UpdateUserUseCase,
+    private readonly findUsersUseCase: FindUsersUseCase,
   ) {}
 
   @Post()
@@ -43,33 +47,6 @@ export class UserController {
     return this.createUserUseCase.execute(userCreateInputDto);
   }
 
-  @Get('by-email')
-  @ApiOperation({ summary: 'Find a user by email' })
-  @ApiQuery({ name: 'email', description: 'User email address', type: 'string' })
-  @ApiResponse({
-    status: 200,
-    description: 'The found user record',
-    type: UserDto,
-  })
-  @ApiResponse({ status: 404, description: 'User not found.' })
-  async findByEmail(@Query('email') email: string): Promise<UserDto> {
-    return this.findUserByEmailUseCase.execute(email);
-  }
-
-  @Get()
-  @ApiOperation({ summary: 'Get users with filters and pagination' })
-  @ApiResponse({
-    status: 200,
-    description: 'List of users',
-    type: [UserDto],
-  })
-  findAll(@Query() queryParams: UserQueryParamsDto): UserDto[] {
-    // TODO: Implement this use case for listing users with filters
-    // This would require a new use case: FindUsersUseCase
-    console.log('Query params:', queryParams);
-    return [];
-  }
-
   @Patch(':id')
   @ApiOperation({ summary: 'Update a user (role and status only)' })
   @ApiParam({ name: 'id', description: 'User ID', type: 'string' })
@@ -84,5 +61,42 @@ export class UserController {
     @Body() userUpdateInputDto: UserUpdateInputDto,
   ): Promise<UserDto> {
     return this.updateUserUseCase.execute(id, userUpdateInputDto);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Find a user by ID' })
+  @ApiParam({ name: 'id', description: 'User ID', type: 'string' })
+  @ApiResponse({
+    status: 200,
+    description: 'The found user record',
+    type: UserDto,
+  })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  async findById(@Param('id') id: string): Promise<UserDto> {
+    return this.findUserByIdUseCase.execute(id);
+  }
+
+  @Get('by-email')
+  @ApiOperation({ summary: 'Find a user by email' })
+  @ApiQuery({ name: 'email', description: 'User email address', type: 'string' })
+  @ApiResponse({
+    status: 200,
+    description: 'The found user record',
+    type: UserDto,
+  })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  async findByEmail(@Query('email') email: string): Promise<UserDto> {
+    return this.findUserByEmailUseCase.execute(email);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all users' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of users',
+    type: [UserDto],
+  })
+  async findAll(@Query() queryParams: UserQueryParamsDto): Promise<UserDto[]> {
+    return await this.findUsersUseCase.execute(queryParams);
   }
 }
