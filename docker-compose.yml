@@ -9,7 +9,7 @@ services:
     ports:
       - '${APP_PORT:-4200}:${APP_PORT:-4200}'
     depends_on:
-      - mariadb
+      - postgres
       - redis
     networks:
       - app-network
@@ -17,22 +17,20 @@ services:
       - .:/usr/src/app
       - /usr/src/app/node_modules
 
-  # MariaDB Database
-  mariadb:
-    image: mariadb:latest
-    container_name: nestjs-mariadb
+  # PostgreSQL Database
+  postgres:
+    image: postgres:latest
+    container_name: nestjs-postgres
     restart: unless-stopped
     # Comment out ports for production - only internal access
     ports:
-      - '${DB_PORT:-3306}:3306'
+      - '${DB_PORT:-5432}:5432'
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-nestjs}
-      - MYSQL_DATABASE=${MYSQL_DATABASE:-nestjs_app}
-      - MYSQL_USER=${MYSQL_USER:-nestjs}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-nestjs}
+      - POSTGRES_DB=${POSTGRES_DB:-nestjs_app}
+      - POSTGRES_USER=${POSTGRES_USER:-nestjs}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-nestjs}
     volumes:
-      - ./docker/db/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - mariadb_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
 
@@ -52,7 +50,7 @@ services:
 
 # Named volumes for data persistence
 volumes:
-  mariadb_data:
+  postgres_data:
     driver: local
   redis_data:
     driver: local

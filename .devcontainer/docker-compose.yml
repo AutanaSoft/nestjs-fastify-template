@@ -13,10 +13,10 @@ services:
 
     command: sleep infinity # Keep container running
 
-  # MariaDB - Expose port for development tools
-  mariadb:
+  # PostgreSQL - Expose port for development tools
+  postgres:
     ports:
-      - '3306:3306'
+      - '5432:5432'
 
   # Redis - Expose port for development tools
   redis:
