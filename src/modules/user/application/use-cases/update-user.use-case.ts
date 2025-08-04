@@ -1,6 +1,7 @@
-import { UpdateUserData, UserRepository } from '@modules/user/domain/repositories/user.repository';
+import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { UpdateUserDto } from '../dto/update-user.dto';
+import { plainToInstance } from 'class-transformer';
+import { UserUpdateInputDto } from '../dto/user-update-input.dto';
 import { UserDto } from '../dto/user.dto';
 
 @Injectable()
@@ -10,25 +11,25 @@ export class UpdateUserUseCase {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async execute(id: string, updateUserDto: UpdateUserDto): Promise<UserDto> {
+  async execute(id: string, updateUserInputDto: UserUpdateInputDto): Promise<UserDto> {
     const userToUpdate = await this.userRepository.findById(id);
     if (!userToUpdate) {
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
 
     // Build update data with only role and status
-    const updateData: UpdateUserData = {};
+    const updateData: UserUpdateInputDto = {};
 
-    if (updateUserDto.status !== undefined) {
-      updateData.status = updateUserDto.status;
+    if (updateUserInputDto.status !== undefined) {
+      updateData.status = updateUserInputDto.status;
     }
 
-    if (updateUserDto.role !== undefined) {
-      updateData.role = updateUserDto.role;
+    if (updateUserInputDto.role !== undefined) {
+      updateData.role = updateUserInputDto.role;
     }
 
     const updatedUser = await this.userRepository.update(id, updateData);
 
-    return new UserDto(updatedUser.toResponseObject());
+    return plainToInstance(UserDto, updatedUser);
   }
 }

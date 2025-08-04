@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { UserStatus, UserRole } from '@prisma/client';
 import { IsEnum, IsOptional } from 'class-validator';
 
-export class UpdateUserDto {
+export class UserUpdateInputDto {
   @ApiProperty({
     description: 'User status',
     example: UserStatus.ACTIVE,

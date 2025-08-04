@@ -13,9 +13,12 @@ import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam } from '@nestjs/
 import { CreateUserUseCase } from '@modules/user/application/use-cases/create-user.use-case';
 import { FindUserByEmailUseCase } from '@modules/user/application/use-cases/find-user-by-email.use-case';
 import { UpdateUserUseCase } from '@modules/user/application/use-cases/update-user.use-case';
-import { CreateUserDto } from '@modules/user/application/dto/create-user.dto';
-import { UpdateUserDto } from '@modules/user/application/dto/update-user.dto';
-import { UserDto } from '@modules/user/application/dto/user.dto';
+import {
+  UserCreateInputDto,
+  UserUpdateInputDto,
+  UserDto,
+  UserQueryParamsDto,
+} from '@modules/user/application/dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -36,8 +39,8 @@ export class UserController {
   })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   @ApiResponse({ status: 409, description: 'Conflict - Email or username already exists.' })
-  async create(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
-    return this.createUserUseCase.execute(createUserDto);
+  async create(@Body() userCreateInputDto: UserCreateInputDto): Promise<UserDto> {
+    return this.createUserUseCase.execute(userCreateInputDto);
   }
 
   @Get('by-email')
@@ -53,6 +56,20 @@ export class UserController {
     return this.findUserByEmailUseCase.execute(email);
   }
 
+  @Get()
+  @ApiOperation({ summary: 'Get users with filters and pagination' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of users',
+    type: [UserDto],
+  })
+  findAll(@Query() queryParams: UserQueryParamsDto): UserDto[] {
+    // TODO: Implement this use case for listing users with filters
+    // This would require a new use case: FindUsersUseCase
+    console.log('Query params:', queryParams);
+    return [];
+  }
+
   @Patch(':id')
   @ApiOperation({ summary: 'Update a user (role and status only)' })
   @ApiParam({ name: 'id', description: 'User ID', type: 'string' })
@@ -62,7 +79,10 @@ export class UserController {
     type: UserDto,
   })
   @ApiResponse({ status: 404, description: 'User not found.' })
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<UserDto> {
-    return this.updateUserUseCase.execute(id, updateUserDto);
+  async update(
+    @Param('id') id: string,
+    @Body() userUpdateInputDto: UserUpdateInputDto,
+  ): Promise<UserDto> {
+    return this.updateUserUseCase.execute(id, userUpdateInputDto);
   }
 }

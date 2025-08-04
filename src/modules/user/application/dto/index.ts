@@ -1,3 +1,4 @@
-export { CreateUserDto } from './create-user.dto';
-export { UpdateUserDto } from './update-user.dto';
-export { UserResponseDto } from './user-response.dto';
+export { UserCreateInputDto } from './user-create-input.dto';
+export { UserQueryParamsDto } from './user-query-params.dto';
+export { UserUpdateInputDto } from './user-update-input.dto';
+export { UserDto } from './user.dto';

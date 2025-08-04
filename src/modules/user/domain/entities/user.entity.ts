@@ -13,11 +13,4 @@ export class UserEntity {
   constructor(partial: Partial<UserEntity>) {
     Object.assign(this, partial);
   }
-
-  // Method to return user without password for API responses
-  toResponseObject(): Omit<UserEntity, 'password' | 'toResponseObject'> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = this;
-    return userWithoutPassword;
-  }
 }
