@@ -9,8 +9,8 @@ export class UserUpdateInputDto {
     enum: UserStatus,
     required: false,
   })
-  @IsEnum(UserStatus)
   @IsOptional()
+  @IsEnum(UserStatus, { message: 'status must be a valid user status' })
   status?: UserStatus;
 
   @ApiProperty({
@@ -19,7 +19,7 @@ export class UserUpdateInputDto {
     enum: UserRole,
     required: false,
   })
-  @IsEnum(UserRole)
   @IsOptional()
+  @IsEnum(UserRole, { message: 'role must be a valid user role' })
   role?: UserRole;
 }
