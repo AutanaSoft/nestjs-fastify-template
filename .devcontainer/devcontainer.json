@@ -5,6 +5,7 @@
   "dockerComposeFile": ["../docker-compose.yml", "docker-compose.yml"],
   "service": "app",
   "workspaceFolder": "/workspaces/nestjs-app",
+  "postCreateCommand": "bash .devcontainer/setup.sh",
 
   // Connect as node user (default in Microsoft devcontainer images)
   "remoteUser": "node"
