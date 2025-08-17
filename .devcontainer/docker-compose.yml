@@ -1,5 +1,4 @@
 services:
-  # NestJS Application - Development Override
   app:
     image: mcr.microsoft.com/devcontainers/typescript-node:22-bookworm
     user: node
@@ -8,23 +7,20 @@ services:
       APP_ENV: development
       PNPM_STORE_DIR: /workspaces/nestjs-app/.pnpm-store
     volumes:
-      # Mount source code and dev caches into the container workspace folder
-      - ..:/workspaces/nestjs-app:cached
+      - .:/workspaces/nestjs-app:cached
       - node_modules:/workspaces/nestjs-app/node_modules
       - pnpm-store:/workspaces/nestjs-app/.pnpm-store
-    command: sleep infinity # Keep container running
+    command: sleep infinity
 
-  # PostgreSQL - Expose port for development tools
   postgres:
     image: postgres:latest
     ports:
-      - '5432:5432'
+      - "5432:5432"
 
-  # Redis - Expose port for development tools
   redis:
     image: redis:latest
     ports:
-      - '6379:6379'
+      - "6379:6379"
 
 volumes:
   node_modules:

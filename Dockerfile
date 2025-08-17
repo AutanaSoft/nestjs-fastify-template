@@ -55,12 +55,11 @@ WORKDIR /usr/src/app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Install only production dependencies
-RUN pnpm install --frozen-lockfile --production --ignore-scripts
+RUN pnpm install --frozen-lockfile --production
 
 # Copy built application and prisma schema from builder stage
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/prisma ./prisma
-COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
 
 # Create logs directory
 RUN mkdir -p logs && chown -R nestjs:nodejs logs
