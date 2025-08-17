@@ -4,7 +4,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: nestjs-app
     restart: unless-stopped
     ports:
       - '${APP_PORT:-4200}:${APP_PORT:-4200}'
@@ -13,14 +12,10 @@ services:
       - redis
     networks:
       - app-network
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
 
   # PostgreSQL Database
   postgres:
     image: postgres:latest
-    container_name: nestjs-postgres
     restart: unless-stopped
     # Comment out ports for production - only internal access
     ports:
@@ -37,7 +32,6 @@ services:
   # Redis Cache
   redis:
     image: redis:latest
-    container_name: nestjs-redis
     restart: unless-stopped
     # Comment out ports for production - only internal access
     # ports:
