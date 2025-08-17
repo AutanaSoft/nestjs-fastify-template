@@ -1,15 +1,18 @@
 services:
   # NestJS Application - Development Override
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: development
+  build: null
+    image: mcr.microsoft.com/devcontainers/typescript-node:22-bookworm
+    user: node
+    working_dir: /workspaces/nestjs-app
     environment:
       - APP_ENV=development
+      - PNPM_STORE_DIR=/workspaces/nestjs-app/.pnpm-store
     volumes:
-      # Mount source code for hot reload using devcontainer standard path
-      - ..:/workspaces:cached
+      # Mount source code and dev caches into the container workspace folder
+      - ..:/workspaces/nestjs-app:cached
+      - node_modules:/workspaces/nestjs-app/node_modules
+      - pnpm-store:/workspaces/nestjs-app/.pnpm-store
 
     command: sleep infinity # Keep container running
 
@@ -22,3 +25,7 @@ services:
   redis:
     ports:
       - '6379:6379'
+
+volumes:
+  node_modules:
+  pnpm-store:
