@@ -36,7 +36,8 @@
         "streetsidesoftware.code-spell-checker",
         "streetsidesoftware.code-spell-checker-spanish",
         "VisualStudioExptTeam.intellicode-api-usage-examples",
-        "YoavBls.pretty-ts-errors"
+        "YoavBls.pretty-ts-errors",
+        "VisualStudioExptTeam.vscodeintellicode"
       ],
       "settings": {
         "typescript.updateImportsOnFileMove.enabled": "always",
