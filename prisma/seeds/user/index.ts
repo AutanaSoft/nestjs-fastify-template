@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient, UserStatus } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const usersData: Prisma.UserCreateInput[] = [
@@ -53,54 +53,36 @@ export const seedUsers = async (prisma: PrismaClient): Promise<void> => {
 
   // Generar salt una sola vez para todos los usuarios (optimización)
   console.log('🔐 Generating password salt...');
-  const salt = await bcrypt.genSalt(12);
+  const salt = await bcrypt.genSalt();
 
   await prisma.$transaction(
     async tx => {
-      let created = 0;
-      let updated = 0;
-
       for (const userData of usersData) {
         console.log(`Processing user: ${userData.email}`);
 
         try {
           const hashedPassword = await bcrypt.hash(userData.password, salt);
 
-          // Verificar si existe para logging más preciso
-          const existingUser = await tx.user.findUnique({
-            where: { email: userData.email },
-            select: { id: true },
-          });
-
           await tx.user.upsert({
             where: { email: userData.email },
             update: {
+              ...userData,
               password: hashedPassword,
-              userName: userData.userName,
-              role: userData.role,
-              status: (userData.status as UserStatus) || 'ACTIVE',
             },
             create: {
               ...userData,
               password: hashedPassword,
-              status: (userData.status as UserStatus) || 'ACTIVE',
             },
           });
 
-          if (existingUser) {
-            updated++;
-            console.log(`  ✅ Updated: ${userData.email}`);
-          } else {
-            created++;
-            console.log(`  🆕 Created: ${userData.email}`);
-          }
+          console.log(`  ✅ User processed: ${userData.email}`);
         } catch (error) {
           console.error(`  ❌ Error with ${userData.email}:`, (error as Error).message);
           throw error;
         }
       }
 
-      console.log(`📊 Users summary: ${created} created, ${updated} updated`);
+      console.log(`📊 All users processed successfully`);
     },
     {
       timeout: 30000, // 30 segundos de timeout
