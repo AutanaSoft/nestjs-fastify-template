@@ -13,7 +13,7 @@ const usersData: Prisma.UserCreateInput[] = [
 
 // Validación simple de datos
 const validateUsersData = (users: Prisma.UserCreateInput[]): void => {
-  console.log(`Validating ${users.length} users...`);
+  console.log(`🔍 Validating ${users.length} users...`);
 
   const emails = new Set<string>();
   const userNames = new Set<string>();
@@ -57,32 +57,32 @@ export const seedUsers = async (prisma: PrismaClient): Promise<void> => {
 
   await prisma.$transaction(
     async tx => {
-      for (const userData of usersData) {
-        console.log(`Processing user: ${userData.email}`);
+      for (const user of usersData) {
+        console.log(`👤 Processing user: ${user.email}`);
 
         try {
-          const hashedPassword = await bcrypt.hash(userData.password, salt);
+          const hashedPassword = await bcrypt.hash(user.password, salt);
 
           await tx.user.upsert({
-            where: { email: userData.email },
+            where: { email: user.email },
             update: {
-              ...userData,
+              ...user,
               password: hashedPassword,
             },
             create: {
-              ...userData,
+              ...user,
               password: hashedPassword,
             },
           });
 
-          console.log(`  ✅ User processed: ${userData.email}`);
+          console.log(`   ✨ User processed: ${user.email}`);
         } catch (error) {
-          console.error(`  ❌ Error with ${userData.email}:`, (error as Error).message);
+          console.error(`   ❌ Error with ${user.email}:`, (error as Error).message);
           throw error;
         }
       }
 
-      console.log(`📊 All users processed successfully`);
+      console.log('🎯 All users processed successfully');
     },
     {
       timeout: 30000, // 30 segundos de timeout
