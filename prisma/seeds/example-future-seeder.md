@@ -23,7 +23,7 @@ const rolesData: Prisma.RoleCreateInput[] = [
 
 // Validación de datos
 const validateRolesData = (roles: Prisma.RoleCreateInput[]): void => {
-  console.log(`Validating ${roles.length} roles...`);
+  console.log(`🔍 Validating ${roles.length} roles...`);
 
   const names = new Set<string>();
 
@@ -49,40 +49,28 @@ export const seedRoles = async (prisma: PrismaClient): Promise<void> => {
 
   await prisma.$transaction(
     async tx => {
-      let created = 0;
-      let updated = 0;
-
       for (const roleData of rolesData) {
-        console.log(`Processing role: ${roleData.name}`);
+        console.log(`🏷️ Processing role: ${roleData.name}`);
 
         try {
-          const existingRole = await tx.role.findUnique({
-            where: { name: roleData.name },
-            select: { id: true },
-          });
-
           await tx.role.upsert({
             where: { name: roleData.name },
             update: {
-              description: roleData.description,
+              ...roleData,
             },
-            create: roleData,
+            create: {
+              ...roleData,
+            },
           });
 
-          if (existingRole) {
-            updated++;
-            console.log(`  ✅ Updated: ${roleData.name}`);
-          } else {
-            created++;
-            console.log(`  🆕 Created: ${roleData.name}`);
-          }
+          console.log(`   ✨ Role processed: ${roleData.name}`);
         } catch (error) {
-          console.error(`  ❌ Error with ${roleData.name}:`, (error as Error).message);
+          console.error(`   ❌ Error with ${roleData.name}:`, (error as Error).message);
           throw error;
         }
       }
 
-      console.log(`📊 Roles summary: ${created} created, ${updated} updated`);
+      console.log('🎯 All roles processed successfully');
     },
     {
       timeout: 30000,
@@ -95,29 +83,53 @@ export const seedRoles = async (prisma: PrismaClient): Promise<void> => {
 
 ## Registro en seeds/index.ts
 
-```typescript
+````typescript
 import { PrismaClient } from '@prisma/client';
-import { SeedContext, Seeder } from './_types';
+import { Seeder } from './_types';
 import { seedUsers } from './user';
 import { seedRoles } from './roles'; // Nuevo seeder
 
 export const senderUsers: Seeder = {
   name: 'users',
-  run: (prisma: PrismaClient, _ctx: SeedContext) => seedUsers(prisma),
+  run: (prisma: PrismaClient) => seedUsers(prisma),
 };
 
 export const senderRoles: Seeder = {
   name: 'roles',
-  run: (prisma: PrismaClient, _ctx: SeedContext) => seedRoles(prisma),
+  run: (prisma: PrismaClient) => seedRoles(prisma),
 };
-```
-
-## Actualización en seed.ts
+```## Actualización en seed.ts
 
 ```typescript
 // Lista simple de seeders a ejecutar
 const seeds: Seeder[] = [senderRoles, senderUsers]; // roles primero por dependencias
+
+// En la función main, cada seeder se ejecuta así:
+await seeder.run(prisma); // Sin contexto, solo prisma
+````
+
+## Tipos Simplificados (\_types.ts)
+
+```typescript
+import { PrismaClient } from '@prisma/client';
+
+export interface Seeder {
+  name: string;
+  run(prisma: PrismaClient): Promise<void>; // Sin contexto
+}
 ```
+
+## Patrón de Logs Consistente
+
+Usar los siguientes emojis para mantener consistencia:
+
+- `🔍` para validación de datos
+- `🌱` para inicio del seeding
+- `🏷️` o `👤` para procesar items (roles/usuarios)
+- `✨` para items procesados exitosamente
+- `❌` para errores
+- `🎯` para resumen final
+- `✅` para completado exitosamente
 
 ## Patrón de Orden de Dependencias
 
