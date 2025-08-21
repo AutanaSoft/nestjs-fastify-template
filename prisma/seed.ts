@@ -16,7 +16,7 @@ const logger = (message: string, meta: Record<string, unknown> = {}) => {
   console.log(`🔧 ${message}${metaString}`);
 };
 
-// Lista de seeders a ejecutar
+// Keep dependency order: tiers -> currencies -> countries -> users
 const seeds: Seeder[] = [senderUsers];
 
 async function main() {
