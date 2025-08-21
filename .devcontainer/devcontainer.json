@@ -1,12 +1,53 @@
 {
-  "name": "NestJS Fastify",
+  "name": "nestjs-template",
 
   // Use Docker Compose for development with all services
   "dockerComposeFile": ["../docker-compose.yml", "docker-compose.yml"],
   "service": "app",
-  "workspaceFolder": "/workspaces/nestjs-app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  // Mounts for persistent storage
+  "mounts": [
+    "source=node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
+    "source=pnpm-store,target=${containerWorkspaceFolder}/.pnpm-store,type=volume"
+  ],
+  // Configure tool-specific properties.
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "EditorConfig.EditorConfig",
+        "christian-kohler.npm-intellisense",
+        "christian-kohler.path-intellisense",
+        "codezombiech.gitignore",
+        "dbaeumer.vscode-eslint",
+        "docker.docker",
+        "donjayamanne.githistory",
+        "dotenv.dotenv-vscode",
+        "esbenp.prettier-vscode",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "GitHub.vscode-pull-request-github",
+        "mechatroner.rainbow-csv",
+        "ms-azuretools.vscode-containers",
+        "ms-azuretools.vscode-docker",
+        "ms-ossdata.vscode-pgsql",
+        "ms-vscode.vscode-json",
+        "ms-vscode.vscode-typescript-next",
+        "Prisma.prisma",
+        "streetsidesoftware.code-spell-checker",
+        "streetsidesoftware.code-spell-checker-spanish",
+        "VisualStudioExptTeam.intellicode-api-usage-examples",
+        "YoavBls.pretty-ts-errors"
+      ],
+      "settings": {
+        "typescript.updateImportsOnFileMove.enabled": "always",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        }
+      }
+    }
+  },
   "postCreateCommand": "bash .devcontainer/setup.sh",
-
-  // Connect as node user (default in Microsoft devcontainer images)
   "remoteUser": "node"
 }

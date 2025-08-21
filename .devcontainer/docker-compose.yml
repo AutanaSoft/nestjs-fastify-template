@@ -2,26 +2,8 @@ services:
   app:
     image: mcr.microsoft.com/devcontainers/typescript-node:22-bookworm
     user: node
-    working_dir: /workspaces/nestjs-app
-    environment:
-      APP_ENV: development
-      PNPM_STORE_DIR: /workspaces/nestjs-app/.pnpm-store
+    working_dir: /workspaces/${APP_CONTAINER_NAME}
     volumes:
-      - .:/workspaces/nestjs-app:cached
-      - node_modules:/workspaces/nestjs-app/node_modules
-      - pnpm-store:/workspaces/nestjs-app/.pnpm-store
+      - .:/workspaces/${APP_CONTAINER_NAME}:cached
     command: sleep infinity
-
-  postgres:
-    image: postgres:latest
-    ports:
-      - "5432:5432"
-
-  redis:
-    image: redis:latest
-    ports:
-      - "6379:6379"
-
-volumes:
-  node_modules:
-  pnpm-store:
+    ports: []
