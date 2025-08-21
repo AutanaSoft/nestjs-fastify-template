@@ -2,60 +2,68 @@ import { PrismaClient } from '@prisma/client';
 import { SeedContext, Seeder } from './seeds/_types';
 import { senderUsers } from './seeds/index';
 
-const prisma = new PrismaClient();
-
-const mode = (process.env.SEED_MODE ?? 'base') as SeedContext['mode'];
+const prisma = new PrismaClient({
+  log: ['error'], // Solo errores para no saturar el log
+});
 
 const logger = (message: string, meta: Record<string, unknown> = {}) => {
-  // Structured JSON logging for better observability
-  console.log(
-    JSON.stringify({
-      ts: new Date().toISOString(),
-      level: 'info',
-      message,
-      ...meta,
-    }),
-  );
+  const timestamp = new Date().toISOString();
+  const metaString =
+    Object.keys(meta).length > 0
+      ? ` - ${Object.entries(meta)
+          .map(([k, v]) => `${k}=${String(v)}`)
+          .join(', ')}`
+      : '';
+  console.log(`[${timestamp}] ${message}${metaString}`);
 };
 
-// Keep dependency order: tiers -> currencies -> countries -> users
-const seeds: Seeder[] = [...(mode !== 'base' ? [senderUsers] : [])];
+// Lista de seeders a ejecutar
+const seeds: Seeder[] = [senderUsers];
 
 async function main() {
-  const ctx: SeedContext = { logger, now: new Date(), mode };
+  const startTime = Date.now();
+  const ctx: SeedContext = { logger, now: new Date() };
 
-  logger('Seeding started', { mode });
+  logger('Seeding started');
 
-  for (const seeder of seeds) {
-    logger('Seeder running', { seeder: seeder.name });
-    try {
+  try {
+    logger('Seeds to execute', { count: seeds.length });
+
+    for (const seeder of seeds) {
+      logger('Seeder starting', { seeder: seeder.name });
+
+      const seederStart = Date.now();
       await seeder.run(prisma, ctx);
-      logger('Seeder completed', { seeder: seeder.name });
-    } catch (error) {
-      // Fail fast, but ensure proper disconnect is executed in the catch below
-      console.error(
-        JSON.stringify({
-          ts: new Date().toISOString(),
-          level: 'error',
-          message: 'Seeder failed',
-          seeder: seeder.name,
-          error: (error as Error).message,
-        }),
-      );
-      throw error;
-    }
-  }
+      const seederDuration = Date.now() - seederStart;
 
-  logger('Seeding finished');
+      logger('Seeder completed', {
+        seeder: seeder.name,
+        duration: `${seederDuration}ms`,
+      });
+    }
+
+    const totalDuration = Date.now() - startTime;
+    logger('Seeding finished successfully', {
+      totalDuration: `${totalDuration}ms`,
+      seedsExecuted: seeds.length,
+    });
+  } catch (error) {
+    const errorDuration = Date.now() - startTime;
+    console.error(
+      `[${new Date().toISOString()}] ❌ Seeding failed after ${errorDuration}ms: ${(error as Error).message}`,
+    );
+    throw error;
+  }
 }
 
 main()
   .then(async () => {
     await prisma.$disconnect();
+    console.log('🎉 Seed process completed successfully');
+    process.exit(0);
   })
   .catch(async e => {
     await prisma.$disconnect();
-    // Do not leak stack traces in logs by default; keep message concise
-    process.exitCode = 1;
-    logger('Seeding failed', { error: (e as Error).message });
+    console.error('💥 Fatal error during seeding:', (e as Error).message);
+    process.exit(1);
   });

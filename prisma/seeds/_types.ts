@@ -1,11 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 
-export type SeedMode = 'base' | 'dev' | 'test';
-
 export interface SeedContext {
   logger: (message: string, meta?: Record<string, unknown>) => void;
   now: Date;
-  mode: SeedMode;
 }
 
 export interface Seeder {
