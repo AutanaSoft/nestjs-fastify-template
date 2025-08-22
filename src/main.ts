@@ -1,3 +1,5 @@
+import { AppModule } from '@/app.module';
+import { AppConfig } from '@config/appConfig';
 import fastifyCookie, { FastifyCookieOptions } from '@fastify/cookie';
 import fastifyCors, { FastifyCorsOptions } from '@fastify/cors';
 import fastifyCsrf from '@fastify/csrf-protection';
@@ -6,10 +8,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
-import { AppModule } from '@/app.module';
-import { AppConfig } from '@config/appConfig';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
@@ -40,16 +39,6 @@ async function bootstrap() {
   );
 
   // app.setGlobalPrefix(appConf.prefix);
-
-  // enable swagger
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle(appConf.name)
-    .setDescription(`API documentation for ${appConf.name}`)
-    .setVersion(appConf.version)
-    .build();
-
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('docs', app, document);
 
   await app.listen(appConf.port, '0.0.0.0');
 
