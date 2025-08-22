@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '@/app.module';
-import { AppController } from '@/app.controller';
+import { AppResolver } from '@/app.resolver';
 import { AppService } from '@/app.service';
 import { PrismaService } from '@shared/infrastructure/adapters';
 import { CorrelationService } from '@shared/application';
@@ -19,7 +19,7 @@ describe('AppModule', () => {
   });
 
   it('should have AppController', () => {
-    const controller = module.get<AppController>(AppController);
+    const controller = module.get<AppResolver>(AppResolver);
     expect(controller).toBeDefined();
   });
 

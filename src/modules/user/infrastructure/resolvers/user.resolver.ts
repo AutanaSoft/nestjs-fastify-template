@@ -8,11 +8,11 @@ import { CreateUserUseCase } from '@modules/user/application/use-cases/create-us
 import { FindUserByEmailUseCase } from '@modules/user/application/use-cases/find-user-by-email.use-case';
 import { FindUserByIdUseCase } from '@modules/user/application/use-cases/find-user-by-id.use-case';
 import { UpdateUserUseCase } from '@modules/user/application/use-cases/update-user.use-case';
-import { Body, Controller, Param, Query } from '@nestjs/common';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { FindUsersUseCase } from '../../application/use-cases';
 
-@Controller('users')
-export class UserController {
+@Resolver(() => UserDto)
+export class UserResolver {
   constructor(
     private readonly createUserUseCase: CreateUserUseCase,
     private readonly findUserByEmailUseCase: FindUserByEmailUseCase,
@@ -21,27 +21,34 @@ export class UserController {
     private readonly findUsersUseCase: FindUsersUseCase,
   ) {}
 
-  async create(@Body() userCreateInputDto: UserCreateInputDto): Promise<UserDto> {
+  @Mutation(() => UserDto)
+  async create(
+    @Args('userCreateInputDto') userCreateInputDto: UserCreateInputDto,
+  ): Promise<UserDto> {
     console.log('Creating user with data:', userCreateInputDto);
     return await this.createUserUseCase.execute(userCreateInputDto);
   }
 
+  @Mutation(() => UserDto)
   async update(
-    @Param('id') id: string,
-    @Body() userUpdateInputDto: UserUpdateInputDto,
+    @Args('id') id: string,
+    @Args('userUpdateInputDto') userUpdateInputDto: UserUpdateInputDto,
   ): Promise<UserDto> {
     return this.updateUserUseCase.execute(id, userUpdateInputDto);
   }
 
-  async findById(@Param('id') id: string): Promise<UserDto> {
+  @Query(() => UserDto)
+  async findById(@Args('id') id: string): Promise<UserDto> {
     return this.findUserByIdUseCase.execute(id);
   }
 
-  async findByEmail(@Query('email') email: string): Promise<UserDto> {
+  @Query(() => UserDto)
+  async findByEmail(@Args('email') email: string): Promise<UserDto> {
     return this.findUserByEmailUseCase.execute(email);
   }
 
-  async findAll(@Query() queryParams: UserQueryParamsDto): Promise<UserDto[]> {
+  @Query(() => [UserDto])
+  async findAll(@Args() queryParams: UserQueryParamsDto): Promise<UserDto[]> {
     return await this.findUsersUseCase.execute(queryParams);
   }
 }

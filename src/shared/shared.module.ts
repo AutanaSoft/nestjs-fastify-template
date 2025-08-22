@@ -1,8 +1,4 @@
-import { ThrottlerConfig } from '@config/throttlerConfig';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { CorrelationService } from './application/services';
 import { DatabaseModule } from './infrastructure/adapters';
 import { CorrelationIdMiddleware } from './infrastructure/middleware';
@@ -12,7 +8,7 @@ import { PinoLoggerModule } from './pino-logger.module';
   imports: [
     PinoLoggerModule,
     DatabaseModule,
-    ThrottlerModule.forRootAsync({
+    /* ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
         const config = configService.get<ThrottlerConfig>('throttlerConfig')!;
@@ -25,14 +21,14 @@ import { PinoLoggerModule } from './pino-logger.module';
         ];
       },
       inject: [ConfigService],
-    }),
+    }), */
   ],
   providers: [
     CorrelationService,
-    {
+    /*  {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
-    },
+    }, */
   ],
   exports: [CorrelationService],
 })

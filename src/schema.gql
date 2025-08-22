@@ -1,0 +1,28 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type AppInfoResponseDto {
+  message: String!
+  name: String!
+  version: String!
+  correlationId: String!
+}
+
+type DatabaseHealthDto {
+  status: String!
+}
+
+type HealthCheckResponseDto {
+  name: String!
+  version: String!
+  correlationId: String!
+  status: String!
+  timestamp: String!
+  database: DatabaseHealthDto!
+}
+
+type Query {
+  getAppInfo: AppInfoResponseDto!
+  getHealth: HealthCheckResponseDto!
+}

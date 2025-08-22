@@ -1,9 +1,5 @@
 import { AppModule } from '@/app.module';
 import { AppConfig } from '@config/appConfig';
-import fastifyCookie, { FastifyCookieOptions } from '@fastify/cookie';
-import fastifyCors, { FastifyCorsOptions } from '@fastify/cors';
-import fastifyCsrf from '@fastify/csrf-protection';
-import helmet from '@fastify/helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -22,14 +18,14 @@ async function bootstrap() {
   // load configuration from config service
   const configService = app.get(ConfigService);
   const appConf = configService.get<AppConfig>('appConfig')!;
-  const cookieConf = configService.get<FastifyCookieOptions>('cookieConfig')!;
-  const corsConf = configService.get<FastifyCorsOptions>('corsConfig')!;
+  // const cookieConf = configService.get<FastifyCookieOptions>('cookieConfig')!;
+  // const corsConf = configService.get<FastifyCorsOptions>('corsConfig')!;
 
   // configure application settings
-  await app.register(helmet);
-  await app.register(fastifyCors, corsConf);
-  await app.register(fastifyCookie, cookieConf);
-  await app.register(fastifyCsrf);
+  // await app.register(helmet);
+  // await app.register(fastifyCors, corsConf);
+  // await app.register(fastifyCookie, cookieConf);
+  // await app.register(fastifyCsrf);
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

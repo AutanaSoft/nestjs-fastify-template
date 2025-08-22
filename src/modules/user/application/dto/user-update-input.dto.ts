@@ -1,25 +1,11 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional } from 'class-validator';
+import { Field, InputType } from '@nestjs/graphql';
 import { UserRole, UserStatus } from '../../domain/enums';
 
+@InputType()
 export class UserUpdateInputDto {
-  @ApiProperty({
-    description: 'User status',
-    example: UserStatus.ACTIVE,
-    enum: UserStatus,
-    required: false,
-  })
-  @IsOptional()
-  @IsEnum(UserStatus, { message: 'status must be a valid user status' })
+  @Field(() => String, { nullable: true })
   status?: UserStatus;
 
-  @ApiProperty({
-    description: 'User role',
-    example: UserRole.USER,
-    enum: UserRole,
-    required: false,
-  })
-  @IsOptional()
-  @IsEnum(UserRole, { message: 'role must be a valid user role' })
+  @Field(() => String, { nullable: true })
   role?: UserRole;
 }

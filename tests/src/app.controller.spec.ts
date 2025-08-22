@@ -1,4 +1,4 @@
-import { AppController } from '@/app.controller';
+import { AppResolver } from '@/app.resolver';
 import { AppService } from '@/app.service';
 import { AppInfoResponseDto, HealthCheckResponseDto } from '@shared/application/dto';
 import { DatabaseHealthDto } from '@shared/application/dto/health-check-response.dto';
@@ -6,7 +6,7 @@ import { PrismaService } from '@shared/infrastructure/adapters';
 import { Test, TestingModule } from '@nestjs/testing';
 
 describe('AppController', () => {
-  let appController: AppController;
+  let appController: AppResolver;
 
   const mockAppService = {
     getAppInfo: jest.fn(),
@@ -19,7 +19,7 @@ describe('AppController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [AppController],
+      controllers: [AppResolver],
       providers: [
         {
           provide: AppService,
@@ -32,7 +32,7 @@ describe('AppController', () => {
       ],
     }).compile();
 
-    appController = module.get<AppController>(AppController);
+    appController = module.get<AppResolver>(AppResolver);
   });
 
   it('should be defined', () => {

@@ -8,10 +8,10 @@ import {
 } from './application/use-cases';
 import { UserRepository } from './domain/repositories/user.repository';
 import { UserPrismaAdapter } from './infrastructure/adapters/user-prisma.adapter';
-import { UserController } from './infrastructure/controllers/user.controller';
+import { UserResolver } from './infrastructure/resolvers/user.resolver';
 
 @Module({
-  controllers: [UserController],
+  controllers: [],
   providers: [
     CreateUserUseCase,
     FindUserByIdUseCase,
@@ -22,6 +22,7 @@ import { UserController } from './infrastructure/controllers/user.controller';
       provide: UserRepository,
       useClass: UserPrismaAdapter,
     },
+    UserResolver,
   ],
 })
 export class UserModule {}
