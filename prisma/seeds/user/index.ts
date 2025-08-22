@@ -3,8 +3,8 @@ import * as bcrypt from 'bcrypt';
 
 const usersData: Prisma.UserCreateInput[] = [
   {
-    email: process.env.ADMIN_EMAIL || 'admin@admin.com',
-    password: process.env.ADMIN_PASSWORD || 'admin',
+    email: process.env.APP_ADMIN_EMAIL || 'admin@autanasoft.com',
+    password: process.env.APP_ADMIN_PASSWORD || 'admin',
     role: 'ADMIN',
     userName: 'admin',
     status: 'ACTIVE', // Agregar status explícito
