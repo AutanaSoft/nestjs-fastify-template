@@ -1,14 +1,9 @@
-import {
-  UserCreateInputDto,
-  UserDto,
-  UserQueryParamsDto,
-  UserUpdateInputDto,
-} from '@modules/user/application/dto';
+import { UserCreateInputDto, UserDto } from '@modules/user/application/dto';
 import { CreateUserUseCase } from '@modules/user/application/use-cases/create-user.use-case';
 import { FindUserByEmailUseCase } from '@modules/user/application/use-cases/find-user-by-email.use-case';
 import { FindUserByIdUseCase } from '@modules/user/application/use-cases/find-user-by-id.use-case';
 import { UpdateUserUseCase } from '@modules/user/application/use-cases/update-user.use-case';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { FindUsersUseCase } from '../../application/use-cases';
 
 @Resolver(() => UserDto)
@@ -29,7 +24,7 @@ export class UserResolver {
     return await this.createUserUseCase.execute(userCreateInputDto);
   }
 
-  @Mutation(() => UserDto)
+  /* @Mutation(() => UserDto)
   async update(
     @Args('id') id: string,
     @Args('userUpdateInputDto') userUpdateInputDto: UserUpdateInputDto,
@@ -50,5 +45,5 @@ export class UserResolver {
   @Query(() => [UserDto])
   async findAll(@Args() queryParams: UserQueryParamsDto): Promise<UserDto[]> {
     return await this.findUsersUseCase.execute(queryParams);
-  }
+  } */
 }

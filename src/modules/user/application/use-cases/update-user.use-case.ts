@@ -1,8 +1,7 @@
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { UserUpdateInputDto } from '../dto/user-update-input.dto';
-import { UserDto } from '../dto/user.dto';
+import { UserDto, UserUpdateInputDto } from '../dto';
 
 @Injectable()
 export class UpdateUserUseCase {

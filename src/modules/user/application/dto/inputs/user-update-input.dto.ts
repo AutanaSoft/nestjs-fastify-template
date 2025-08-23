@@ -1,5 +1,5 @@
+import { UserRole, UserStatus } from '@/modules/user/domain/enums';
 import { Field, InputType } from '@nestjs/graphql';
-import { UserRole, UserStatus } from '../../domain/enums';
 
 @InputType()
 export class UserUpdateInputDto {
