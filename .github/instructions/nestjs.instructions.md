@@ -201,3 +201,20 @@ src/shared/
 - Monitor performance
 - Use proper logging
 - Document API properly
+
+## 14. Configuration System
+
+- Centralize configuration in `src/config/`, one file per concern.
+- Use `registerAs('<namespace>')` with a typed factory; the namespace must match the filename in lower camelCase.
+- Export a type per config and prefer `readonly` properties.
+- Environment variables in SCREAMING_SNAKE_CASE; explicit and scoped names.
+- Provide defaults only for development; never for secrets/credentials.
+- Explicit parsing: numbers, booleans, arrays, and URLs (with validation).
+- Validate on startup and fail fast; strip unknown keys (schema-based validator).
+- Register with `ConfigModule.forRoot` (global, cache, load, envFilePath); in production use `ignoreEnvFile: true`.
+- Keep factories pure and side-effect free.
+- Do not log secrets; redact sensitive fields.
+- Use typed access (`ConfigType<typeof ...>`) and avoid magic strings with `ConfigService`.
+- Use environment overlays via `.env` files with clear precedence.
+- Maintain a barrel export in `src/config/index.ts`.
+- Document variables and handle deprecations with a temporary fallback and a single startup warning.
