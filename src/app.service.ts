@@ -2,8 +2,7 @@ import { AppConfig } from '@config/appConfig';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppInfoResponseDto, HealthCheckResponseDto } from '@shared/application/dto';
-import { CorrelationService } from './shared/application';
-import { PrismaService } from './shared/infrastructure/adapters';
+import { CorrelationService, PrismaService } from './shared/application';
 
 /**
  * Service responsible for handling application-level logic,
