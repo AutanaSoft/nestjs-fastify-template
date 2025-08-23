@@ -52,43 +52,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   /**
-   * Execute database operation with logging and error handling
-   */
-  async executeWithLogging<T>(
-    operation: () => Promise<T>,
-    operationName: string,
-    correlationId?: string,
-  ): Promise<T> {
-    const startTime = Date.now();
-
-    try {
-      const result = await operation();
-      const duration = Date.now() - startTime;
-
-      this.logger.log('Database operation completed successfully', {
-        context: 'PrismaService',
-        operation: operationName,
-        duration: `${duration}ms`,
-        correlationId,
-      });
-
-      return result;
-    } catch (error) {
-      const duration = Date.now() - startTime;
-
-      this.logger.error('Database operation failed', {
-        context: 'PrismaService',
-        operation: operationName,
-        duration: `${duration}ms`,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        correlationId,
-      });
-
-      throw error;
-    }
-  }
-
-  /**
    * Health check method for database connection
    */
   async healthCheck(): Promise<{ status: 'ok' | 'error'; message: string }> {
