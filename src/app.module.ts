@@ -10,7 +10,9 @@ import {
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { SharedModule } from '@shared/shared.module';
+import { GraphQConfigLModule } from './graphql.module';
 import { UserModule } from './modules/user/user.module';
+import { PinoLoggerModule } from './pino-logger.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { UserModule } from './modules/user/user.module';
       envFilePath: ['.env'],
       isGlobal: true,
     }),
+    PinoLoggerModule,
+    GraphQConfigLModule,
     SharedModule,
     UserModule,
   ],

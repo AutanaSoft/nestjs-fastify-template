@@ -26,13 +26,7 @@ async function bootstrap() {
   // await app.register(fastifyCors, corsConf);
   // await app.register(fastifyCookie, cookieConf);
   // await app.register(fastifyCsrf);
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: true,
-    }),
-  );
+  app.useGlobalPipes(new ValidationPipe({}));
 
   // app.setGlobalPrefix(appConf.prefix);
 

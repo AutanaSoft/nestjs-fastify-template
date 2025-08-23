@@ -1,5 +1,13 @@
 import { UserRole, UserStatus } from '@/modules/user/domain/enums';
-import { Field, InputType } from '@nestjs/graphql';
+import { Field, InputType, registerEnumType } from '@nestjs/graphql';
+
+registerEnumType(UserStatus, {
+  name: 'UserStatus',
+});
+
+registerEnumType(UserRole, {
+  name: 'UserRole',
+});
 
 @InputType()
 export class UserCreateInputDto {

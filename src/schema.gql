@@ -47,7 +47,72 @@ type HealthCheckResponseDto {
   database: DatabaseHealthDto!
 }
 
+"""Register user data"""
+type UserDto {
+  """User unique identifier"""
+  id: String!
+
+  """User email address"""
+  email: String!
+
+  """User name"""
+  userName: String!
+
+  """User status"""
+  status: UserStatus!
+
+  """User role"""
+  role: UserRole!
+
+  """User account creation date"""
+  createdAt: DateTime!
+
+  """User account last update date"""
+  updatedAt: DateTime!
+}
+
+enum UserStatus {
+  REGISTERED
+  ACTIVE
+  BANNED
+  INACTIVE
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type Query {
   getAppInfo: AppInfoResponseDto!
   getHealth: HealthCheckResponseDto!
+  findAll(queryParams: UserQueryParamsDto!): [UserDto!]!
+}
+
+input UserQueryParamsDto {
+  status: String
+  role: String
+  email: String
+  userName: String
+  page: Int = 1
+  limit: Int = 10
+  sortBy: String = "createdAt"
+  sortOrder: String = "desc"
+}
+
+type Mutation {
+  create(userCreateInputDto: UserCreateInputDto!): UserDto!
+}
+
+input UserCreateInputDto {
+  email: String!
+  password: String!
+  userName: String!
+  status: UserStatus!
+  role: UserRole!
 }

@@ -96,7 +96,5 @@ import { join } from 'node:path';
       },
     }),
   ],
-  providers: [],
-  exports: [],
 })
 export class PinoLoggerModule {}

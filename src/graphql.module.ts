@@ -13,7 +13,5 @@ import { join } from 'node:path';
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
     }),
   ],
-  providers: [],
-  exports: [],
 })
 export class GraphQConfigLModule {}

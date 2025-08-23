@@ -1,14 +1,11 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { CorrelationService } from './application/services';
-import { DatabaseModule } from './database.module';
-import { GraphQConfigLModule } from './graphql.module';
+import { CorrelationService, PrismaService } from './application/services';
 import { CorrelationIdMiddleware } from './infrastructure/middleware';
-import { PinoLoggerModule } from './pino-logger.module';
 
 @Module({
-  imports: [PinoLoggerModule, DatabaseModule, GraphQConfigLModule],
-  providers: [CorrelationService],
-  exports: [CorrelationService],
+  imports: [],
+  providers: [CorrelationService, PrismaService],
+  exports: [CorrelationService, PrismaService],
 })
 export class SharedModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
