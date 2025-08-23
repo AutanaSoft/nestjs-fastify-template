@@ -2,23 +2,48 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+"""Application information"""
 type AppInfoResponseDto {
+  """Success message"""
   message: String!
+
+  """Application name"""
   name: String!
+
+  """Application version"""
   version: String!
+
+  """Correlation ID"""
   correlationId: String!
 }
 
+"""Database health status"""
 type DatabaseHealthDto {
+  """Database connection status"""
   status: String!
+
+  """Database response message"""
+  message: String!
 }
 
+"""Health check response"""
 type HealthCheckResponseDto {
+  """Application name"""
   name: String!
+
+  """Application version"""
   version: String!
+
+  """Correlation ID"""
   correlationId: String!
+
+  """Health check status"""
   status: String!
+
+  """Health check timestamp"""
   timestamp: String!
+
+  """Database health status"""
   database: DatabaseHealthDto!
 }
 

@@ -1,4 +1,4 @@
-import { UserStatus, UserRole } from '@prisma/client';
+import { UserRole, UserStatus } from '../enums/user.enums';
 
 export class UserEntity {
   id: string;

@@ -1,16 +1,16 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
-@ObjectType()
+@ObjectType({ description: 'Application information' })
 export class AppInfoResponseDto {
-  @Field(() => String)
+  @Field(() => String, { description: 'Success message' })
   readonly message: string;
 
-  @Field(() => String)
+  @Field(() => String, { description: 'Application name' })
   readonly name: string;
 
-  @Field(() => String)
+  @Field(() => String, { description: 'Application version' })
   readonly version: string;
 
-  @Field(() => String)
+  @Field(() => String, { description: 'Correlation ID' })
   readonly correlationId: string;
 }
