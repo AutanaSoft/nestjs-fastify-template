@@ -8,7 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
-import { PrismaService } from '@shared/infrastructure/adapters/prisma.service';
+import { PrismaService } from '@/shared/application/services/prisma.service';
 import { InjectPinoLogger } from 'nestjs-pino';
 import { UserCreateData, UserFindAllData, UserUpdateData } from '../../domain/types';
 

@@ -1,6 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { CorrelationService } from './application/services';
-import { DatabaseModule } from './infrastructure/adapters';
+import { DatabaseModule } from './database.module';
 import { CorrelationIdMiddleware } from './infrastructure/middleware';
 import { PinoLoggerModule } from './pino-logger.module';
 

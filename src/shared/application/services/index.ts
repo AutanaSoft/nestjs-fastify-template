@@ -2,6 +2,7 @@
 // Export all services here as they are created
 
 export * from './correlation.service';
+export * from './prisma.service';
 
 // Example:
 // export * from './crypto.service';

@@ -14,8 +14,8 @@
 // export * from './infrastructure/interceptors';
 // export * from './infrastructure/middleware';
 // export * from './infrastructure/adapters';
-export * from './infrastructure/utils';
 
 // Module export
+export { DatabaseModule } from './database.module';
 export { PinoLoggerModule } from './pino-logger.module';
 export { SharedModule } from './shared.module';
