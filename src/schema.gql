@@ -47,30 +47,31 @@ type HealthCheckResponseDto {
   database: DatabaseHealthDto!
 }
 
-"""Register user data"""
+"""User account data representation"""
 type UserDto {
-  """User unique identifier"""
+  """Unique user identifier"""
   id: String!
 
-  """User email address"""
+  """User email address for authentication"""
   email: String!
 
-  """User name"""
+  """Unique username for user identification"""
   userName: String!
 
-  """User status"""
+  """Current user account status"""
   status: UserStatus!
 
-  """User role"""
+  """Assigned user role for authorization"""
   role: UserRole!
 
-  """User account creation date"""
+  """Account creation timestamp"""
   createdAt: DateTime!
 
-  """User account last update date"""
+  """Last account modification timestamp"""
   updatedAt: DateTime!
 }
 
+"""Enum defining available user account status values"""
 enum UserStatus {
   REGISTERED
   ACTIVE
@@ -78,6 +79,7 @@ enum UserStatus {
   INACTIVE
 }
 
+"""Enum defining available user role types"""
 enum UserRole {
   ADMIN
   USER
@@ -94,29 +96,43 @@ type Query {
 
   """Find all users"""
   findAll(
-    """Filter for finding users"""
+    """Optional filter criteria for user search"""
     filter: UserFindFilterInputDto
 
-    """Sort order for finding users"""
+    """Optional sorting parameters for user results"""
     sort: UserSortOrderInputDto
   ): [UserDto!]!
 }
 
 input UserFindFilterInputDto {
+  """Filter users by account status"""
   status: UserStatus
+
+  """Filter users by assigned role"""
   role: UserRole
+
+  """Filter users by email address pattern"""
   email: String
+
+  """Filter users by username pattern"""
   userName: String
+
+  """Filter users created after this date"""
   createdAtFrom: DateTime
+
+  """Filter users created before this date"""
   createdAtTo: DateTime
 }
 
 input UserSortOrderInputDto {
+  """Field to sort user results by (defaults to creation date)"""
   sortBy: UserSortBy = CREATED_AT
+
+  """Sort order direction for user results (defaults to descending)"""
   sortOrder: SortOrder = DESC
 }
 
-"""The sort by options for users"""
+"""Enum defining available fields for sorting user results"""
 enum UserSortBy {
   CREATED_AT
   UPDATED_AT
@@ -124,7 +140,7 @@ enum UserSortBy {
   USERNAME
 }
 
-"""The sort order options"""
+"""Enum defining available sort order directions (ASC/DESC)"""
 enum SortOrder {
   ASC
   DESC
@@ -133,15 +149,24 @@ enum SortOrder {
 type Mutation {
   """Create a new user"""
   create(
-    """Data for creating a new user"""
+    """Data required to create a new user"""
     data: UserCreateInputDto!
   ): UserDto!
 }
 
 input UserCreateInputDto {
+  """User email address for authentication"""
   email: String!
+
+  """User password for authentication (6-16 characters)"""
   password: String!
+
+  """Unique username for user identification"""
   userName: String!
+
+  """Optional initial account status"""
   status: UserStatus
+
+  """Optional initial user role assignment"""
   role: UserRole
 }

@@ -1,26 +1,26 @@
 import { UserRole, UserStatus } from '@/modules/user/domain/enums';
 import { Field, ObjectType } from '@nestjs/graphql';
 
-@ObjectType({ description: 'Register user data' })
+@ObjectType({ description: 'User account data representation' })
 export class UserDto {
-  @Field(() => String, { description: 'User unique identifier' })
+  @Field(() => String, { description: 'Unique user identifier' })
   id: string;
 
-  @Field(() => String, { description: 'User email address' })
+  @Field(() => String, { description: 'User email address for authentication' })
   email: string;
 
-  @Field(() => String, { description: 'User name' })
+  @Field(() => String, { description: 'Unique username for user identification' })
   userName: string;
 
-  @Field(() => UserStatus, { description: 'User status' })
+  @Field(() => UserStatus, { description: 'Current user account status' })
   status: UserStatus;
 
-  @Field(() => UserRole, { description: 'User role' })
+  @Field(() => UserRole, { description: 'Assigned user role for authorization' })
   role: UserRole;
 
-  @Field(() => Date, { description: 'User account creation date' })
+  @Field(() => Date, { description: 'Account creation timestamp' })
   createdAt: Date;
 
-  @Field(() => Date, { description: 'User account last update date' })
+  @Field(() => Date, { description: 'Last account modification timestamp' })
   updatedAt: Date;
 }
