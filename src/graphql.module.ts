@@ -9,7 +9,7 @@ import { join } from 'node:path';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       playground: false,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      autoSchemaFile: join(process.cwd(), 'dist/schema.gql'),
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
     }),
   ],

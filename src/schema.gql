@@ -94,7 +94,7 @@ type Query {
   getAppInfo: AppInfoResponseDto!
   getHealth: HealthCheckResponseDto!
 
-  """Find all users"""
+  """Retrieves users based on optional filter and sort criteria"""
   findAll(
     """Optional filter criteria for user search"""
     filter: UserFindFilterInputDto
@@ -147,7 +147,7 @@ enum SortOrder {
 }
 
 type Mutation {
-  """Create a new user"""
+  """Creates a new user account with the provided data"""
   create(
     """Data required to create a new user"""
     data: UserCreateInputDto!
