@@ -1,7 +1,6 @@
-import { UserCreateInputDto, UserDto, UserQueryParamsDto } from '@modules/user/application/dto';
-import { CreateUserUseCase } from '@modules/user/application/use-cases/create-user.use-case';
+import { UserCreateArgsDto, UserDto, UserFindArgsDto } from '@modules/user/application/dto';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { FindUsersUseCase } from '../../application/use-cases/find-users.use-case';
+import { CreateUserUseCase, FindUsersUseCase } from '../../application/use-cases';
 
 @Resolver(() => UserDto)
 export class UserResolver {
@@ -10,19 +9,14 @@ export class UserResolver {
     private readonly findUsersUseCase: FindUsersUseCase,
   ) {}
 
-  @Mutation(() => UserDto)
-  async create(
-    @Args('userCreateInputDto', { type: () => UserCreateInputDto })
-    userCreateInputDto: UserCreateInputDto,
-  ): Promise<UserDto> {
-    return await this.createUserUseCase.execute(userCreateInputDto);
+  @Mutation(() => UserDto, { description: 'Create a new user' })
+  async create(@Args() params: UserCreateArgsDto): Promise<UserDto> {
+    return await this.createUserUseCase.execute(params);
   }
 
-  @Query(() => [UserDto])
-  async findAll(
-    @Args('queryParams', { type: () => UserQueryParamsDto }) queryParams: UserQueryParamsDto,
-  ): Promise<UserDto[]> {
-    return await this.findUsersUseCase.execute(queryParams);
+  @Query(() => [UserDto], { description: 'Find all users' })
+  async findAll(@Args() params: UserFindArgsDto): Promise<UserDto[]> {
+    return await this.findUsersUseCase.execute(params);
   }
 
   /* @Mutation(() => UserDto)

@@ -5,7 +5,7 @@ import { ConflictException, Injectable, InternalServerErrorException } from '@ne
 import { Prisma } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { InjectPinoLogger, Logger } from 'nestjs-pino';
-import { UserCreateData, UserFindAllData } from '../../domain/types'; // added UserStatus
+import { UserCreateData, UserFindAllData, UserFindFilterData } from '../../domain/types'; // added UserStatus
 
 @Injectable()
 export class UserPrismaAdapter extends UserRepository {
@@ -50,30 +50,32 @@ export class UserPrismaAdapter extends UserRepository {
     return user ? plainToInstance(UserEntity, user) : null;
   }
 
-  async findAll(query: UserFindAllData): Promise<UserEntity[]> {
+  async findAll(query: UserFindAllData | undefined): Promise<UserEntity[]> {
     const conditions: Prisma.UserWhereInput[] = [];
 
-    if (query.email) {
-      conditions.push({ email: { contains: query.email, mode: 'insensitive' } });
-    }
-    if (query.userName) {
-      conditions.push({ userName: { contains: query.userName, mode: 'insensitive' } });
-    }
-    if (query.status) {
-      conditions.push({ status: query.status });
-    }
-    if (query.role) {
-      conditions.push({ role: query.role });
-    }
-    if (query.createdAtFrom || query.createdAtTo) {
-      const createdAtCondition: Prisma.DateTimeFilter = {};
-      if (query.createdAtFrom) {
-        createdAtCondition.gte = query.createdAtFrom; // Greater than or equal
+    if (query) {
+      if (query.email) {
+        conditions.push({ email: { contains: query.email, mode: 'insensitive' } });
       }
-      if (query.createdAtTo) {
-        createdAtCondition.lte = query.createdAtTo; // Less than or equal
+      if (query.userName) {
+        conditions.push({ userName: { contains: query.userName, mode: 'insensitive' } });
       }
-      conditions.push({ createdAt: createdAtCondition });
+      if (query.status) {
+        conditions.push({ status: query.status });
+      }
+      if (query.role) {
+        conditions.push({ role: query.role });
+      }
+      if (query.createdAtFrom || query.createdAtTo) {
+        const createdAtCondition: Prisma.DateTimeFilter = {};
+        if (query.createdAtFrom) {
+          createdAtCondition.gte = query.createdAtFrom; // Greater than or equal
+        }
+        if (query.createdAtTo) {
+          createdAtCondition.lte = query.createdAtTo; // Less than or equal
+        }
+        conditions.push({ createdAt: createdAtCondition });
+      }
     }
 
     const where: Prisma.UserWhereInput = conditions.length > 0 ? { AND: conditions } : {};

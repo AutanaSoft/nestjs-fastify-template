@@ -1,4 +1,4 @@
-import { UserRole, UserStatus } from '../enums';
+import { SortOrder, UserRole, UserSortBy, UserStatus } from '../enums';
 
 export type UserCreateData = {
   email: string;
@@ -13,11 +13,9 @@ export type UserUpdateData = Partial<UserCreateData>;
 export type UserPaginateData = {
   page: number;
   limit: number;
-  sortBy?: 'email' | 'userName' | 'status' | 'role' | 'createdAt';
-  sortOrder?: 'asc' | 'desc';
 };
 
-export type UserFindAllData = {
+export type UserFindFilterData = {
   email?: string;
   userName?: string;
   status?: UserStatus;
@@ -25,5 +23,12 @@ export type UserFindAllData = {
   createdAtFrom?: Date;
   createdAtTo?: Date;
 };
+
+export type UserSortOrderData = {
+  sortBy?: UserSortBy;
+  sortOrder?: SortOrder;
+};
+
+export type UserFindAllData = UserFindFilterData & UserSortOrderData;
 
 export type UserFindAllPaginateData = UserPaginateData & UserFindAllData;

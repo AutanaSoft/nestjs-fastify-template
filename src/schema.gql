@@ -91,28 +91,57 @@ scalar DateTime
 type Query {
   getAppInfo: AppInfoResponseDto!
   getHealth: HealthCheckResponseDto!
-  findAll(queryParams: UserQueryParamsDto!): [UserDto!]!
+
+  """Find all users"""
+  findAll(
+    """Filter for finding users"""
+    filter: UserFindFilterInputDto
+
+    """Sort order for finding users"""
+    sort: UserSortOrderInputDto
+  ): [UserDto!]!
 }
 
-input UserQueryParamsDto {
-  status: String
-  role: String
+input UserFindFilterInputDto {
+  status: UserStatus
+  role: UserRole
   email: String
   userName: String
-  page: Int = 1
-  limit: Int = 10
-  sortBy: String = "createdAt"
-  sortOrder: String = "desc"
+  createdAtFrom: DateTime
+  createdAtTo: DateTime
+}
+
+input UserSortOrderInputDto {
+  sortBy: UserSortBy = CREATED_AT
+  sortOrder: SortOrder = DESC
+}
+
+"""The sort by options for users"""
+enum UserSortBy {
+  CREATED_AT
+  UPDATED_AT
+  EMAIL
+  USERNAME
+}
+
+"""The sort order options"""
+enum SortOrder {
+  ASC
+  DESC
 }
 
 type Mutation {
-  create(userCreateInputDto: UserCreateInputDto!): UserDto!
+  """Create a new user"""
+  create(
+    """Data for creating a new user"""
+    data: UserCreateInputDto!
+  ): UserDto!
 }
 
 input UserCreateInputDto {
   email: String!
   password: String!
   userName: String!
-  status: UserStatus!
-  role: UserRole!
+  status: UserStatus
+  role: UserRole
 }

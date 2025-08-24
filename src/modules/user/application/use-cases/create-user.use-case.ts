@@ -1,33 +1,35 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
+import { UserDto } from '@modules/user/application/dto';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
-import { UserCreateInputDto, UserDto } from '@modules/user/application/dto';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { HashUtils } from '@shared/infrastructure/utils/hash.utils';
+import { plainToInstance } from 'class-transformer';
+import { UserCreateArgsDto } from '../dto/args';
 
 @Injectable()
 export class CreateUserUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(dto: UserCreateInputDto): Promise<UserDto> {
+  async execute(params: UserCreateArgsDto): Promise<UserDto> {
     try {
+      const { data } = params;
       // Check if user already exists
-      const existingUser = await this.userRepository.findByEmail(dto.email);
+      const existingUser = await this.userRepository.findByEmail(data.email);
       if (existingUser) {
         throw new BadRequestException('User with this email already exists');
       }
 
       // Check if username already exists
-      const existingUserName = await this.userRepository.findByUserName(dto.userName);
+      const existingUserName = await this.userRepository.findByUserName(data.userName);
       if (existingUserName) {
         throw new BadRequestException('User with this username already exists');
       }
 
       // Hash the password
-      const hashedPassword = await HashUtils.hashPassword(dto.password);
+      const hashedPassword = await HashUtils.hashPassword(data.password);
 
       // Create user entity with hashed password
       const userData = {
-        ...dto,
+        ...data,
         password: hashedPassword,
       };
 
