@@ -7,6 +7,11 @@ import { plainToInstance } from 'class-transformer';
 import { InjectPinoLogger, Logger } from 'nestjs-pino';
 import { UserCreateData, UserFindAllData } from '../../domain/types'; // added UserStatus
 
+/**
+ * Prisma adapter implementation for user repository operations
+ * Handles data persistence and retrieval using Prisma ORM with PostgreSQL
+ * Implements proper error handling and logging for infrastructure concerns
+ */
 @Injectable()
 export class UserPrismaAdapter extends UserRepository {
   constructor(
@@ -17,6 +22,14 @@ export class UserPrismaAdapter extends UserRepository {
     super();
   }
 
+  /**
+   * Creates a new user record in the database
+   * Handles unique constraint violations and transforms Prisma errors to domain exceptions
+   * @param data - User creation data containing all required and optional fields
+   * @returns Promise resolving to the created user entity
+   * @throws ConflictException when email or username already exists
+   * @throws InternalServerErrorException for database errors
+   */
   async create(data: UserCreateData): Promise<UserEntity> {
     try {
       const createdUser = await this.prisma.user.create({
@@ -40,36 +53,60 @@ export class UserPrismaAdapter extends UserRepository {
     }
   }
 
+  /**
+   * Finds a user by their email address
+   * @param email - The email address to search for
+   * @returns Promise resolving to user entity if found, null otherwise
+   */
   async findByEmail(email: string): Promise<UserEntity | null> {
     const user = await this.prisma.user.findUnique({ where: { email } });
     return user ? plainToInstance(UserEntity, user) : null;
   }
 
+  /**
+   * Finds a user by their username
+   * @param userName - The username to search for
+   * @returns Promise resolving to user entity if found, null otherwise
+   */
   async findByUserName(userName: string): Promise<UserEntity | null> {
     const user = await this.prisma.user.findUnique({ where: { userName } });
     return user ? plainToInstance(UserEntity, user) : null;
   }
 
+  /**
+   * Retrieves users based on filter and sort criteria
+   * Supports filtering by email, username, status, role, and date ranges
+   * Implements case-insensitive search for text fields and proper date filtering
+   * @param query - Query parameters containing optional filters and sorting options
+   * @returns Promise resolving to array of user entities matching the criteria
+   * @throws InternalServerErrorException for database query errors
+   */
   async findAll(query: UserFindAllData): Promise<UserEntity[]> {
     try {
       const { filter, sort } = query;
 
+      /** Build array of filter conditions to be combined with AND logic */
       const conditions: Prisma.UserWhereInput[] = [];
 
       // Apply filters if query is provided
       if (filter) {
+        /** Apply case-insensitive email filter using contains */
         if (filter.email) {
           conditions.push({ email: { contains: filter.email, mode: 'insensitive' } });
         }
+        /** Apply case-insensitive username filter using contains */
         if (filter.userName) {
           conditions.push({ userName: { contains: filter.userName, mode: 'insensitive' } });
         }
+        /** Apply exact status filter */
         if (filter.status) {
           conditions.push({ status: filter.status });
         }
+        /** Apply exact role filter */
         if (filter.role) {
           conditions.push({ role: filter.role });
         }
+        /** Apply date range filter for creation date */
         if (filter.createdAtFrom || filter.createdAtTo) {
           const createdAtCondition: Prisma.DateTimeFilter = {};
           if (filter.createdAtFrom) {
@@ -82,9 +119,10 @@ export class UserPrismaAdapter extends UserRepository {
         }
       }
 
+      /** Combine all conditions with AND logic, or use empty object for no filtering */
       const where: Prisma.UserWhereInput = conditions.length > 0 ? { AND: conditions } : {};
 
-      // Build order by clause
+      /** Build order by clause with fallback to creation date descending */
       const orderBy: Prisma.UserOrderByWithRelationInput = {};
       if (sort?.sortBy) {
         orderBy[sort.sortBy] = sort.sortOrder || 'asc';

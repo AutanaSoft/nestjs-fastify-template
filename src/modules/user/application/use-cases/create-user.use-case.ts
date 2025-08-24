@@ -5,10 +5,21 @@ import { HashUtils } from '@shared/infrastructure/utils/hash.utils';
 import { plainToInstance } from 'class-transformer';
 import { UserCreateArgsDto } from '../dto/args';
 
+/**
+ * Use case for creating new users with validation and security measures
+ * Orchestrates user creation including uniqueness validation and password hashing
+ */
 @Injectable()
 export class CreateUserUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
+  /**
+   * Executes the user creation process with comprehensive validation
+   * Validates email and username uniqueness, hashes password, and creates the user
+   * @param params - User creation parameters containing user data
+   * @returns Promise resolving to the created user DTO
+   * @throws BadRequestException when user already exists or creation fails
+   */
   async execute(params: UserCreateArgsDto): Promise<UserDto> {
     try {
       const { data } = params;

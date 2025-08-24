@@ -5,6 +5,10 @@ import { plainToInstance } from 'class-transformer';
 import { InjectPinoLogger, Logger } from 'nestjs-pino';
 import { UserFindArgsDto } from '../dto/args';
 
+/**
+ * Use case for finding users with optional filtering and sorting
+ * Orchestrates the retrieval of users from the repository and transforms them to DTOs
+ */
 @Injectable()
 export class FindUsersUseCase {
   constructor(
@@ -13,6 +17,11 @@ export class FindUsersUseCase {
     private readonly logger: Logger,
   ) {}
 
+  /**
+   * Executes the find users operation with optional filtering and sorting
+   * @param params - Search parameters including optional filter and sort criteria
+   * @returns Promise resolving to an array of user DTOs
+   */
   async execute(params: UserFindArgsDto): Promise<UserDto[]> {
     const filter = params.filter ?? {};
     const sort = params.sort ?? this.getDefaultSort();
@@ -30,6 +39,10 @@ export class FindUsersUseCase {
     return users.map(user => plainToInstance(UserDto, user));
   }
 
+  /**
+   * Provides default sorting configuration when none is specified
+   * @returns Default sort order input DTO
+   */
   private getDefaultSort(): UserSortOrderInputDto {
     return new UserSortOrderInputDto();
   }
