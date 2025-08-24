@@ -50,105 +50,60 @@ export class UserPrismaAdapter extends UserRepository {
     return user ? plainToInstance(UserEntity, user) : null;
   }
 
-  async findAll(query: UserFindAllData | undefined): Promise<UserEntity[]> {
-    const conditions: Prisma.UserWhereInput[] = [];
-
-    if (query) {
-      if (query.email) {
-        conditions.push({ email: { contains: query.email, mode: 'insensitive' } });
-      }
-      if (query.userName) {
-        conditions.push({ userName: { contains: query.userName, mode: 'insensitive' } });
-      }
-      if (query.status) {
-        conditions.push({ status: query.status });
-      }
-      if (query.role) {
-        conditions.push({ role: query.role });
-      }
-      if (query.createdAtFrom || query.createdAtTo) {
-        const createdAtCondition: Prisma.DateTimeFilter = {};
-        if (query.createdAtFrom) {
-          createdAtCondition.gte = query.createdAtFrom; // Greater than or equal
-        }
-        if (query.createdAtTo) {
-          createdAtCondition.lte = query.createdAtTo; // Less than or equal
-        }
-        conditions.push({ createdAt: createdAtCondition });
-      }
-    }
-
-    const where: Prisma.UserWhereInput = conditions.length > 0 ? { AND: conditions } : {};
-
-    const users = await this.prisma.user.findMany({ where });
-    return users.map(user => plainToInstance(UserEntity, user));
-  }
-
-  /*   async findById(id: string): Promise<UserEntity | null> {
-    const user = await this.prisma.user.findUnique({ where: { id } });
-    return user ? this.toDomain(user) : null;
-  }
-
-  async update(id: string, data: UserUpdateData): Promise<UserEntity> {
+  async findAll(query: UserFindAllData): Promise<UserEntity[]> {
     try {
-      const updatedUser = await this.prisma.user.update({
-        where: { id },
-        data,
-      });
-      return this.toDomain(updatedUser);
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2025') {
-          const message = `User with id ${id} not found.`;
-          this.logger.warn(message, { id });
-          throw new NotFoundException(message);
+      const { filter, sort } = query;
+
+      const conditions: Prisma.UserWhereInput[] = [];
+
+      // Apply filters if query is provided
+      if (filter) {
+        if (filter.email) {
+          conditions.push({ email: { contains: filter.email, mode: 'insensitive' } });
         }
-        if (error.code === 'P2002') {
-          const fields = error.meta?.target as string[];
-          const message = `User with this ${fields.join(' or ')} already exists.`;
-          this.logger.warn(message, { fields });
-          throw new ConflictException(message);
+        if (filter.userName) {
+          conditions.push({ userName: { contains: filter.userName, mode: 'insensitive' } });
+        }
+        if (filter.status) {
+          conditions.push({ status: filter.status });
+        }
+        if (filter.role) {
+          conditions.push({ role: filter.role });
+        }
+        if (filter.createdAtFrom || filter.createdAtTo) {
+          const createdAtCondition: Prisma.DateTimeFilter = {};
+          if (filter.createdAtFrom) {
+            createdAtCondition.gte = filter.createdAtFrom;
+          }
+          if (filter.createdAtTo) {
+            createdAtCondition.lte = filter.createdAtTo;
+          }
+          conditions.push({ createdAt: createdAtCondition });
         }
       }
+
+      const where: Prisma.UserWhereInput = conditions.length > 0 ? { AND: conditions } : {};
+
+      // Build order by clause
+      const orderBy: Prisma.UserOrderByWithRelationInput = {};
+      if (sort?.sortBy) {
+        orderBy[sort.sortBy] = sort.sortOrder || 'asc';
+      } else {
+        // Default sorting by createdAt desc if no sorting specified
+        orderBy.createdAt = 'desc';
+      }
+
+      const users = await this.prisma.user.findMany({
+        where,
+        orderBy,
+      });
+
+      return users.map(user => plainToInstance(UserEntity, user));
+    } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const errorStack = error instanceof Error ? error.stack : undefined;
-      this.logger.error('Failed to create user', { errorMessage, errorStack });
-      throw new InternalServerErrorException('Could not update user.');
+      this.logger.error({ errorMessage, errorStack, query }, 'Failed to find users');
+      throw new InternalServerErrorException('Could not retrieve users.');
     }
   }
-
-  async findAll(query: UserFindAllData): Promise<UserEntity[]> {
-    this.logger.debug('Finding users with query', { query });
-
-    const conditions: Prisma.UserWhereInput[] = [];
-
-    if (query.email) {
-      conditions.push({ email: { contains: query.email, mode: 'insensitive' } });
-    }
-    if (query.userName) {
-      conditions.push({ userName: { contains: query.userName, mode: 'insensitive' } });
-    }
-    if (query.status) {
-      conditions.push({ status: query.status });
-    }
-    if (query.role) {
-      conditions.push({ role: query.role });
-    }
-    if (query.createdAtFrom || query.createdAtTo) {
-      const createdAtCondition: Prisma.DateTimeFilter = {};
-      if (query.createdAtFrom) {
-        createdAtCondition.gte = query.createdAtFrom; // Greater than or equal
-      }
-      if (query.createdAtTo) {
-        createdAtCondition.lte = query.createdAtTo; // Less than or equal
-      }
-      conditions.push({ createdAt: createdAtCondition });
-    }
-
-    const where: Prisma.UserWhereInput = conditions.length > 0 ? { AND: conditions } : {};
-
-    const users = await this.prisma.user.findMany({ where });
-    return users.map(user => this.toDomain(user));
-  }
-    */
 }

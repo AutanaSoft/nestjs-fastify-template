@@ -98,13 +98,13 @@ registerEnumType(SortOrder, {
 
 @InputType()
 export class UserSortOrderInputDto {
-  @Field(() => UserSortBy, { nullable: true })
+  @Field(() => UserSortBy, { nullable: true, defaultValue: UserSortBy.CREATED_AT })
   @IsOptional()
-  @IsEnum(UserSortBy)
+  @IsEnum(UserSortBy, { message: 'Sort by must be a valid UserSortBy enum value' })
   sortBy?: UserSortBy = UserSortBy.CREATED_AT;
 
-  @Field(() => SortOrder, { nullable: true })
+  @Field(() => SortOrder, { nullable: true, defaultValue: SortOrder.DESC })
   @IsOptional()
-  @IsEnum(SortOrder)
+  @IsEnum(SortOrder, { message: 'Sort order must be a valid SortOrder enum value' })
   sortOrder?: SortOrder = SortOrder.DESC;
 }

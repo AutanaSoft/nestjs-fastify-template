@@ -29,6 +29,9 @@ export type UserSortOrderData = {
   sortOrder?: SortOrder;
 };
 
-export type UserFindAllData = UserFindFilterData & UserSortOrderData;
+export type UserFindAllData = {
+  filter?: UserFindFilterData;
+  sort?: UserSortOrderData;
+};
 
 export type UserFindAllPaginateData = UserPaginateData & UserFindAllData;
