@@ -111,8 +111,6 @@ applyTo: '**/*.ts'
 - Document error handling
 - Document recovery procedures
 - Document error patterns
-- Keep documentation updated
-- Include error examples
 
 ## 12. Testing Error Scenarios
 

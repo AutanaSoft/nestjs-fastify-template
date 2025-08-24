@@ -90,9 +90,6 @@ applyTo: '**/*.ts'
 - Use proper descriptions
 - Document mutations and queries
 - Document subscriptions
-- Keep documentation up to date
-- Use proper examples
-- Document breaking changes
 
 ## 10. Development Workflow
 

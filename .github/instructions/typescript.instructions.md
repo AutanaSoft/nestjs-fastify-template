@@ -115,8 +115,6 @@ applyTo: '**/*.ts'
 
 - Use proper JSDoc comments
 - Document complex types
-- Keep documentation up to date
-- Use proper examples
 - Document breaking changes
 - Use proper versioning
 - Implement proper API documentation

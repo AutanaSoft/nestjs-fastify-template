@@ -79,14 +79,6 @@ applyTo: '**'
 - Keep functions small and focused on single responsibility
 - Use TypeScript strict mode features
 
-## Documentation
-
-- Document public APIs with JSDoc comments
-- Include Swagger/OpenAPI decorators for HTTP endpoints
-- Provide examples in API documentation
-- Keep README and documentation files up to date
-- Document configuration options and environment variables
-
 ## Performance Guidelines
 
 - Use async/await for non-blocking operations
