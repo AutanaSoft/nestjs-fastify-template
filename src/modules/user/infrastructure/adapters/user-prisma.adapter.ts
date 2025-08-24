@@ -5,7 +5,7 @@ import { ConflictException, Injectable, InternalServerErrorException } from '@ne
 import { Prisma } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { InjectPinoLogger, Logger } from 'nestjs-pino';
-import { UserCreateData, UserFindAllData, UserFindFilterData } from '../../domain/types'; // added UserStatus
+import { UserCreateData, UserFindAllData } from '../../domain/types'; // added UserStatus
 
 @Injectable()
 export class UserPrismaAdapter extends UserRepository {
