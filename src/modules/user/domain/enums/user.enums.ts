@@ -1,3 +1,5 @@
+import { registerEnumType } from '@nestjs/graphql';
+
 /**
  * User roles defining permission levels within the system
  */
@@ -7,6 +9,14 @@ export enum UserRole {
   /** Regular user with standard permissions */
   USER = 'USER',
 }
+
+/**
+ * Register GraphQL enum types for user roles
+ */
+registerEnumType(UserRole, {
+  name: 'UserRole',
+  description: 'User roles defining permission levels within the system',
+});
 
 /**
  * User account status indicating the current state of the user account
@@ -23,6 +33,14 @@ export enum UserStatus {
 }
 
 /**
+ * Register GraphQL enum types for user status
+ */
+registerEnumType(UserStatus, {
+  name: 'UserStatus',
+  description: 'User account status indicating the current state of the user account',
+});
+
+/**
  * Available fields for sorting user queries
  */
 export enum UserSortBy {
@@ -37,6 +55,14 @@ export enum UserSortBy {
 }
 
 /**
+ * Register GraphQL enum types for user sorting
+ */
+registerEnumType(UserSortBy, {
+  name: 'UserSortBy',
+  description: 'Available fields for sorting user queries',
+});
+
+/**
  * Sort order direction for database queries
  */
 export enum SortOrder {
@@ -45,3 +71,11 @@ export enum SortOrder {
   /** Descending order (Z-A, 9-0, newest first) */
   DESC = 'desc',
 }
+
+/**
+ * Register GraphQL enum types for sorting
+ */
+registerEnumType(SortOrder, {
+  name: 'SortOrder',
+  description: 'Sort order direction for database queries',
+});

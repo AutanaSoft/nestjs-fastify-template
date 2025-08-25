@@ -1,5 +1,5 @@
 import { SortOrder, UserRole, UserSortBy, UserStatus } from '@/modules/user/domain/enums';
-import { Field, InputType, registerEnumType } from '@nestjs/graphql';
+import { Field, InputType } from '@nestjs/graphql';
 import {
   IsEmail,
   IsEnum,
@@ -9,16 +9,6 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-
-registerEnumType(UserStatus, {
-  name: 'UserStatus',
-  description: 'Enum defining available user account status values',
-});
-
-registerEnumType(UserRole, {
-  name: 'UserRole',
-  description: 'Enum defining available user role types',
-});
 
 /**
  * GraphQL input DTO for user creation operations
@@ -115,16 +105,6 @@ export class UserFindFilterInputDto {
   @IsOptional()
   createdAtTo?: Date;
 }
-
-registerEnumType(UserSortBy, {
-  name: 'UserSortBy',
-  description: 'Enum defining available fields for sorting user results',
-});
-
-registerEnumType(SortOrder, {
-  name: 'SortOrder',
-  description: 'Enum defining available sort order directions (ASC/DESC)',
-});
 
 /**
  * GraphQL input DTO for sorting user query results
