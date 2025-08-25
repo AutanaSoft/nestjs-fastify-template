@@ -1,5 +1,5 @@
 import { UserEntity } from '../entities/user.entity';
-import { UserCreateData, UserFindAllData } from '../types';
+import { UserCreateData, UserFindAllData, UserUpdateData } from '../types';
 
 /**
  * Abstract repository interface for user data persistence operations
@@ -12,6 +12,21 @@ export abstract class UserRepository {
    * @returns Promise resolving to the created user entity
    */
   abstract create(data: UserCreateData): Promise<UserEntity>;
+
+  /**
+   * Updates an existing user in the data store
+   * @param id - The unique identifier of the user to update
+   * @param data - Partial user data containing fields to be updated
+   * @returns Promise resolving to the updated user entity
+   */
+  abstract update(id: string, data: UserUpdateData): Promise<UserEntity>;
+
+  /**
+   * Finds a user by their unique identifier
+   * @param id - The unique identifier of the user to find
+   * @returns Promise resolving to the user entity if found, null otherwise
+   */
+  abstract findById(id: string): Promise<UserEntity | null>;
 
   /**
    * Finds a user by their email address
