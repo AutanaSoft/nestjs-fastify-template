@@ -1,15 +1,10 @@
 import { PrismaService } from '@/shared/application/services/prisma.service';
 import { UserEntity } from '@modules/user/domain/entities/user.entity';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
+import { GraphQLError } from 'graphql';
 import { InjectPinoLogger, Logger } from 'nestjs-pino';
 import { UserCreateData, UserFindAllData, UserUpdateData } from '../../domain/types'; // added UserStatus
 
@@ -44,10 +39,6 @@ export class UserPrismaAdapter extends UserRepository {
       return plainToInstance(UserEntity, createdUser);
     } catch (error) {
       this.processError(error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorStack = error instanceof Error ? error.stack : undefined;
-      this.logger.error('Failed to create user', { errorMessage, errorStack });
-      throw new InternalServerErrorException('Could not create user.');
     }
   }
 
@@ -158,10 +149,7 @@ export class UserPrismaAdapter extends UserRepository {
 
       return users.map(user => plainToInstance(UserEntity, user));
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorStack = error instanceof Error ? error.stack : undefined;
-      this.logger.error({ errorMessage, errorStack, query }, 'Failed to find users');
-      throw new InternalServerErrorException('Could not retrieve users.');
+      this.processError(error);
     }
   }
 
@@ -176,21 +164,34 @@ export class UserPrismaAdapter extends UserRepository {
         const fields = error.meta?.target as string[];
         const message = `User with this ${fields?.join(' or ') || 'field'} already exists`;
         this.logger.debug({ error: error.message, fields }, message);
-        throw new ConflictException(message);
+        throw new GraphQLError(message, {
+          extensions: {
+            code: 'CONFLICT',
+            fields,
+          },
+        });
       }
 
       // Record not found
       if (error.code === 'P2025') {
         const message = 'User not found';
         this.logger.debug({ error: error.message }, message);
-        throw new NotFoundException(message);
+        throw new GraphQLError(message, {
+          extensions: {
+            code: 'NOT_FOUND',
+          },
+        });
       }
 
       // Foreign key constraint violation
       if (error.code === 'P2003') {
         const message = 'Invalid reference in user data';
         this.logger.debug({ error: error.message }, message);
-        throw new ConflictException(message);
+        throw new GraphQLError(message, {
+          extensions: {
+            code: 'CONFLICT',
+          },
+        });
       }
     }
 
@@ -198,14 +199,22 @@ export class UserPrismaAdapter extends UserRepository {
     if (error instanceof Prisma.PrismaClientValidationError) {
       const message = 'Invalid user data provided';
       this.logger.debug({ error: error.message }, message);
-      throw new BadRequestException(message);
+      throw new GraphQLError(message, {
+        extensions: {
+          code: 'BAD_USER_INPUT',
+        },
+      });
     }
 
     // Handle connection errors
     if (error instanceof Prisma.PrismaClientInitializationError) {
       const message = 'Database connection failed';
       this.logger.error({ error: error.message }, message);
-      throw new InternalServerErrorException('Database unavailable');
+      throw new GraphQLError('Database unavailable', {
+        extensions: {
+          code: 'INTERNAL_SERVER_ERROR',
+        },
+      });
     }
 
     // Log and rethrow unknown errors
@@ -220,6 +229,10 @@ export class UserPrismaAdapter extends UserRepository {
       'Unhandled database error',
     );
 
-    throw new InternalServerErrorException('An unexpected error occurred');
+    throw new GraphQLError('An unexpected error occurred', {
+      extensions: {
+        code: 'INTERNAL_SERVER_ERROR',
+      },
+    });
   }
 }
