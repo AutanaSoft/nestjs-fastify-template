@@ -1,7 +1,12 @@
-import { ArgsType, Field } from '@nestjs/graphql';
+import { ArgsType, Field, ID } from '@nestjs/graphql';
 import { Type } from 'class-transformer';
-import { IsOptional, ValidateNested } from 'class-validator';
-import { UserCreateInputDto, UserFindFilterInputDto, UserSortOrderInputDto } from '../inputs';
+import { IsOptional, IsUUID, ValidateNested } from 'class-validator';
+import {
+  UserCreateInputDto,
+  UserFindFilterInputDto,
+  UserSortOrderInputDto,
+  UserUpdateInputDto,
+} from '../inputs';
 
 /**
  * GraphQL arguments DTO for user creation operations
@@ -14,6 +19,20 @@ export class UserCreateArgsDto {
   @ValidateNested()
   @Type(() => UserCreateInputDto)
   data!: UserCreateInputDto;
+}
+
+@ArgsType()
+export class UserUpdateArgsDto {
+  /** Unique identifier of the user to update */
+  @Field(() => ID, { description: 'Unique identifier of the user to update' })
+  @IsUUID('all', { message: 'ID must be a valid ID' })
+  id: string;
+
+  /** User update data containing optional fields to update */
+  @Field(() => UserUpdateInputDto, { description: 'Data required to update an existing user' })
+  @ValidateNested()
+  @Type(() => UserUpdateInputDto)
+  data!: UserUpdateInputDto;
 }
 
 /**

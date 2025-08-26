@@ -1,7 +1,7 @@
 import { UserDto } from '@modules/user/application/dto';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { HashUtils } from '@shared/infrastructure/utils/hash.utils';
+import { HashUtils } from '@shared/infrastructure/utils';
 import { plainToInstance } from 'class-transformer';
 import { UserCreateArgsDto } from '../dto/args';
 

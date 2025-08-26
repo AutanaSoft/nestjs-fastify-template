@@ -1,5 +1,5 @@
 import { SortOrder, UserRole, UserSortBy, UserStatus } from '@/modules/user/domain/enums';
-import { Field, InputType } from '@nestjs/graphql';
+import { Field, InputType, OmitType, PartialType } from '@nestjs/graphql';
 import {
   IsEmail,
   IsEnum,
@@ -55,15 +55,9 @@ export class UserCreateInputDto {
  * Contains optional fields that can be updated for an existing user
  */
 @InputType()
-export class UserUpdateInputDto {
-  /** Updated account status for the user */
-  @Field(() => String, { nullable: true, description: 'Updated user account status' })
-  status?: UserStatus;
-
-  /** Updated role assignment for the user */
-  @Field(() => String, { nullable: true, description: 'Updated user role assignment' })
-  role?: UserRole;
-}
+export class UserUpdateInputDto extends PartialType(
+  OmitType(UserCreateInputDto, ['email'] as const),
+) {}
 
 /**
  * GraphQL input DTO for filtering user search results

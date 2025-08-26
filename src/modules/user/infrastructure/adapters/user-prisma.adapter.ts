@@ -2,6 +2,7 @@ import { PrismaService } from '@/shared/application/services/prisma.service';
 import { UserEntity } from '@modules/user/domain/entities/user.entity';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
@@ -59,10 +60,6 @@ export class UserPrismaAdapter extends UserRepository {
       return plainToInstance(UserEntity, updatedUser);
     } catch (error) {
       this.processError(error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorStack = error instanceof Error ? error.stack : undefined;
-      this.logger.error('Failed to update user', { errorMessage, errorStack });
-      throw new InternalServerErrorException('Could not update user.');
     }
   }
 
@@ -172,22 +169,57 @@ export class UserPrismaAdapter extends UserRepository {
    * Centralized error processing for Prisma-related errors
    * @param error - The error object to process
    */
-  private processError(error: unknown): void {
-    // Prisma's Client Known Request Errors
+  private processError(error: unknown): never {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      // error code for unique constraint violation
+      // Unique constraint violation
       if (error.code === 'P2002') {
         const fields = error.meta?.target as string[];
-        const message = `User with this ${fields.join(' or ')} already exists.`;
-        this.logger.debug({ error }, message);
+        const message = `User with this ${fields?.join(' or ') || 'field'} already exists`;
+        this.logger.debug({ error: error.message, fields }, message);
         throw new ConflictException(message);
       }
 
-      // error code for record not found
+      // Record not found
       if (error.code === 'P2025') {
-        this.logger.debug({ error }, `User not found`);
-        throw new NotFoundException(`User not found`);
+        const message = 'User not found';
+        this.logger.debug({ error: error.message }, message);
+        throw new NotFoundException(message);
+      }
+
+      // Foreign key constraint violation
+      if (error.code === 'P2003') {
+        const message = 'Invalid reference in user data';
+        this.logger.debug({ error: error.message }, message);
+        throw new ConflictException(message);
       }
     }
+
+    // Handle Prisma validation errors
+    if (error instanceof Prisma.PrismaClientValidationError) {
+      const message = 'Invalid user data provided';
+      this.logger.debug({ error: error.message }, message);
+      throw new BadRequestException(message);
+    }
+
+    // Handle connection errors
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      const message = 'Database connection failed';
+      this.logger.error({ error: error.message }, message);
+      throw new InternalServerErrorException('Database unavailable');
+    }
+
+    // Log and rethrow unknown errors
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    this.logger.error(
+      {
+        message: errorMessage,
+        stack: errorStack,
+      },
+      'Unhandled database error',
+    );
+
+    throw new InternalServerErrorException('An unexpected error occurred');
   }
 }

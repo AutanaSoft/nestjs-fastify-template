@@ -1,5 +1,5 @@
 import { UserDto, UserSortOrderInputDto } from '@modules/user/application/dto';
-import { UserRepository } from '@modules/user/domain/repositories/user.repository';
+import { UserRepository } from '@modules/user/domain/repositories';
 import { Injectable } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { InjectPinoLogger, Logger } from 'nestjs-pino';

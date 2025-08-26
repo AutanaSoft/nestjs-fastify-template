@@ -1,6 +1,15 @@
-import { UserCreateArgsDto, UserDto, UserFindArgsDto } from '@modules/user/application/dto';
+import {
+  UserCreateArgsDto,
+  UserDto,
+  UserFindArgsDto,
+  UserUpdateArgsDto,
+} from '@modules/user/application/dto';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { CreateUserUseCase, FindUsersUseCase } from '../../application/use-cases';
+import {
+  CreateUserUseCase,
+  FindUsersUseCase,
+  UpdateUserUseCase,
+} from '../../application/use-cases';
 
 /**
  * GraphQL resolver for User entity operations.
@@ -15,6 +24,7 @@ export class UserResolver {
    */
   constructor(
     private readonly createUserUseCase: CreateUserUseCase,
+    private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly findUsersUseCase: FindUsersUseCase,
   ) {}
 
@@ -23,12 +33,27 @@ export class UserResolver {
    * Validates input data and delegates creation to the application layer.
    * @param params User creation arguments containing required user data
    * @returns Promise resolving to the created user data
-   * @throws BadRequestException when validation fails
+   * @throws ConflictException when validation fails
    * @throws ConflictException when user already exists
    */
   @Mutation(() => UserDto, { description: 'Creates a new user account with the provided data' })
   async create(@Args() params: UserCreateArgsDto): Promise<UserDto> {
     return await this.createUserUseCase.execute(params);
+  }
+
+  /**
+   * Updates an existing user account with the provided data.
+   * Validates input data and delegates update to the application layer.
+   * @param params User update arguments containing required user data
+   * @returns Promise resolving to the updated user data
+   * @throws ConflictException when validation fails
+   * @throws NotFoundException when user does not exist
+   */
+  @Mutation(() => UserDto, {
+    description: 'Updates an existing user account with the provided data',
+  })
+  async update(@Args() params: UserUpdateArgsDto): Promise<UserDto> {
+    return await this.updateUserUseCase.execute(params);
   }
 
   /**
