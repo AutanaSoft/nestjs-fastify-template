@@ -4,8 +4,8 @@ import { UserRepository } from '@modules/user/domain/repositories/user.repositor
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
-import { GraphQLError } from 'graphql';
 import { InjectPinoLogger, Logger } from 'nestjs-pino';
+import { ConflictError, NotFoundError, DatabaseError } from '@shared/domain/errors';
 import { UserCreateData, UserFindAllData, UserUpdateData } from '../../domain/types'; // added UserStatus
 
 /**
@@ -155,6 +155,7 @@ export class UserPrismaAdapter extends UserRepository {
 
   /**
    * Centralized error processing for Prisma-related errors
+   * Maps Prisma errors to appropriate domain errors
    * @param error - The error object to process
    */
   private processError(error: unknown): never {
@@ -164,34 +165,21 @@ export class UserPrismaAdapter extends UserRepository {
         const fields = error.meta?.target as string[];
         const message = `User with this ${fields?.join(' or ') || 'field'} already exists`;
         this.logger.debug({ error: error.message, fields }, message);
-        throw new GraphQLError(message, {
-          extensions: {
-            code: 'CONFLICT',
-            fields,
-          },
-        });
+        throw new ConflictError(message, error, { prismaCode: error.code, fields });
       }
 
       // Record not found
       if (error.code === 'P2025') {
         const message = 'User not found';
         this.logger.debug({ error: error.message }, message);
-        throw new GraphQLError(message, {
-          extensions: {
-            code: 'NOT_FOUND',
-          },
-        });
+        throw new NotFoundError(message, error, { prismaCode: error.code });
       }
 
       // Foreign key constraint violation
       if (error.code === 'P2003') {
         const message = 'Invalid reference in user data';
         this.logger.debug({ error: error.message }, message);
-        throw new GraphQLError(message, {
-          extensions: {
-            code: 'CONFLICT',
-          },
-        });
+        throw new ConflictError(message, error, { prismaCode: error.code });
       }
     }
 
@@ -199,22 +187,14 @@ export class UserPrismaAdapter extends UserRepository {
     if (error instanceof Prisma.PrismaClientValidationError) {
       const message = 'Invalid user data provided';
       this.logger.debug({ error: error.message }, message);
-      throw new GraphQLError(message, {
-        extensions: {
-          code: 'BAD_USER_INPUT',
-        },
-      });
+      throw new DatabaseError(message, error);
     }
 
     // Handle connection errors
     if (error instanceof Prisma.PrismaClientInitializationError) {
       const message = 'Database connection failed';
       this.logger.error({ error: error.message }, message);
-      throw new GraphQLError('Database unavailable', {
-        extensions: {
-          code: 'INTERNAL_SERVER_ERROR',
-        },
-      });
+      throw new DatabaseError('Database unavailable', error);
     }
 
     // Log and rethrow unknown errors
@@ -229,10 +209,6 @@ export class UserPrismaAdapter extends UserRepository {
       'Unhandled database error',
     );
 
-    throw new GraphQLError('An unexpected error occurred', {
-      extensions: {
-        code: 'INTERNAL_SERVER_ERROR',
-      },
-    });
+    throw new DatabaseError('An unexpected database error occurred', error as Error);
   }
 }
