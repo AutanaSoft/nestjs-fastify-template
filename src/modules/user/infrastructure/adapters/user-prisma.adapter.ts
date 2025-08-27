@@ -3,9 +3,9 @@ import { UserEntity } from '@modules/user/domain/entities/user.entity';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { ConflictError, DatabaseError, NotFoundError } from '@shared/domain/errors';
 import { plainToInstance } from 'class-transformer';
 import { InjectPinoLogger, Logger } from 'nestjs-pino';
-import { ConflictError, NotFoundError, DatabaseError } from '@shared/domain/errors';
 import { UserCreateData, UserFindAllData, UserUpdateData } from '../../domain/types'; // added UserStatus
 
 /**
@@ -165,21 +165,21 @@ export class UserPrismaAdapter extends UserRepository {
         const fields = error.meta?.target as string[];
         const message = `User with this ${fields?.join(' or ') || 'field'} already exists`;
         this.logger.debug({ error: error.message, fields }, message);
-        throw new ConflictError(message, error, { prismaCode: error.code, fields });
+        throw new ConflictError(message);
       }
 
       // Record not found
       if (error.code === 'P2025') {
         const message = 'User not found';
         this.logger.debug({ error: error.message }, message);
-        throw new NotFoundError(message, error, { prismaCode: error.code });
+        throw new NotFoundError(message);
       }
 
       // Foreign key constraint violation
       if (error.code === 'P2003') {
         const message = 'Invalid reference in user data';
         this.logger.debug({ error: error.message }, message);
-        throw new ConflictError(message, error, { prismaCode: error.code });
+        throw new ConflictError(message);
       }
     }
 
@@ -187,14 +187,14 @@ export class UserPrismaAdapter extends UserRepository {
     if (error instanceof Prisma.PrismaClientValidationError) {
       const message = 'Invalid user data provided';
       this.logger.debug({ error: error.message }, message);
-      throw new DatabaseError(message, error);
+      throw new DatabaseError(message);
     }
 
     // Handle connection errors
     if (error instanceof Prisma.PrismaClientInitializationError) {
       const message = 'Database connection failed';
       this.logger.error({ error: error.message }, message);
-      throw new DatabaseError('Database unavailable', error);
+      throw new DatabaseError('Database unavailable');
     }
 
     // Log and rethrow unknown errors
@@ -209,6 +209,6 @@ export class UserPrismaAdapter extends UserRepository {
       'Unhandled database error',
     );
 
-    throw new DatabaseError('An unexpected database error occurred', error as Error);
+    throw new DatabaseError('An unexpected database error occurred');
   }
 }

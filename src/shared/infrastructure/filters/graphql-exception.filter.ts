@@ -65,36 +65,19 @@ export class GraphQLExceptionFilter extends BaseExceptionFilter {
     // Log error with contextual information
     this._logError(exception, gqlHost);
 
-    // Domain errors already extend GraphQLError, just re-throw with logging
-    if (exception instanceof DomainError) {
+    // All our custom errors (Domain, Application, Infrastructure) now extend GraphQLError
+    // so we can handle them uniformly
+    if (
+      exception instanceof DomainError ||
+      exception instanceof ApplicationError ||
+      exception instanceof InfrastructureError
+    ) {
       throw exception;
     }
 
     // Handle existing GraphQL errors (pass through with logging)
     if (exception instanceof GraphQLError) {
       throw exception;
-    }
-
-    // Transform application errors to GraphQL errors
-    if (exception instanceof ApplicationError) {
-      throw new GraphQLError('Application error occurred', {
-        extensions: {
-          code: exception.code,
-          statusCode: exception.statusCode,
-          context: exception.context,
-        },
-      });
-    }
-
-    // Transform infrastructure errors to GraphQL errors
-    if (exception instanceof InfrastructureError) {
-      throw new GraphQLError('Service temporarily unavailable', {
-        extensions: {
-          code: exception.code,
-          statusCode: exception.statusCode,
-          context: exception.context,
-        },
-      });
     }
 
     // Handle NestJS validation errors
@@ -151,40 +134,22 @@ export class GraphQLExceptionFilter extends BaseExceptionFilter {
     // Extract GraphQL operation context if available
     const operationContext = this._extractOperationContext(gqlHost);
 
-    if (exception instanceof DomainError) {
-      this.logger.warn(
+    if (
+      exception instanceof DomainError ||
+      exception instanceof ApplicationError ||
+      exception instanceof InfrastructureError
+    ) {
+      // All our custom errors now extend GraphQLError and have extensions
+      const logLevel = exception instanceof DomainError ? 'warn' : 'error';
+
+      this.logger[logLevel](
         {
           ...operationContext,
           error: exception.message,
-          code: exception.code,
-          context: exception.context,
+          extensions: exception.extensions,
           stack: exception.stack,
         },
-        `Domain error: ${exception.message}`,
-      );
-    } else if (exception instanceof ApplicationError) {
-      this.logger.error(
-        {
-          ...operationContext,
-          error: exception.message,
-          code: exception.code,
-          context: exception.context,
-          cause: exception.cause?.message,
-          stack: exception.stack,
-        },
-        `Application error: ${exception.message}`,
-      );
-    } else if (exception instanceof InfrastructureError) {
-      this.logger.error(
-        {
-          ...operationContext,
-          error: exception.message,
-          code: exception.code,
-          context: exception.context,
-          cause: exception.cause?.message,
-          stack: exception.stack,
-        },
-        `Infrastructure error: ${exception.message}`,
+        `${exception.constructor.name}: ${exception.message}`,
       );
     } else if (exception instanceof GraphQLError) {
       this.logger.warn(
@@ -220,7 +185,9 @@ export class GraphQLExceptionFilter extends BaseExceptionFilter {
     }
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const info = gqlHost.getInfo();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const context = gqlHost.getContext();
 
       // Type-safe extraction with proper type guards

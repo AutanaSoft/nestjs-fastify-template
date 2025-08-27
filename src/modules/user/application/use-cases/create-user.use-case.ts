@@ -34,17 +34,13 @@ export class CreateUserUseCase {
       // Check if user already exists
       const existingUser = await this.userRepository.findByEmail(data.email);
       if (existingUser) {
-        throw new ConflictError('User with this email already exists', undefined, {
-          email: data.email,
-        });
+        throw new ConflictError('User with this email already exists');
       }
 
       // Check if username already exists
       const existingUserName = await this.userRepository.findByUserName(data.userName);
       if (existingUserName) {
-        throw new ConflictError('User with this username already exists', undefined, {
-          userName: data.userName,
-        });
+        throw new ConflictError('User with this username already exists');
       }
 
       // Hash the password
@@ -76,7 +72,9 @@ export class CreateUserUseCase {
         'Failed to create user',
       );
 
-      throw new UseCaseError(`Failed to create user: ${errorMessage}`, error as Error);
+      throw new UseCaseError(`Failed to create user: ${errorMessage}`, {
+        originalError: error as Error,
+      });
     }
   }
 }
