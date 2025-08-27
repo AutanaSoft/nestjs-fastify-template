@@ -1,4 +1,17 @@
 import { GraphQLError } from 'graphql';
+import { Maybe } from 'graphql/jsutils/Maybe';
+
+/**
+ * Options for creating domain errors
+ */
+export interface DomainErrorOptions {
+  originalError?: Maybe<Error>;
+  extensions?: {
+    [attributeName: string]: unknown;
+    code?: string;
+    statusCode?: number;
+  };
+}
 
 /**
  * Base abstract class for all domain errors in the application
@@ -6,37 +19,9 @@ import { GraphQLError } from 'graphql';
  * Provides common structure and properties for domain-specific exceptions
  */
 export abstract class DomainError extends GraphQLError {
-  abstract readonly code: string;
-  abstract readonly statusCode: number;
-
-  constructor(
-    message: string,
-    code: string,
-    statusCode: number,
-    public readonly cause?: Error,
-    public readonly context?: Record<string, unknown>,
-  ) {
-    super(message, {
-      extensions: {
-        code,
-        statusCode,
-        context,
-        cause: cause?.message,
-      },
-    });
+  constructor(message: string, options: DomainErrorOptions) {
+    super(message, options);
     this.name = this.constructor.name;
-  }
-}
-
-/**
- * Error thrown when a resource already exists
- */
-export class ConflictError extends DomainError {
-  readonly code = 'CONFLICT';
-  readonly statusCode = 409;
-
-  constructor(message: string, cause?: Error, context?: Record<string, unknown>) {
-    super(message, 'CONFLICT', 409, cause, context);
   }
 }
 
@@ -44,52 +29,47 @@ export class ConflictError extends DomainError {
  * Error thrown when a resource is not found
  */
 export class NotFoundError extends DomainError {
-  readonly code = 'NOT_FOUND';
-  readonly statusCode = 404;
-
-  constructor(message: string, cause?: Error, context?: Record<string, unknown>) {
-    super(message, 'NOT_FOUND', 404, cause, context);
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'NOT_FOUND',
+        statusCode: 404,
+        ...options?.extensions,
+      },
+    });
   }
 }
 
 /**
- * Error thrown when input data is invalid
+ * Error thrown when a resource already exists
  */
-export class ValidationError extends DomainError {
-  readonly code = 'VALIDATION_ERROR';
-  readonly statusCode = 400;
-
-  constructor(
-    message: string,
-    public readonly errors: string[],
-    cause?: Error,
-    context?: Record<string, unknown>,
-  ) {
-    super(message, 'VALIDATION_ERROR', 400, cause, { ...context, errors });
+export class ConflictError extends DomainError {
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'CONFLICT',
+        statusCode: 409,
+        ...options?.extensions,
+      },
+    });
   }
 }
 
 /**
- * Error thrown when business rules are violated
+ * Error thrown when request data is invalid or malformed
  */
-export class BusinessRuleError extends DomainError {
-  readonly code = 'BUSINESS_RULE_VIOLATION';
-  readonly statusCode = 422;
-
-  constructor(message: string, cause?: Error, context?: Record<string, unknown>) {
-    super(message, 'BUSINESS_RULE_VIOLATION', 422, cause, context);
-  }
-}
-
-/**
- * Error thrown when access is forbidden
- */
-export class ForbiddenError extends DomainError {
-  readonly code = 'FORBIDDEN';
-  readonly statusCode = 403;
-
-  constructor(message: string, cause?: Error, context?: Record<string, unknown>) {
-    super(message, 'FORBIDDEN', 403, cause, context);
+export class BadRequestError extends DomainError {
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'BAD_REQUEST',
+        statusCode: 400,
+        ...options?.extensions,
+      },
+    });
   }
 }
 
@@ -97,10 +77,242 @@ export class ForbiddenError extends DomainError {
  * Error thrown when authentication fails
  */
 export class UnauthorizedError extends DomainError {
-  readonly code = 'UNAUTHORIZED';
-  readonly statusCode = 401;
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'UNAUTHORIZED',
+        statusCode: 401,
+        ...options?.extensions,
+      },
+    });
+  }
+}
 
-  constructor(message: string, cause?: Error, context?: Record<string, unknown>) {
-    super(message, 'UNAUTHORIZED', 401, cause, context);
+/**
+ * Error thrown when access is forbidden
+ */
+export class ForbiddenError extends DomainError {
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'FORBIDDEN',
+        statusCode: 403,
+        ...options?.extensions,
+      },
+    });
+  }
+}
+
+/**
+ * Error thrown when the request is not acceptable
+ */
+export class NotAcceptableError extends DomainError {
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'NOT_ACCEPTABLE',
+        statusCode: 406,
+        ...options?.extensions,
+      },
+    });
+  }
+}
+
+/**
+ * Error thrown when the request times out
+ */
+export class RequestTimeoutError extends DomainError {
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'REQUEST_TIMEOUT',
+        statusCode: 408,
+        ...options?.extensions,
+      },
+    });
+  }
+}
+
+/**
+ * Error thrown when HTTP version is not supported
+ */
+export class HttpVersionNotSupportedError extends DomainError {
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'HTTP_VERSION_NOT_SUPPORTED',
+        statusCode: 505,
+        ...options?.extensions,
+      },
+    });
+  }
+}
+
+/**
+ * Error thrown when the request payload is too large
+ */
+export class PayloadTooLargeError extends DomainError {
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'PAYLOAD_TOO_LARGE',
+        statusCode: 413,
+        ...options?.extensions,
+      },
+    });
+  }
+}
+
+/**
+ * Error thrown when the entity cannot be processed
+ */
+export class UnprocessableEntityError extends DomainError {
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'UNPROCESSABLE_ENTITY',
+        statusCode: 422,
+        ...options?.extensions,
+      },
+    });
+  }
+}
+
+/**
+ * Error thrown when an internal server error occurs
+ */
+export class InternalServerError extends DomainError {
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'INTERNAL_SERVER_ERROR',
+        statusCode: 500,
+        ...options?.extensions,
+      },
+    });
+  }
+}
+
+/**
+ * Error thrown when a feature is not implemented
+ */
+export class NotImplementedError extends DomainError {
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'NOT_IMPLEMENTED',
+        statusCode: 501,
+        ...options?.extensions,
+      },
+    });
+  }
+}
+
+/**
+ * Error thrown when HTTP method is not allowed
+ */
+export class MethodNotAllowedError extends DomainError {
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'METHOD_NOT_ALLOWED',
+        statusCode: 405,
+        ...options?.extensions,
+      },
+    });
+  }
+}
+
+/**
+ * Error thrown when acting as a gateway and received an invalid response
+ */
+export class BadGatewayError extends DomainError {
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'BAD_GATEWAY',
+        statusCode: 502,
+        ...options?.extensions,
+      },
+    });
+  }
+}
+
+/**
+ * Error thrown when service is unavailable
+ */
+export class ServiceUnavailableError extends DomainError {
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'SERVICE_UNAVAILABLE',
+        statusCode: 503,
+        ...options?.extensions,
+      },
+    });
+  }
+}
+
+/**
+ * Error thrown when acting as a gateway and the request times out
+ */
+export class GatewayTimeoutError extends DomainError {
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'GATEWAY_TIMEOUT',
+        statusCode: 504,
+        ...options?.extensions,
+      },
+    });
+  }
+}
+
+/**
+ * Error thrown when input data is invalid
+ */
+export class ValidationError extends DomainError {
+  public readonly errors: string[];
+
+  constructor(message: string, errors: string[], options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'VALIDATION_ERROR',
+        statusCode: 400,
+        errors,
+        ...options?.extensions,
+      },
+    });
+    this.errors = errors;
+  }
+}
+
+/**
+ * Error thrown when business rules are violated
+ */
+export class BusinessRuleError extends DomainError {
+  constructor(message: string, options?: DomainErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'BUSINESS_RULE_VIOLATION',
+        statusCode: 422,
+        ...options?.extensions,
+      },
+    });
   }
 }
