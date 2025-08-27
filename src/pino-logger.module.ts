@@ -3,13 +3,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { join } from 'node:path';
+import { CorrelationService } from './shared/application';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
     LoggerModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
+      imports: [ConfigModule, SharedModule],
+      inject: [ConfigService, CorrelationService],
+      useFactory: (config: ConfigService, correlationService: CorrelationService) => {
         const logLevel = config.get<string>('LOG_LEVEL', 'info');
         const logDir = config.get<string>('LOG_DIR', join(process.cwd(), 'logs'));
         const logMaxSize = config.get<number>('LOG_MAX_SIZE', 10485760);
@@ -71,9 +73,13 @@ import { join } from 'node:path';
             },
             timestamp: () => `,"time":"${new Date().toISOString()}"`,
             customProps: (req: IncomingMessage, res: ServerResponse) => {
+              const correlationId =
+                correlationService.get() ||
+                res.getHeader('x-correlation-id') ||
+                'no-correlation-id';
               return {
                 context: req.url || 'HTTP',
-                correlationId: res.getHeader('x-correlation-id'),
+                correlationId,
               };
             },
             redact: {

@@ -1,254 +1,244 @@
-import { ArgumentsHost, Catch } from '@nestjs/common';
-import { BaseExceptionFilter } from '@nestjs/core';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
 import { GqlArgumentsHost } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
 import { InjectPinoLogger, Logger } from 'nestjs-pino';
 import { ApplicationError, DomainError, InfrastructureError } from '@shared/domain/errors';
+import { FastifyReply } from 'fastify';
+import { CorrelationService } from '@shared/application/services';
 
 /**
- * GraphQL operation info interface for safe type checking
+ * GraphQL context interface for Fastify integration
  */
-interface GraphQLOperationInfo {
-  readonly operation?: {
-    readonly operation?: string;
-  };
-  readonly fieldName?: string;
+interface GqlContext {
+  res: FastifyReply;
 }
 
 /**
- * GraphQL context interface for safe type checking
+ * Normalized error response structure
  */
-interface GraphQLContext {
-  readonly user?: {
-    readonly id?: string | number;
-  };
-  readonly correlationId?: string;
-  readonly req?: {
-    readonly headers?: {
-      readonly 'user-agent'?: string;
-    };
-  };
-}
-
-/**
- * Validation error response structure
- */
-interface ValidationErrorResponse {
-  statusCode: number;
-  message: string | string[];
+interface ErrorResponse {
+  status: HttpStatus;
+  message: string;
+  code: string;
+  extensions?: Record<string, unknown>;
 }
 
 /**
  * Global GraphQL exception filter following NestJS best practices
- * Extends BaseExceptionFilter to inherit default behavior while adding custom logic
- * Catches all unhandled exceptions and transforms them into appropriate GraphQL errors
+ * Handles all unhandled exceptions and transforms them into appropriate GraphQL errors
  */
 @Catch()
-export class GraphQLExceptionFilter extends BaseExceptionFilter {
+export class GraphQLExceptionFilter implements ExceptionFilter {
   constructor(
     @InjectPinoLogger(GraphQLExceptionFilter.name)
     private readonly logger: Logger,
-  ) {
-    super();
-  }
+    private readonly correlationService: CorrelationService,
+  ) {}
 
   /**
    * Catches and processes all exceptions according to NestJS exception filter pattern
-   * Handles GraphQL-specific context and provides appropriate error transformation
    * @param exception - The caught exception to process
    * @param host - The arguments host containing execution context
    */
-  catch(exception: unknown, host: ArgumentsHost) {
-    // Extract GraphQL context if available
-    const gqlHost = this._getGraphQLContext(host);
+  catch(exception: unknown, host: ArgumentsHost): void {
+    // Try to extract correlation ID from different contexts
+    const correlationId = this.extractCorrelationId(host);
 
-    // Log error with contextual information
-    this._logError(exception, gqlHost);
+    // Check if this is a GraphQL context and if we can send direct responses
+    const directResponse = this.tryDirectGraphQLResponse(host, exception, correlationId);
+    if (directResponse) {
+      return;
+    }
 
-    // All our custom errors (Domain, Application, Infrastructure) now extend GraphQLError
-    // so we can handle them uniformly
+    // Handle our custom GraphQL errors (Domain, Application, Infrastructure)
     if (
       exception instanceof DomainError ||
       exception instanceof ApplicationError ||
       exception instanceof InfrastructureError
     ) {
+      // Selective logging: Only log non-domain errors
+      if (!(exception instanceof DomainError)) {
+        this.logger.error({
+          message: exception.message,
+          extensions: exception.extensions,
+          stack: exception instanceof Error ? exception.stack : undefined,
+          correlationId,
+        });
+      }
+
+      // Add correlation ID to existing extensions and throw
+      this.enrichErrorWithCorrelationId(exception as GraphQLError, correlationId);
       throw exception;
     }
 
-    // Handle existing GraphQL errors (pass through with logging)
+    // Handle existing GraphQL errors (pass through with correlation ID)
     if (exception instanceof GraphQLError) {
+      this.logger.warn({
+        message: exception.message,
+        extensions: exception.extensions,
+        stack: exception.stack,
+        correlationId,
+      });
+
+      // Add correlation ID and throw
+      this.enrichErrorWithCorrelationId(exception, correlationId);
       throw exception;
     }
 
-    // Handle NestJS validation errors
-    if (this._isValidationError(exception)) {
-      const validationError = exception as { response: ValidationErrorResponse; message?: string };
-      throw new GraphQLError('Validation failed', {
-        extensions: {
-          code: 'BAD_USER_INPUT',
-          statusCode: 400,
-          validationErrors: validationError.response?.message || validationError.message,
-        },
-      });
-    }
+    // For other types of errors, normalize them
+    const errorResponse = this.normalizeError(exception);
 
-    // For all other exceptions, log and create generic GraphQL error
-    this.logger.error(
-      {
-        error: exception instanceof Error ? exception.message : String(exception),
-        stack: exception instanceof Error ? exception.stack : undefined,
-        type: exception?.constructor?.name || 'Unknown',
-      },
-      'Unhandled exception in GraphQL operation',
-    );
+    // Log error details for non-GraphQL errors
+    this.logger.error({
+      ...errorResponse,
+      stack: exception instanceof Error ? exception.stack : undefined,
+      correlationId,
+    });
 
-    throw new GraphQLError('Internal server error', {
+    // Create GraphQL formatted error
+    const graphqlError = new GraphQLError(errorResponse.message, {
       extensions: {
-        code: 'INTERNAL_SERVER_ERROR',
-        statusCode: 500,
+        code: errorResponse.code,
+        statusCode: errorResponse.status,
+        ...errorResponse.extensions,
+        correlationId,
       },
     });
+
+    throw graphqlError;
   }
 
   /**
-   * Safely extracts GraphQL context from ArgumentsHost
-   * @param host - The arguments host
-   * @returns GraphQL arguments host or null if not GraphQL context
+   * Normalizes non-GraphQL errors into a consistent format
+   * @param exception The caught exception
+   * @returns Normalized error response
    */
-  private _getGraphQLContext(host: ArgumentsHost): GqlArgumentsHost | null {
-    try {
-      return GqlArgumentsHost.create(host);
-    } catch {
-      // Not a GraphQL context, return null
-      return null;
-    }
-  }
+  private normalizeError(exception: unknown): ErrorResponse {
+    // Handle NestJS HTTP exceptions
+    if (exception instanceof HttpException) {
+      const response = exception.getResponse() as string | Record<string, unknown>;
 
-  /**
-   * Logs error information with appropriate context and severity level
-   * Includes GraphQL operation details when available
-   * @param exception - The exception to log
-   * @param gqlHost - GraphQL context (if available)
-   */
-  private _logError(exception: unknown, gqlHost: GqlArgumentsHost | null): void {
-    // Extract GraphQL operation context if available
-    const operationContext = this._extractOperationContext(gqlHost);
-
-    if (
-      exception instanceof DomainError ||
-      exception instanceof ApplicationError ||
-      exception instanceof InfrastructureError
-    ) {
-      // All our custom errors now extend GraphQLError and have extensions
-      const logLevel = exception instanceof DomainError ? 'warn' : 'error';
-
-      this.logger[logLevel](
-        {
-          ...operationContext,
-          error: exception.message,
-          extensions: exception.extensions,
-          stack: exception.stack,
-        },
-        `${exception.constructor.name}: ${exception.message}`,
-      );
-    } else if (exception instanceof GraphQLError) {
-      this.logger.warn(
-        {
-          ...operationContext,
-          error: exception.message,
-          extensions: exception.extensions,
-          stack: exception.stack,
-        },
-        `GraphQL error: ${exception.message}`,
-      );
-    } else {
-      this.logger.error(
-        {
-          ...operationContext,
-          error: exception instanceof Error ? exception.message : String(exception),
-          stack: exception instanceof Error ? exception.stack : undefined,
-          type: exception?.constructor?.name || 'Unknown',
-        },
-        'Unknown error occurred',
-      );
-    }
-  }
-
-  /**
-   * Extracts operation context from GraphQL execution
-   * @param gqlHost - GraphQL arguments host
-   * @returns Operation context object
-   */
-  private _extractOperationContext(gqlHost: GqlArgumentsHost | null): Record<string, unknown> {
-    if (!gqlHost) {
-      return {};
-    }
-
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const info = gqlHost.getInfo();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const context = gqlHost.getContext();
-
-      // Type-safe extraction with proper type guards
-      const safeInfo = this._isGraphQLOperationInfo(info) ? info : null;
-      const safeContext = this._isGraphQLContext(context) ? context : null;
+      let message: string;
+      if (typeof response === 'string') {
+        message = response;
+      } else if (typeof response.message === 'string') {
+        message = response.message;
+      } else if (Array.isArray(response.message)) {
+        message = (response.message as string[]).join(', ');
+      } else {
+        message = exception.message;
+      }
 
       return {
-        operation: safeInfo?.operation?.operation,
-        fieldName: safeInfo?.fieldName,
-        userId: safeContext?.user?.id,
-        correlationId: safeContext?.correlationId,
-        userAgent: safeContext?.req?.headers?.['user-agent'],
+        status: exception.getStatus(),
+        message: String(message),
+        code: exception.constructor.name.replace('Exception', '').toUpperCase(),
+        extensions: typeof response === 'object' ? response : {},
       };
-    } catch {
-      return {};
     }
+
+    // Handle unknown errors
+    return {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: exception instanceof Error ? exception.message : 'Internal server error',
+      code: 'INTERNAL_SERVER_ERROR',
+      extensions: {
+        timestamp: new Date().toISOString(),
+        error: exception instanceof Error ? exception.constructor.name : 'Unknown Error',
+      },
+    };
   }
 
   /**
-   * Type guard for GraphQL operation info
-   * @param value - Value to check
-   * @returns True if value matches GraphQL operation info structure
+   * Extracts correlation ID from CorrelationService
+   * @param _host The arguments host (unused but kept for interface compatibility)
+   * @returns Correlation ID from service or fallback
    */
-  private _isGraphQLOperationInfo(value: unknown): value is GraphQLOperationInfo {
-    return (
-      value !== null &&
-      typeof value === 'object' &&
-      (typeof (value as Record<string, unknown>).fieldName === 'string' ||
-        typeof (value as Record<string, unknown>).fieldName === 'undefined') &&
-      (typeof (value as Record<string, unknown>).operation === 'object' ||
-        typeof (value as Record<string, unknown>).operation === 'undefined')
-    );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private extractCorrelationId(_host: ArgumentsHost): string {
+    const correlationId = this.correlationService.get();
+    return correlationId || 'no-correlation-id';
   }
 
   /**
-   * Type guard for GraphQL context
-   * @param value - Value to check
-   * @returns True if value matches GraphQL context structure
+   * Attempts to send direct GraphQL response if in proper GraphQL context
+   * @param host The arguments host
+   * @param exception The exception to handle
+   * @param correlationId The correlation ID
+   * @returns true if response was sent, false otherwise
    */
-  private _isGraphQLContext(value: unknown): value is GraphQLContext {
-    return value !== null && typeof value === 'object';
-  }
+  private tryDirectGraphQLResponse(
+    host: ArgumentsHost,
+    exception: unknown,
+    correlationId: string,
+  ): boolean {
+    try {
+      const gqlHost = GqlArgumentsHost.create(host);
+      const gqlContext = gqlHost.getContext<GqlContext>();
 
-  /**
-   * Type guard to check if exception is a NestJS validation error
-   * @param exception - The exception to check
-   * @returns True if it's a validation error
-   */
-  private _isValidationError(exception: unknown): boolean {
-    if (exception === null || typeof exception !== 'object') {
+      // Check if we have a valid Fastify response object
+      if (!gqlContext?.res?.status || typeof gqlContext.res.send !== 'function') {
+        return false; // Can't send direct response
+      }
+
+      const response = gqlContext.res;
+
+      // Handle our custom GraphQL errors (Domain, Application, Infrastructure)
+      if (
+        exception instanceof DomainError ||
+        exception instanceof ApplicationError ||
+        exception instanceof InfrastructureError
+      ) {
+        const graphqlError = exception as GraphQLError;
+
+        response.status(HttpStatus.OK).send({
+          data: null,
+          errors: [
+            {
+              ...graphqlError,
+              extensions: {
+                ...graphqlError.extensions,
+                correlationId,
+              },
+            },
+          ],
+        });
+        return true;
+      }
+
+      // Handle existing GraphQL errors
+      if (exception instanceof GraphQLError) {
+        response.status(HttpStatus.OK).send({
+          data: null,
+          errors: [
+            {
+              ...exception,
+              extensions: {
+                ...exception.extensions,
+                correlationId,
+              },
+            },
+          ],
+        });
+        return true;
+      }
+
       return false;
+    } catch {
+      return false; // Failed to send direct response
     }
+  }
 
-    const exceptionObj = exception as Record<string, unknown>;
-
-    return (
-      'response' in exceptionObj &&
-      typeof exceptionObj.response === 'object' &&
-      exceptionObj.response !== null &&
-      'statusCode' in (exceptionObj.response as Record<string, unknown>) &&
-      (exceptionObj.response as Record<string, unknown>).statusCode === 400
-    );
+  /**
+   * Enriches a GraphQL error with correlation ID
+   * @param error GraphQL error to enrich
+   * @param correlationId Correlation ID to add
+   */
+  private enrichErrorWithCorrelationId(error: GraphQLError, correlationId: string): void {
+    if (error.extensions && typeof error.extensions === 'object') {
+      if (!('correlationId' in error.extensions)) {
+        (error.extensions as Record<string, unknown>).correlationId = correlationId;
+      }
+    }
   }
 }

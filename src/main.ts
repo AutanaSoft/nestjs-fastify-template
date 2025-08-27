@@ -28,6 +28,10 @@ async function bootstrap() {
   // await app.register(fastifyCsrf);
   app.useGlobalPipes(new ValidationPipe({}));
 
+  // Apply GraphQL Exception Filter globally (alternative to APP_FILTER provider)
+  // Note: This is less ideal than using APP_FILTER provider in AppModule
+  // app.useGlobalFilters(new GraphQLExceptionFilter(logger));
+
   // app.setGlobalPrefix(appConf.prefix);
 
   await app.listen(appConf.port, '0.0.0.0');
