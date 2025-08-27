@@ -1,19 +1,15 @@
-/**
- * Base class for application layer errors
- * Used for orchestration and use case related errors
- */
-export abstract class ApplicationError extends Error {
-  abstract readonly code: string;
-  readonly statusCode = 500;
+import { GraphQLError } from 'graphql';
+import { ErrorOptions } from '../interfaces';
 
-  constructor(
-    message: string,
-    public readonly cause?: Error,
-    public readonly context?: Record<string, unknown>,
-  ) {
-    super(message);
+/**
+ * Base abstract class for all application layer errors
+ * Used for orchestration and use case related errors
+ * Extends GraphQL error to maintain consistency in GraphQL ecosystem
+ */
+export abstract class ApplicationError extends GraphQLError {
+  constructor(message: string, options: ErrorOptions) {
+    super(message, options);
     this.name = this.constructor.name;
-    Error.captureStackTrace(this, this.constructor);
   }
 }
 
@@ -21,12 +17,30 @@ export abstract class ApplicationError extends Error {
  * Error thrown when use case execution fails
  */
 export class UseCaseError extends ApplicationError {
-  readonly code = 'USE_CASE_ERROR';
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'USE_CASE_ERROR',
+        statusCode: 500,
+        ...options?.extensions,
+      },
+    });
+  }
 }
 
 /**
  * Error thrown when data transformation fails
  */
 export class TransformationError extends ApplicationError {
-  readonly code = 'TRANSFORMATION_ERROR';
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, {
+      ...options,
+      extensions: {
+        code: 'TRANSFORMATION_ERROR',
+        statusCode: 500,
+        ...options?.extensions,
+      },
+    });
+  }
 }

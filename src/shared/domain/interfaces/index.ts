@@ -1,6 +1,8 @@
 // Domain interfaces barrel export
 // Export all interfaces here as they are created
 
+export * from './error.interface';
+
 // Example:
 // export * from './repositories';
 // export * from './services';

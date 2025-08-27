@@ -8,10 +8,12 @@ All domain errors now use exactly the same interface as `GraphQLError` for perfe
 new ErrorClass(message, options);
 ```
 
-Where `options` follows the `GraphQLError` pattern:
+Where `options` follows the shared `ErrorOptions` interface:
 
 ```typescript
-interface DomainErrorOptions {
+import { ErrorOptions } from '@shared/domain/interfaces';
+
+interface ErrorOptions {
   originalError?: Maybe<Error>;
   extensions?: {
     [attributeName: string]: unknown;
@@ -20,6 +22,16 @@ interface DomainErrorOptions {
   };
 }
 ```
+
+## Shared Interface
+
+Both domain errors and application errors use the same `ErrorOptions` interface for consistency:
+
+- **Domain Errors**: Use `ErrorOptions` from `@shared/domain/interfaces`
+- **Application Errors**: Use the same `ErrorOptions` interface
+- **Infrastructure Errors**: Also use the same `ErrorOptions` interface
+
+This ensures consistency across all error types in the application.
 
 ## Usage Examples
 
