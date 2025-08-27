@@ -162,23 +162,24 @@ export class UserPrismaAdapter extends UserRepository {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Unique constraint violation
       if (error.code === 'P2002') {
-        const fields = error.meta?.target as string[];
-        const message = `User with this ${fields?.join(' or ') || 'field'} already exists`;
-        this.logger.debug({ error: error.message, fields }, message);
+        const stack = error instanceof Error ? error.stack : undefined;
+        const message = 'User with this email or username already exists';
+        this.logger.debug({ error, stack }, message);
         throw new ConflictError(message);
       }
 
       // Record not found
       if (error.code === 'P2025') {
-        const message = 'User not found';
-        this.logger.debug({ error: error.message }, message);
-        throw new NotFoundError(message);
+        const message = error.meta?.cause;
+        this.logger.error({ error }, message);
+        throw new NotFoundError('User not found', { extensions: { code: 'USER_NOT_FOUND' } });
       }
 
       // Foreign key constraint violation
       if (error.code === 'P2003') {
         const message = 'Invalid reference in user data';
-        this.logger.debug({ error: error.message }, message);
+        const stack = error instanceof Error ? error.stack : undefined;
+        this.logger.debug({ error, stack }, message);
         throw new ConflictError(message);
       }
     }
@@ -186,29 +187,29 @@ export class UserPrismaAdapter extends UserRepository {
     // Handle Prisma validation errors
     if (error instanceof Prisma.PrismaClientValidationError) {
       const message = 'Invalid user data provided';
-      this.logger.debug({ error: error.message }, message);
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.debug({ error, stack }, message);
       throw new DatabaseError(message);
     }
 
     // Handle connection errors
     if (error instanceof Prisma.PrismaClientInitializationError) {
       const message = 'Database connection failed';
-      this.logger.error({ error: error.message }, message);
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error({ error, stack }, message);
       throw new DatabaseError('Database unavailable');
     }
 
     // Log and rethrow unknown errors
-    const errorMessage = error instanceof Error ? error.message : String(error);
     const errorStack = error instanceof Error ? error.stack : undefined;
-
     this.logger.error(
       {
-        message: errorMessage,
+        error,
         stack: errorStack,
       },
-      'Unhandled database error',
+      'An unexpected database error occurred',
     );
 
-    throw new DatabaseError('An unexpected database error occurred');
+    throw new DatabaseError('An unexpected error occurred');
   }
 }
