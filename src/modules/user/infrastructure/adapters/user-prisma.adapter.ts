@@ -162,24 +162,22 @@ export class UserPrismaAdapter extends UserRepository {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Unique constraint violation
       if (error.code === 'P2002') {
-        const stack = error instanceof Error ? error.stack : undefined;
         const message = 'User with this email or username already exists';
-        this.logger.debug({ error, stack }, message);
+        this.logger.debug({ originalError: error }, message);
         throw new ConflictError(message);
       }
 
       // Record not found
       if (error.code === 'P2025') {
         const message = error.meta?.cause;
-        this.logger.error({ error }, message);
+        this.logger.debug({ error }, message);
         throw new NotFoundError('User not found', { extensions: { code: 'USER_NOT_FOUND' } });
       }
 
       // Foreign key constraint violation
       if (error.code === 'P2003') {
         const message = 'Invalid reference in user data';
-        const stack = error instanceof Error ? error.stack : undefined;
-        this.logger.debug({ error, stack }, message);
+        this.logger.debug({ error }, message);
         throw new ConflictError(message);
       }
     }
@@ -187,25 +185,21 @@ export class UserPrismaAdapter extends UserRepository {
     // Handle Prisma validation errors
     if (error instanceof Prisma.PrismaClientValidationError) {
       const message = 'Invalid user data provided';
-      const stack = error instanceof Error ? error.stack : undefined;
-      this.logger.debug({ error, stack }, message);
+      this.logger.debug({ error }, message);
       throw new DatabaseError(message);
     }
 
     // Handle connection errors
     if (error instanceof Prisma.PrismaClientInitializationError) {
       const message = 'Database connection failed';
-      const stack = error instanceof Error ? error.stack : undefined;
-      this.logger.error({ error, stack }, message);
+      this.logger.error({ error }, message);
       throw new DatabaseError('Database unavailable');
     }
 
     // Log and rethrow unknown errors
-    const errorStack = error instanceof Error ? error.stack : undefined;
     this.logger.error(
       {
         error,
-        stack: errorStack,
       },
       'An unexpected database error occurred',
     );

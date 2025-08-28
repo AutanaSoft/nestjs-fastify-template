@@ -9,16 +9,23 @@ const HEADER = 'x-correlation-id';
 export class CorrelationIdMiddleware implements NestMiddleware {
   constructor(private readonly correlationService: CorrelationService) {}
 
-  use(request: FastifyRequest['raw'], reply: FastifyReply['raw'], next: () => void): void {
+  use(
+    request: FastifyRequest['raw'] & { correlationId: string },
+    reply: FastifyReply['raw'],
+    next: () => void,
+  ): void {
     const requestID = request.headers[HEADER] as string | undefined;
     const replyID = reply.getHeader(HEADER) as string | undefined;
     const correlationId = requestID || replyID || randomUUID();
 
     // Envía el header lo antes posible para asegurar su presencia en cualquier respuesta
     request.headers[HEADER] = correlationId;
+    request.correlationId = correlationId;
     reply.setHeader(HEADER, correlationId);
 
     // Ejecuta el resto de la request dentro del contexto (ALS) del correlationId
-    this.correlationService.run(correlationId, () => next());
+    this.correlationService.run(correlationId, () => {
+      next();
+    });
   }
 }

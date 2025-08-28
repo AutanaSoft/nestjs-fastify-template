@@ -1,17 +1,8 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
-import { GqlArgumentsHost } from '@nestjs/graphql';
+import { CorrelationService } from '@shared/application/services';
+import { ApplicationError, DomainError, InfrastructureError } from '@shared/domain/errors';
 import { GraphQLError } from 'graphql';
 import { InjectPinoLogger, Logger } from 'nestjs-pino';
-import { ApplicationError, DomainError, InfrastructureError } from '@shared/domain/errors';
-import { FastifyReply } from 'fastify';
-import { CorrelationService } from '@shared/application/services';
-
-/**
- * GraphQL context interface for Fastify integration
- */
-interface GqlContext {
-  res: FastifyReply;
-}
 
 /**
  * Normalized error response structure
@@ -43,12 +34,6 @@ export class GraphQLExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     // Try to extract correlation ID from different contexts
     const correlationId = this.extractCorrelationId(host);
-
-    // Check if this is a GraphQL context and if we can send direct responses
-    const directResponse = this.tryDirectGraphQLResponse(host, exception, correlationId);
-    if (directResponse) {
-      return;
-    }
 
     // Handle our custom GraphQL errors (Domain, Application, Infrastructure)
     if (
@@ -158,75 +143,6 @@ export class GraphQLExceptionFilter implements ExceptionFilter {
   private extractCorrelationId(_host: ArgumentsHost): string {
     const correlationId = this.correlationService.get();
     return correlationId || 'no-correlation-id';
-  }
-
-  /**
-   * Attempts to send direct GraphQL response if in proper GraphQL context
-   * @param host The arguments host
-   * @param exception The exception to handle
-   * @param correlationId The correlation ID
-   * @returns true if response was sent, false otherwise
-   */
-  private tryDirectGraphQLResponse(
-    host: ArgumentsHost,
-    exception: unknown,
-    correlationId: string,
-  ): boolean {
-    try {
-      const gqlHost = GqlArgumentsHost.create(host);
-      const gqlContext = gqlHost.getContext<GqlContext>();
-
-      // Check if we have a valid Fastify response object
-      if (!gqlContext?.res?.status || typeof gqlContext.res.send !== 'function') {
-        return false; // Can't send direct response
-      }
-
-      const response = gqlContext.res;
-
-      // Handle our custom GraphQL errors (Domain, Application, Infrastructure)
-      if (
-        exception instanceof DomainError ||
-        exception instanceof ApplicationError ||
-        exception instanceof InfrastructureError
-      ) {
-        const graphqlError = exception as GraphQLError;
-
-        response.status(HttpStatus.OK).send({
-          data: null,
-          errors: [
-            {
-              ...graphqlError,
-              extensions: {
-                ...graphqlError.extensions,
-                correlationId,
-              },
-            },
-          ],
-        });
-        return true;
-      }
-
-      // Handle existing GraphQL errors
-      if (exception instanceof GraphQLError) {
-        response.status(HttpStatus.OK).send({
-          data: null,
-          errors: [
-            {
-              ...exception,
-              extensions: {
-                ...exception.extensions,
-                correlationId,
-              },
-            },
-          ],
-        });
-        return true;
-      }
-
-      return false;
-    } catch {
-      return false; // Failed to send direct response
-    }
   }
 
   /**

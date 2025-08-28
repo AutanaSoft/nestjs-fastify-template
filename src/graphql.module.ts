@@ -15,8 +15,8 @@ import { join } from 'node:path';
           fullWsTransport: true,
         },
         context: (request: FastifyRequest, reply: FastifyReply) => ({
+          res: reply,
           req: request,
-          reply: reply,
         }),
       }),
     }),
