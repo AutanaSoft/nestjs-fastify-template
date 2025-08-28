@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { MercuriusDriver, MercuriusDriverConfig } from '@nestjs/mercurius';
+import { FastifyReply, FastifyRequest } from 'fastify';
 import { join } from 'node:path';
 
 @Module({
@@ -13,6 +14,10 @@ import { join } from 'node:path';
         subscription: {
           fullWsTransport: true,
         },
+        context: (request: FastifyRequest, reply: FastifyReply) => ({
+          req: request,
+          reply: reply,
+        }),
       }),
     }),
   ],

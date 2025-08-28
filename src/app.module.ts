@@ -7,14 +7,15 @@ import {
   databaseConfig,
   throttlerConfig,
 } from '@config/index';
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
-import { SharedModule } from '@shared/shared.module';
 import { GraphQLExceptionFilter } from '@shared/infrastructure/filters';
+import { SharedModule } from '@shared/shared.module';
 import { GraphQConfigLModule } from './graphql.module';
 import { UserModule } from './modules/user/user.module';
 import { PinoLoggerModule } from './pino-logger.module';
+import { CorrelationIdMiddleware } from './shared/infrastructure/middleware';
 
 @Module({
   imports: [
@@ -37,4 +38,10 @@ import { PinoLoggerModule } from './pino-logger.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(CorrelationIdMiddleware)
+      .forRoutes({ path: 'graphql', method: RequestMethod.ALL });
+  }
+}

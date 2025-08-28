@@ -1,32 +1,24 @@
 import { CorrelationService } from '@/shared/application/services';
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import { FastifyRequest } from 'fastify';
-import { ServerResponse } from 'http';
+import { FastifyReply, FastifyRequest } from 'fastify';
 
-/**
- * Middleware to handle correlation IDs for request tracing.
- *
- * It retrieves the 'x-correlation-id' from the request headers or generates
- * a new one if not provided. The ID is then stored using the CorrelationService
- * and added to the response headers.
- */
+const HEADER = 'x-correlation-id';
+
 @Injectable()
 export class CorrelationIdMiddleware implements NestMiddleware {
   constructor(private readonly correlationService: CorrelationService) {}
 
-  /**
-   * Executes the middleware logic.
-   *
-   * @param req - The incoming Fastify request
-   * @param res - The outgoing Fastify reply, as a raw ServerResponse
-   * @param next - The next function in the middleware chain
-   */
-  use(req: FastifyRequest, res: ServerResponse, next: () => void): void {
-    const correlationId = (req.headers['x-correlation-id'] as string) || randomUUID();
+  use(request: FastifyRequest['raw'], reply: FastifyReply['raw'], next: () => void): void {
+    // 1) Intake del header si viene; 2) fallback a request.id de Fastify; 3) genera UUID
+    const headerId = request.headers[HEADER] as string | undefined;
+    const correlationId = headerId ?? randomUUID();
 
+    // Envía el header lo antes posible para asegurar su presencia en cualquier respuesta
+    reply.setHeader(HEADER, correlationId);
+
+    // Ejecuta el resto de la request dentro del contexto (ALS) del correlationId
     this.correlationService.run(correlationId, () => {
-      res.setHeader('x-correlation-id', correlationId);
       next();
     });
   }
