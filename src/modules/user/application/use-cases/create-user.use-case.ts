@@ -1,10 +1,10 @@
 import { UserDto } from '@modules/user/application/dto';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import { Injectable } from '@nestjs/common';
+import { ConflictError, UseCaseError } from '@shared/domain/errors';
 import { HashUtils } from '@shared/infrastructure/utils';
-import { UseCaseError, ConflictError } from '@shared/domain/errors';
 import { plainToInstance } from 'class-transformer';
-import { InjectPinoLogger, Logger } from 'nestjs-pino';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { UserCreateArgsDto } from '../dto/args';
 
 /**
@@ -16,7 +16,7 @@ export class CreateUserUseCase {
   constructor(
     private readonly userRepository: UserRepository,
     @InjectPinoLogger(CreateUserUseCase.name)
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
   ) {}
 
   /**

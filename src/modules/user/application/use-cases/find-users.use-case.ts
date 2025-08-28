@@ -2,7 +2,7 @@ import { UserDto, UserSortOrderInputDto } from '@modules/user/application/dto';
 import { UserRepository } from '@modules/user/domain/repositories';
 import { Injectable } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { InjectPinoLogger, Logger } from 'nestjs-pino';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { UserFindArgsDto } from '../dto/args';
 
 /**
@@ -14,7 +14,7 @@ export class FindUsersUseCase {
   constructor(
     private readonly userRepository: UserRepository,
     @InjectPinoLogger(FindUsersUseCase.name)
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
   ) {}
 
   /**

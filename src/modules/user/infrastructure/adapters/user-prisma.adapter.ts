@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { ConflictError, DatabaseError, NotFoundError } from '@shared/domain/errors';
 import { plainToInstance } from 'class-transformer';
-import { InjectPinoLogger, Logger } from 'nestjs-pino';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { UserCreateData, UserFindAllData, UserUpdateData } from '../../domain/types'; // added UserStatus
 
 /**
@@ -18,7 +18,7 @@ export class UserPrismaAdapter extends UserRepository {
   constructor(
     private readonly prisma: PrismaService,
     @InjectPinoLogger(UserPrismaAdapter.name)
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
   ) {
     super();
   }
@@ -169,9 +169,9 @@ export class UserPrismaAdapter extends UserRepository {
 
       // Record not found
       if (error.code === 'P2025') {
-        const message = error.meta?.cause;
+        const message = 'User not found';
         this.logger.debug({ error }, message);
-        throw new NotFoundError('User not found', { extensions: { code: 'USER_NOT_FOUND' } });
+        throw new NotFoundError(message, { extensions: { code: 'USER_NOT_FOUND' } });
       }
 
       // Foreign key constraint violation
