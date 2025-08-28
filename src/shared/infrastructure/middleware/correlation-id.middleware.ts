@@ -1,5 +1,4 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { FastifyReply, FastifyRequest } from 'fastify';
 
 export const X_CORRELATION_ID = 'x-correlation-id';
@@ -7,17 +6,17 @@ export const X_CORRELATION_ID = 'x-correlation-id';
 @Injectable()
 export class CorrelationIdMiddleware implements NestMiddleware {
   use(
-    request: FastifyRequest['raw'] & { correlationId: string },
-    reply: FastifyReply['raw'],
+    req: FastifyRequest['raw'] & { correlationId?: string },
+    res: FastifyReply['raw'],
     next: () => void,
   ): void {
-    const existingCorrelationId = request.headers[X_CORRELATION_ID] as string | undefined;
-    const correlationId = existingCorrelationId || randomUUID();
+    // Get existing correlation ID from headers
+    const correlationId = req.id as string;
 
-    // Establece el correlationId en los headers y el request
-    request.headers[X_CORRELATION_ID] = correlationId;
-    request.correlationId = correlationId;
-    reply.setHeader(X_CORRELATION_ID, correlationId);
+    // Set the correlation ID in headers and request for future use
+    req.headers[X_CORRELATION_ID] = correlationId;
+    req.correlationId = correlationId;
+    res.setHeader(X_CORRELATION_ID, correlationId);
 
     next();
   }

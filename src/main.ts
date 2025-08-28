@@ -7,12 +7,24 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import { randomUUID } from 'crypto';
+import { IncomingMessage } from 'http';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
+import { X_CORRELATION_ID } from './shared/infrastructure/middleware';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
-    bufferLogs: true,
-  });
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter({
+      genReqId: (req: IncomingMessage) => {
+        const id = (req.headers[X_CORRELATION_ID] as string) || randomUUID();
+        return id;
+      },
+    }),
+    {
+      bufferLogs: true,
+    },
+  );
 
   // load logger from the application
   const logger = app.get(Logger);

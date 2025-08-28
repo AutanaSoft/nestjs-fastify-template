@@ -1,16 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
-import { randomUUID } from 'node:crypto';
-import { IncomingMessage, ServerResponse } from 'node:http';
+import { IncomingMessage } from 'node:http';
 import { join } from 'node:path';
-import { X_CORRELATION_ID } from './shared/infrastructure/middleware';
 import { SharedModule } from './shared/shared.module';
-
-function extractHeaderId(headerValue: string | string[] | undefined): string | undefined {
-  if (!headerValue) return undefined;
-  return Array.isArray(headerValue) ? headerValue[0] : headerValue;
-}
 
 @Module({
   imports: [
@@ -78,19 +71,12 @@ function extractHeaderId(headerValue: string | string[] | undefined): string | u
               responseTime: 'timeTaken',
             },
             timestamp: () => `,"time":"${new Date().toISOString()}"`,
-            genReqId: req => {
-              return randomUUID();
-            },
-            customProps: (req: IncomingMessage, res: ServerResponse) => {
+            customProps: (req: IncomingMessage) => {
               return {
                 context: req.url || 'HTTP',
-                correlationId:
-                  req.headers[X_CORRELATION_ID] ||
-                  res.getHeader(X_CORRELATION_ID) ||
-                  'x-correlation-id-not-found',
+                correlationId: req.id || 'x-correlation-id-not-found',
               };
             },
-
             redact: {
               paths: [
                 'request.headers.authorization',
