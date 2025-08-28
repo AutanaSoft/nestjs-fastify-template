@@ -11,8 +11,9 @@ export class CorrelationIdMiddleware implements NestMiddleware {
     reply: FastifyReply['raw'],
     next: () => void,
   ): void {
-    const existingCorrelationId = request.headers[HEADER] as string | undefined;
-    const correlationId = existingCorrelationId || randomUUID();
+    const requestId = request.headers[HEADER] as string | undefined;
+    const replyId = reply.getHeader(HEADER) as string | undefined;
+    const correlationId = requestId || replyId || randomUUID();
 
     // Establece el correlationId en los headers y el request
     request.headers[HEADER] = correlationId;
