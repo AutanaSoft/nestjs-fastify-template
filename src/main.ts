@@ -7,7 +7,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { Logger } from 'nestjs-pino';
+import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
@@ -17,6 +17,7 @@ async function bootstrap() {
   // load logger from the application
   const logger = app.get(Logger);
   app.useLogger(logger);
+  app.useGlobalInterceptors(new LoggerErrorInterceptor());
 
   // load configuration from config service
   const configService = app.get(ConfigService);
@@ -28,7 +29,7 @@ async function bootstrap() {
   // configure application settings
   await app.register(fastifyCookie, cookieConf);
   await app.register(fastifyCors, corsConf);
-  await app.register(helmet, { contentSecurityPolicy: false });
+  await app.register(helmet, helmetConf);
   app.useGlobalPipes(new ValidationPipe({}));
 
   // Apply GraphQL Exception Filter globally (alternative to APP_FILTER provider)

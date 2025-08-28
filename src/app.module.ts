@@ -7,7 +7,7 @@ import {
   databaseConfig,
   throttlerConfig,
 } from '@config/index';
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { GraphQLExceptionFilter } from '@shared/infrastructure/filters';
@@ -40,8 +40,6 @@ import { CorrelationIdMiddleware } from './shared/infrastructure/middleware';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(CorrelationIdMiddleware)
-      .forRoutes({ path: 'graphql', method: RequestMethod.ALL });
+    consumer.apply(CorrelationIdMiddleware).forRoutes('*');
   }
 }
