@@ -58,6 +58,9 @@ importers:
       class-validator:
         specifier: ^0.14.2
         version: 0.14.2
+      fastify:
+        specifier: ^5.5.0
+        version: 5.5.0
       graphql:
         specifier: ^16.11.0
         version: 16.11.0
