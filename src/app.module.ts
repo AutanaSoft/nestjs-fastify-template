@@ -7,7 +7,7 @@ import {
   databaseConfig,
   throttlerConfig,
 } from '@config/index';
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { GraphQLExceptionFilter } from '@shared/infrastructure/filters';
@@ -15,7 +15,6 @@ import { SharedModule } from '@shared/shared.module';
 import { GraphQConfigLModule } from './graphql.module';
 import { UserModule } from './modules/user/user.module';
 import { PinoLoggerModule } from './pino-logger.module';
-import { CorrelationIdMiddleware } from './shared/infrastructure/middleware';
 
 @Module({
   imports: [
@@ -38,8 +37,4 @@ import { CorrelationIdMiddleware } from './shared/infrastructure/middleware';
     },
   ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(CorrelationIdMiddleware).forRoutes('*');
-  }
-}
+export class AppModule {}

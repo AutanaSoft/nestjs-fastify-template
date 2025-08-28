@@ -1,11 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { FastifyReply } from 'fastify';
 import { LoggerModule } from 'nestjs-pino';
+import { randomUUID } from 'node:crypto';
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { join } from 'node:path';
 import { X_CORRELATION_ID } from './shared/infrastructure/middleware';
 import { SharedModule } from './shared/shared.module';
+
+function extractHeaderId(headerValue: string | string[] | undefined): string | undefined {
+  if (!headerValue) return undefined;
+  return Array.isArray(headerValue) ? headerValue[0] : headerValue;
+}
 
 @Module({
   imports: [
@@ -73,21 +78,19 @@ import { SharedModule } from './shared/shared.module';
               responseTime: 'timeTaken',
             },
             timestamp: () => `,"time":"${new Date().toISOString()}"`,
-            genReqId: () => {
-              return Math.random().toString(36).substring(2);
+            genReqId: req => {
+              return randomUUID();
             },
             customProps: (req: IncomingMessage, res: ServerResponse) => {
-              const response = res as unknown as FastifyReply;
-              const correlationId =
-                response.getHeader(X_CORRELATION_ID) ||
-                response.request?.headers[X_CORRELATION_ID]?.toString() ||
-                response.request?.headers[X_CORRELATION_ID.toUpperCase()]?.toString() ||
-                'no-correlation-id-found';
               return {
                 context: req.url || 'HTTP',
-                correlationId,
+                correlationId:
+                  req.headers[X_CORRELATION_ID] ||
+                  res.getHeader(X_CORRELATION_ID) ||
+                  'x-correlation-id-not-found',
               };
             },
+
             redact: {
               paths: [
                 'request.headers.authorization',
