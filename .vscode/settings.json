@@ -18,6 +18,7 @@
     "kohler",
     "mariadb",
     "mechatroner",
+    "mercurius",
     "mysql",
     "MYSQL",
     "nestjs",

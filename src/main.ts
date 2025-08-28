@@ -1,5 +1,7 @@
 import { AppModule } from '@/app.module';
 import { AppConfig } from '@config/appConfig';
+import fastifyCookie, { FastifyCookieOptions } from '@fastify/cookie';
+import fastifyCors, { FastifyCorsOptions } from '@fastify/cors';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -18,14 +20,13 @@ async function bootstrap() {
   // load configuration from config service
   const configService = app.get(ConfigService);
   const appConf = configService.get<AppConfig>('appConfig')!;
-  // const cookieConf = configService.get<FastifyCookieOptions>('cookieConfig')!;
-  // const corsConf = configService.get<FastifyCorsOptions>('corsConfig')!;
+  const cookieConf = configService.get<FastifyCookieOptions>('cookieConfig')!;
+  const corsConf = configService.get<FastifyCorsOptions>('corsConfig')!;
 
   // configure application settings
-  // await app.register(helmet);
-  // await app.register(fastifyCors, corsConf);
-  // await app.register(fastifyCookie, cookieConf);
-  // await app.register(fastifyCsrf);
+  await app.register(fastifyCookie, cookieConf);
+  await app.register(fastifyCors, corsConf);
+  await app.register(helmet);
   app.useGlobalPipes(new ValidationPipe({}));
 
   // Apply GraphQL Exception Filter globally (alternative to APP_FILTER provider)
