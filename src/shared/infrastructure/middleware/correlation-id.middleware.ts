@@ -19,8 +19,6 @@ export class CorrelationIdMiddleware implements NestMiddleware {
     reply.setHeader(HEADER, correlationId);
 
     // Ejecuta el resto de la request dentro del contexto (ALS) del correlationId
-    this.correlationService.run(correlationId, () => {
-      next();
-    });
+    this.correlationService.run(correlationId, () => next());
   }
 }
