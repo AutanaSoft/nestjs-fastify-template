@@ -4,7 +4,7 @@ import { AsyncLocalStorage } from 'async_hooks';
 
 @Injectable()
 export class CorrelationService {
-  private readonly als = new AsyncLocalStorage<string>();
+  private readonly store = new AsyncLocalStorage<string>();
 
   /**
    * Runs a function within an asynchronous context with a correlation ID.
@@ -12,7 +12,7 @@ export class CorrelationService {
    * @param callback The function to execute.
    */
   run(correlationId: string, callback: () => void): void {
-    this.als.run(correlationId, callback);
+    this.store.run(correlationId, callback);
   }
 
   /**
@@ -20,6 +20,6 @@ export class CorrelationService {
    * @returns The correlation ID or undefined if not in context.
    */
   get(): string | undefined {
-    return this.als.getStore();
+    return this.store.getStore();
   }
 }
