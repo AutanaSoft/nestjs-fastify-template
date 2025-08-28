@@ -10,11 +10,12 @@ export class CorrelationIdMiddleware implements NestMiddleware {
   constructor(private readonly correlationService: CorrelationService) {}
 
   use(request: FastifyRequest['raw'], reply: FastifyReply['raw'], next: () => void): void {
-    // 1) Intake del header si viene; 2) fallback a request.id de Fastify; 3) genera UUID
-    const headerId = request.headers[HEADER] as string | undefined;
-    const correlationId = headerId ?? randomUUID();
+    const requestID = request.headers[HEADER] as string | undefined;
+    const replyID = reply.getHeader(HEADER) as string | undefined;
+    const correlationId = requestID || replyID || randomUUID();
 
     // Envía el header lo antes posible para asegurar su presencia en cualquier respuesta
+    request.headers[HEADER] = correlationId;
     reply.setHeader(HEADER, correlationId);
 
     // Ejecuta el resto de la request dentro del contexto (ALS) del correlationId

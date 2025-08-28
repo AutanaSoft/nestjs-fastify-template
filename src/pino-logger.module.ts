@@ -76,6 +76,7 @@ import { SharedModule } from './shared/shared.module';
               const correlationId =
                 correlationService.get() ||
                 res.getHeader('x-correlation-id') ||
+                req.headers['x-correlation-id'] ||
                 'no-correlation-id';
               return {
                 context: req.url || 'HTTP',
