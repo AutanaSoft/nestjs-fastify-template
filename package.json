@@ -59,7 +59,6 @@
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
-    "fastify": "^5.5.0",
     "graphql": "^16.11.0",
     "mercurius": "^16.2.0",
     "mercurius-upload": "^8.0.0",

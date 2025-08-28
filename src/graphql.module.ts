@@ -1,16 +1,16 @@
-import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
-import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
+import { MercuriusDriver, MercuriusDriverConfig } from '@nestjs/mercurius';
 import { join } from 'node:path';
-
 @Module({
   imports: [
-    GraphQLModule.forRoot<ApolloDriverConfig>({
-      driver: ApolloDriver,
-      playground: false,
-      autoSchemaFile: join(process.cwd(), 'dist/schema.gql'),
-      plugins: [ApolloServerPluginLandingPageLocalDefault()],
+    GraphQLModule.forRoot<MercuriusDriverConfig>({
+      driver: MercuriusDriver,
+      path: '/graphql',
+      autoSchemaFile: join(process.cwd(), 'dist', 'schema.gql'),
+      graphiql: true,
+      subscription: true,
+      introspection: true,
     }),
   ],
 })

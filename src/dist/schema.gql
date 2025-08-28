@@ -1,0 +1,195 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""Application information"""
+type AppInfoResponseDto {
+  """Success message"""
+  message: String!
+
+  """Application name"""
+  name: String!
+
+  """Application version"""
+  version: String!
+
+  """Correlation ID"""
+  correlationId: String!
+}
+
+"""Database health status"""
+type DatabaseHealthDto {
+  """Database connection status"""
+  status: String!
+
+  """Database response message"""
+  message: String!
+}
+
+"""Health check response"""
+type HealthCheckResponseDto {
+  """Application name"""
+  name: String!
+
+  """Application version"""
+  version: String!
+
+  """Correlation ID"""
+  correlationId: String!
+
+  """Health check status"""
+  status: String!
+
+  """Health check timestamp"""
+  timestamp: String!
+
+  """Database health status"""
+  database: DatabaseHealthDto!
+}
+
+"""User account data representation"""
+type UserDto {
+  """Unique user identifier"""
+  id: String!
+
+  """User email address for authentication"""
+  email: String!
+
+  """Unique username for user identification"""
+  userName: String!
+
+  """Current user account status"""
+  status: UserStatus!
+
+  """Assigned user role for authorization"""
+  role: UserRole!
+
+  """Account creation timestamp"""
+  createdAt: DateTime!
+
+  """Last account modification timestamp"""
+  updatedAt: DateTime!
+}
+
+"""User account status indicating the current state of the user account"""
+enum UserStatus {
+  REGISTERED
+  ACTIVE
+  BANNED
+  INACTIVE
+}
+
+"""User roles defining permission levels within the system"""
+enum UserRole {
+  ADMIN
+  USER
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Query {
+  getAppInfo: AppInfoResponseDto!
+  getHealth: HealthCheckResponseDto!
+
+  """Retrieves users based on optional filter and sort criteria"""
+  findAll(
+    """Optional filter criteria for user search"""
+    filter: UserFindFilterInputDto
+
+    """Optional sorting parameters for user results"""
+    sort: UserSortOrderInputDto
+  ): [UserDto!]!
+}
+
+input UserFindFilterInputDto {
+  """Filter users by account status"""
+  status: UserStatus
+
+  """Filter users by assigned role"""
+  role: UserRole
+
+  """Filter users by email address pattern"""
+  email: String
+
+  """Filter users by username pattern"""
+  userName: String
+
+  """Filter users created after this date"""
+  createdAtFrom: DateTime
+
+  """Filter users created before this date"""
+  createdAtTo: DateTime
+}
+
+input UserSortOrderInputDto {
+  """Field to sort user results by (defaults to creation date)"""
+  sortBy: UserSortBy = CREATED_AT
+
+  """Sort order direction for user results (defaults to descending)"""
+  sortOrder: SortOrder = DESC
+}
+
+"""Available fields for sorting user queries"""
+enum UserSortBy {
+  CREATED_AT
+  UPDATED_AT
+  EMAIL
+  USERNAME
+}
+
+"""Sort order direction for database queries"""
+enum SortOrder {
+  ASC
+  DESC
+}
+
+type Mutation {
+  """Creates a new user account with the provided data"""
+  create(
+    """Data required to create a new user"""
+    data: UserCreateInputDto!
+  ): UserDto!
+
+  """Updates an existing user account with the provided data"""
+  update(
+    """Unique identifier of the user to update"""
+    id: ID!
+
+    """Data required to update an existing user"""
+    data: UserUpdateInputDto!
+  ): UserDto!
+}
+
+input UserCreateInputDto {
+  """User email address for authentication"""
+  email: String!
+
+  """User password for authentication (6-16 characters)"""
+  password: String!
+
+  """Unique username for user identification"""
+  userName: String!
+
+  """Optional initial account status"""
+  status: UserStatus
+
+  """Optional initial user role assignment"""
+  role: UserRole
+}
+
+input UserUpdateInputDto {
+  """User password for authentication (6-16 characters)"""
+  password: String
+
+  """Unique username for user identification"""
+  userName: String
+
+  """Optional initial account status"""
+  status: UserStatus
+
+  """Optional initial user role assignment"""
+  role: UserRole
+}
