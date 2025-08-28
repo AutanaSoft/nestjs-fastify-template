@@ -9,7 +9,6 @@ import { join } from 'node:path';
       driver: MercuriusDriver,
       useFactory: () => ({
         autoSchemaFile: join(process.cwd(), 'dist', 'schema.gql'),
-        graphiql: true,
         introspection: true,
         subscription: {
           fullWsTransport: true,
