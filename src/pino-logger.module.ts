@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { FastifyReply } from 'fastify';
 import { LoggerModule } from 'nestjs-pino';
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { join } from 'node:path';
+import { X_CORRELATION_ID } from './shared/infrastructure/middleware';
 import { SharedModule } from './shared/shared.module';
 
 @Module({
@@ -72,10 +74,11 @@ import { SharedModule } from './shared/shared.module';
             },
             timestamp: () => `,"time":"${new Date().toISOString()}"`,
             customProps: (req: IncomingMessage, res: ServerResponse) => {
+              const response = res as unknown as FastifyReply;
               const correlationId =
-                res.getHeader('x-correlation-id') ||
-                req.headers['x-correlation-id'] ||
-                'no-correlation-id';
+                response.request?.headers[X_CORRELATION_ID]?.toString() ||
+                response.request?.headers[X_CORRELATION_ID.toUpperCase()]?.toString() ||
+                'no-correlation-id-found';
               return {
                 context: req.url || 'HTTP',
                 correlationId,
