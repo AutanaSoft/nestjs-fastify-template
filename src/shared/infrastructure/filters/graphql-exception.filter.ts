@@ -1,8 +1,10 @@
+import { GraphQLContext } from '@/shared/domain/interfaces/graphql.interface';
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
-import { CorrelationService } from '@shared/application/services';
+import { GqlArgumentsHost } from '@nestjs/graphql';
 import { ApplicationError, DomainError, InfrastructureError } from '@shared/domain/errors';
 import { GraphQLError } from 'graphql';
 import { InjectPinoLogger, Logger } from 'nestjs-pino';
+import { X_CORRELATION_ID } from '../middleware';
 
 /**
  * Normalized error response structure
@@ -23,7 +25,6 @@ export class GraphQLExceptionFilter implements ExceptionFilter {
   constructor(
     @InjectPinoLogger(GraphQLExceptionFilter.name)
     private readonly logger: Logger,
-    private readonly correlationService: CorrelationService,
   ) {}
 
   /**
@@ -135,13 +136,15 @@ export class GraphQLExceptionFilter implements ExceptionFilter {
   }
 
   /**
-   * Extracts correlation ID from CorrelationService
-   * @param _host The arguments host (unused but kept for interface compatibility)
-   * @returns Correlation ID from service or fallback
+   * Extracts correlation ID from Mercurius/Fastify context
+   * @param host The arguments host containing execution context
+   * @returns Correlation ID from headers or fallback
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private extractCorrelationId(_host: ArgumentsHost): string {
-    const correlationId = this.correlationService.get();
+  private extractCorrelationId(host: ArgumentsHost): string {
+    const ctx = GqlArgumentsHost.create(host);
+    const gqlContext = ctx.getContext<GraphQLContext>();
+    const response = gqlContext.res;
+    const correlationId = response?.getHeader(X_CORRELATION_ID) as string | undefined;
     return correlationId || 'no-correlation-id';
   }
 
