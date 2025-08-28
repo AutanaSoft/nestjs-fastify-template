@@ -73,9 +73,13 @@ import { SharedModule } from './shared/shared.module';
               responseTime: 'timeTaken',
             },
             timestamp: () => `,"time":"${new Date().toISOString()}"`,
+            genReqId: () => {
+              return Math.random().toString(36).substring(2);
+            },
             customProps: (req: IncomingMessage, res: ServerResponse) => {
               const response = res as unknown as FastifyReply;
               const correlationId =
+                response.getHeader(X_CORRELATION_ID) ||
                 response.request?.headers[X_CORRELATION_ID]?.toString() ||
                 response.request?.headers[X_CORRELATION_ID.toUpperCase()]?.toString() ||
                 'no-correlation-id-found';
