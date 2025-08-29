@@ -1,4 +1,4 @@
-import { NotFoundError } from '@/shared/domain';
+import { DomainError, InternalServerError, NotFoundError } from '@/shared/domain/errors';
 import { UserEntity } from '@modules/user/domain/entities/user.entity';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import { Injectable } from '@nestjs/common';
@@ -47,17 +47,22 @@ export class FindUserByEmailUseCase {
 
       // Handle case when user is not found
       if (!user) {
-        logger.warn('User not found by email aqui');
+        logger.warn('User not found by email');
         throw new NotFoundError(`User with email ${normalizedEmail} not found`);
       }
 
       logger.debug({ user }, 'User found by email successfully');
       return user;
     } catch (error) {
-      // Log error with context
+      // validate if error instance of DomainError
+      if (error instanceof DomainError) {
+        // only throw the error, it will be handled by exception filters
+        throw error;
+      }
+
+      //If it is any other error, we create an error log and set an InternalServerError so as not to propagate the original error to the user.
       logger.error({ error: error as Error }, 'Error finding user by email');
-      // Re-throw the error to be handled by exception filters
-      throw error;
+      throw new InternalServerError('Error finding user by email');
     }
   }
 }

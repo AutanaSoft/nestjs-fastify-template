@@ -157,7 +157,9 @@ export class UserPrismaAdapter extends UserRepository {
     try {
       // Find user by email
       logger.debug({ query: { email } }, 'Finding user by email');
-      const user = await this.prisma.user.findUnique({ where: { email } });
+      const user = await this.prisma.user.findFirst({
+        where: { email: { equals: email, mode: 'insensitive' } },
+      });
 
       // Check if user was found
       if (!user) {
