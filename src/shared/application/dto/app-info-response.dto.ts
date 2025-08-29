@@ -10,7 +10,4 @@ export class AppInfoResponseDto {
 
   @Field(() => String, { description: 'Application version' })
   readonly version: string;
-
-  @Field(() => String, { description: 'Correlation ID' })
-  readonly correlationId: string;
 }

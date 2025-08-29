@@ -2,7 +2,7 @@ import { AppConfig } from '@config/appConfig';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppInfoResponseDto, HealthCheckResponseDto } from '@shared/application/dto';
-import { CorrelationService, PrismaService } from './shared/application';
+import { PrismaService } from './shared/application';
 
 /**
  * Service responsible for handling application-level logic,
@@ -21,7 +21,6 @@ export class AppService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-    private readonly correlationService: CorrelationService,
   ) {
     this.appConfig = configService.get<AppConfig>('appConfig')!;
   }
@@ -35,7 +34,6 @@ export class AppService {
       name: this.appConfig.name,
       version: this.appConfig.version,
       message: 'Welcome to NestJS Template API',
-      correlationId: this.correlationService.get() || '',
     };
   }
 
@@ -51,7 +49,6 @@ export class AppService {
       name: appInfo.name,
       version: appInfo.version,
       database: dbHealth,
-      correlationId: appInfo.correlationId || '',
       timestamp: new Date().toISOString(),
     };
   }

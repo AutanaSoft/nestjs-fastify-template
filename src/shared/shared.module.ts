@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { CorrelationService, PrismaService } from './application/services';
+import { PrismaService } from './application/services';
 
 @Module({
   imports: [],
-  providers: [CorrelationService, PrismaService],
-  exports: [CorrelationService, PrismaService],
+  providers: [PrismaService],
+  exports: [PrismaService],
 })
 export class SharedModule {}
