@@ -5,6 +5,7 @@ import {
   cookieConfig,
   corsConfig,
   databaseConfig,
+  graphqlConfig,
   throttlerConfig,
 } from '@config/index';
 import { Module } from '@nestjs/common';
@@ -14,7 +15,6 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { MercuriusDriver, MercuriusDriverConfig } from '@nestjs/mercurius';
 import { GraphQLExceptionFilter } from '@shared/infrastructure/filters';
 import { SharedModule } from '@shared/shared.module';
-import graphqlConfig from './config/graphqlConfig';
 import { UserModule } from './modules/user/user.module';
 import { PinoLoggerModule } from './pino-logger.module';
 
