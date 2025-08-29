@@ -7,10 +7,10 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import { X_CORRELATION_ID } from '@shared/domain/constants';
 import { randomUUID } from 'crypto';
 import { IncomingMessage } from 'http';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
-import { X_CORRELATION_ID } from './shared/infrastructure/middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(

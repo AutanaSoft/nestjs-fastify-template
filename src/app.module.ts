@@ -18,6 +18,7 @@ import { GraphQLExceptionFilter } from '@shared/infrastructure/filters';
 import { SharedModule } from '@shared/shared.module';
 import { LoggerModule, Params } from 'nestjs-pino';
 import { UserModule } from './modules/user/user.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -67,5 +68,6 @@ import { UserModule } from './modules/user/user.module';
       useClass: GraphQLExceptionFilter,
     },
   ],
+  controllers: [AppController],
 })
 export class AppModule {}
