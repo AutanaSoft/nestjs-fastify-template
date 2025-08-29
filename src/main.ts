@@ -51,8 +51,11 @@ async function bootstrap() {
   const helmetConf = configService.get<FastifyHelmetOptions>('helmetConfig')!;
 
   // configure application settings
+  // @ts-expect-error - Type incompatibility between Fastify plugin and NestJS adapter instance
   await app.register(fastifyCookie, cookieConf);
+  // @ts-expect-error - Type incompatibility between Fastify plugin and NestJS adapter instance
   await app.register(fastifyCors, corsConf);
+  // @ts-expect-error - Type incompatibility between Fastify plugin and NestJS adapter instance
   await app.register(helmet, helmetConf);
   app.useGlobalPipes(new ValidationPipe({}));
 

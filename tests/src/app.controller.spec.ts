@@ -1,9 +1,9 @@
 import { AppResolver } from '@/app.resolver';
 import { AppService } from '@/app.service';
+import { PrismaService } from '@/shared/application/services';
+import { Test, TestingModule } from '@nestjs/testing';
 import { AppInfoResponseDto, HealthCheckResponseDto } from '@shared/application/dto';
 import { DatabaseHealthDto } from '@shared/application/dto/health-check-response.dto';
-import { PrismaService } from '@shared/infrastructure/adapters';
-import { Test, TestingModule } from '@nestjs/testing';
 
 describe('AppController', () => {
   let appController: AppResolver;
@@ -45,7 +45,6 @@ describe('AppController', () => {
         name: 'NestJS Template',
         version: '1.0.0',
         message: 'Welcome to NestJS Template API',
-        correlationId: 'test-id',
       };
       mockAppService.getAppInfo.mockReturnValue(appInfo);
 
@@ -63,7 +62,6 @@ describe('AppController', () => {
         name: 'NestJS Template',
         version: '1.0.0',
         database: { status: 'ok' } as DatabaseHealthDto,
-        correlationId: 'test-id',
         timestamp: new Date().toISOString(),
       };
       mockAppService.getHealth.mockResolvedValue(healthCheck);

@@ -1,9 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '@/app.module';
 import { AppResolver } from '@/app.resolver';
 import { AppService } from '@/app.service';
-import { PrismaService } from '@shared/infrastructure/adapters';
-import { CorrelationService } from '@shared/application';
+import { PrismaService } from '@/shared/application/services';
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('AppModule', () => {
   let module: TestingModule;
@@ -30,11 +29,6 @@ describe('AppModule', () => {
 
   it('should have PrismaService', () => {
     const service = module.get<PrismaService>(PrismaService);
-    expect(service).toBeDefined();
-  });
-
-  it('should have CorrelationService', () => {
-    const service = module.get<CorrelationService>(CorrelationService);
     expect(service).toBeDefined();
   });
 });
