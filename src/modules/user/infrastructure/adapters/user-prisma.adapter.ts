@@ -49,7 +49,6 @@ export class UserPrismaAdapter extends UserRepository {
       this.prismaErrorHandler.handleError(
         error,
         {
-          context: UserPrismaAdapter.name,
           messages: {
             uniqueConstraint: 'User with this email or username already exists',
             notFound: 'User not found',
@@ -88,7 +87,6 @@ export class UserPrismaAdapter extends UserRepository {
       this.prismaErrorHandler.handleError(
         error,
         {
-          context: UserPrismaAdapter.name,
           messages: {
             uniqueConstraint: 'User with this email or username already exists',
             notFound: 'User not found',
@@ -112,8 +110,23 @@ export class UserPrismaAdapter extends UserRepository {
    * @returns Promise resolving to user entity if found, null otherwise
    */
   async findById(id: string): Promise<UserEntity | null> {
-    const user = await this.prisma.user.findUnique({ where: { id } });
-    return user ? plainToInstance(UserEntity, user) : null;
+    const logger = this.logger;
+    logger.assign({ method: 'findById' });
+    try {
+      const user = await this.prisma.user.findUnique({ where: { id } });
+      return user ? plainToInstance(UserEntity, user) : null;
+    } catch (error) {
+      this.prismaErrorHandler.handleError(
+        error,
+        {
+          messages: {
+            connection: 'Database unavailable',
+            unknown: 'An unexpected error occurred while finding user',
+          },
+        },
+        logger,
+      );
+    }
   }
 
   /**
@@ -204,7 +217,6 @@ export class UserPrismaAdapter extends UserRepository {
       this.prismaErrorHandler.handleError(
         error,
         {
-          context: UserPrismaAdapter.name,
           messages: {
             validation: 'Invalid query parameters provided',
             connection: 'Database unavailable',

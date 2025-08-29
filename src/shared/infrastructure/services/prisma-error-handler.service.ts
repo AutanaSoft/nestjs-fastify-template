@@ -8,9 +8,6 @@ import { PinoLogger } from 'nestjs-pino';
  * Allows modules to provide specific error messages and codes for better user experience.
  */
 export interface PrismaErrorConfig {
-  /** Context identifier for logging purposes (e.g., 'UserPrismaAdapter') */
-  readonly context: string;
-
   /** Optional custom error messages for different Prisma error types */
   readonly messages?: {
     /** Message for P2002 - Unique constraint violation */
@@ -53,7 +50,6 @@ const DEFAULT_MESSAGES = {
  *
  * This service implements a strategy pattern where each Prisma error type is handled
  * by a specific private method, ensuring maintainable and testable error handling.
- *
  */
 @Injectable()
 export class PrismaErrorHandlerService {
@@ -62,7 +58,7 @@ export class PrismaErrorHandlerService {
    * This method never returns normally - it always throws a domain-specific error.
    *
    * @param error - The error thrown by Prisma operations
-   * @param config - Configuration object with context and custom messages
+   * @param config - Configuration object with custom messages and codes
    * @param logger - Pino logger instance for structured logging
    * @throws {ConflictError} For unique constraint violations (P2002) and foreign key constraints (P2003)
    * @throws {NotFoundError} For record not found errors (P2025)
@@ -79,23 +75,23 @@ export class PrismaErrorHandlerService {
 
     // Handle Prisma validation errors
     if (error instanceof Prisma.PrismaClientValidationError) {
-      return this.handleValidationError(error, config, messages, logger);
+      return this.handleValidationError(error, messages, logger);
     }
 
     // Handle Prisma connection/initialization errors
     if (error instanceof Prisma.PrismaClientInitializationError) {
-      return this.handleConnectionError(error, config, messages, logger);
+      return this.handleConnectionError(error, messages, logger);
     }
 
     // Handle unknown errors
-    return this.handleUnknownError(error, config, messages, logger);
+    return this.handleUnknownError(error, messages, logger);
   }
 
   /**
    * Handles known Prisma client request errors with specific error codes
    *
    * @param error - PrismaClientKnownRequestError instance
-   * @param config - Error configuration with context and messages
+   * @param config - Error configuration with custom messages and codes
    * @param messages - Merged default and custom messages
    * @param logger - Pino logger instance
    * @throws {ConflictError} For P2002 and P2003 errors
@@ -108,7 +104,7 @@ export class PrismaErrorHandlerService {
     messages: Record<string, string>,
     logger: PinoLogger,
   ): never {
-    const logContext = { originalError: error, context: config.context };
+    const logContext = { originalError: error };
 
     switch (error.code) {
       case 'P2002': // Unique constraint violation
@@ -138,18 +134,16 @@ export class PrismaErrorHandlerService {
    * Handles Prisma validation errors (invalid query structure, missing fields, etc.)
    *
    * @param error - PrismaClientValidationError instance
-   * @param config - Error configuration with context
    * @param messages - Merged default and custom messages
    * @param logger - Pino logger instance
    * @throws {DatabaseError} Always throws DatabaseError for validation issues
    */
   private handleValidationError(
     error: Prisma.PrismaClientValidationError,
-    config: PrismaErrorConfig,
     messages: Record<string, string>,
     logger: PinoLogger,
   ): never {
-    const logContext = { error, context: config.context };
+    const logContext = { error };
     logger.debug(logContext, messages.validation);
     throw new DatabaseError(messages.validation);
   }
@@ -158,18 +152,16 @@ export class PrismaErrorHandlerService {
    * Handles Prisma connection and initialization errors
    *
    * @param error - PrismaClientInitializationError instance
-   * @param config - Error configuration with context
    * @param messages - Merged default and custom messages
    * @param logger - Pino logger instance
    * @throws {DatabaseError} Always throws DatabaseError for connection issues
    */
   private handleConnectionError(
     error: Prisma.PrismaClientInitializationError,
-    config: PrismaErrorConfig,
     messages: Record<string, string>,
     logger: PinoLogger,
   ): never {
-    const logContext = { error, context: config.context };
+    const logContext = { error };
     logger.error(logContext, messages.connection);
     throw new DatabaseError(messages.connection);
   }
@@ -178,18 +170,16 @@ export class PrismaErrorHandlerService {
    * Handles unknown or unexpected errors not caught by specific Prisma error types
    *
    * @param error - Unknown error instance
-   * @param config - Error configuration with context
    * @param messages - Merged default and custom messages
    * @param logger - Pino logger instance
    * @throws {DatabaseError} Always throws DatabaseError for unknown errors
    */
   private handleUnknownError(
     error: unknown,
-    config: PrismaErrorConfig,
     messages: Record<string, string>,
     logger: PinoLogger,
   ): never {
-    const logContext = { error, context: config.context };
+    const logContext = { error };
     logger.error(logContext, 'An unexpected database error occurred');
     throw new DatabaseError(messages.unknown);
   }
