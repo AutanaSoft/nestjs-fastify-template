@@ -14,52 +14,57 @@ export default registerAs('pinoConfig', (): Params => {
   return {
     pinoHttp: {
       level: logLevel,
-      transport: isProduction
-        ? undefined
-        : {
-            targets: [
-              {
-                target: 'pino-pretty',
-                level: logLevel,
-                options: {
-                  colorize: true,
-                  singleLine: true,
-                  levelFirst: false,
-                  translateTime: 'SYS:HH:MM:ss',
-                  ignore: 'hostname,pid',
-                  messageFormat: '[{context}] {msg}',
+      transport: {
+        targets: [
+          // pino-pretty solo en desarrollo
+          ...(isProduction
+            ? []
+            : [
+                {
+                  target: 'pino-pretty',
+                  level: logLevel,
+                  options: {
+                    colorize: true,
+                    singleLine: true,
+                    levelFirst: false,
+                    translateTime: 'SYS:HH:MM:ss',
+                    ignore: 'hostname,pid',
+                    messageFormat: '[{context}] {msg}',
+                  },
                 },
-              },
-              {
-                target: 'pino-roll',
-                level: logLevel,
-                options: {
-                  file: join(logDir, 'app'),
-                  mkdir: true,
-                  size: logMaxSize,
-                  maxFiles: logMaxFiles,
-                  sync: false,
-                  frequency: logRotationFrequency,
-                  dateFormat: 'yyyy-MM-dd',
-                  extension: '.log',
-                },
-              },
-              {
-                target: 'pino-roll',
-                level: 'error',
-                options: {
-                  file: join(logDir, 'app-error'),
-                  mkdir: true,
-                  size: logMaxSize,
-                  maxFiles: logMaxFiles,
-                  sync: false,
-                  frequency: logRotationFrequency,
-                  dateFormat: 'yyyy-MM-dd',
-                  extension: '.log',
-                },
-              },
-            ],
+              ]),
+          // pino-roll para logs generales (siempre activo)
+          {
+            target: 'pino-roll',
+            level: logLevel,
+            options: {
+              file: join(logDir, 'app'),
+              mkdir: true,
+              size: logMaxSize,
+              maxFiles: logMaxFiles,
+              sync: false,
+              frequency: logRotationFrequency,
+              dateFormat: 'yyyy-MM-dd',
+              extension: '.log',
+            },
           },
+          // pino-roll para errores (siempre activo)
+          {
+            target: 'pino-roll',
+            level: 'error',
+            options: {
+              file: join(logDir, 'app-error'),
+              mkdir: true,
+              size: logMaxSize,
+              maxFiles: logMaxFiles,
+              sync: false,
+              frequency: logRotationFrequency,
+              dateFormat: 'yyyy-MM-dd',
+              extension: '.log',
+            },
+          },
+        ],
+      },
       customAttributeKeys: {
         req: 'request',
         res: 'response',
