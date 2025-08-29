@@ -3,8 +3,7 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from
 import { GqlArgumentsHost } from '@nestjs/graphql';
 import { ApplicationError, DomainError, InfrastructureError } from '@shared/domain/errors';
 import { GraphQLError } from 'graphql';
-import { InjectPinoLogger, Logger } from 'nestjs-pino';
-import { X_CORRELATION_ID } from '../middleware';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 
 /**
  * Normalized error response structure
@@ -24,7 +23,7 @@ interface ErrorResponse {
 export class GraphQLExceptionFilter implements ExceptionFilter {
   constructor(
     @InjectPinoLogger(GraphQLExceptionFilter.name)
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
   ) {}
 
   /**
@@ -143,9 +142,8 @@ export class GraphQLExceptionFilter implements ExceptionFilter {
   private extractCorrelationId(host: ArgumentsHost): string {
     const ctx = GqlArgumentsHost.create(host);
     const gqlContext = ctx.getContext<GraphQLContext>();
-    const response = gqlContext.res;
-    const correlationId = response?.getHeader(X_CORRELATION_ID) as string | undefined;
-    return correlationId || 'no-correlation-id';
+    const request = gqlContext.req;
+    return request.id || 'no-correlation-id';
   }
 
   /**
