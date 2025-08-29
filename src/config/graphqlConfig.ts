@@ -3,7 +3,7 @@ import { MercuriusDriverConfig } from '@nestjs/mercurius';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { join } from 'node:path';
 
-export default registerAs('graphqlConfig', (): Omit<MercuriusDriverConfig, 'drive'> => {
+export default registerAs('graphqlConfig', (): Omit<MercuriusDriverConfig, 'driver'> => {
   const isProduction = process.env.NODE_ENV === 'production';
   return {
     autoSchemaFile: join(process.cwd(), 'dist', 'schema', 'graphql.gql'),
