@@ -16,15 +16,27 @@ async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({
+      // Generate a unique request ID
       genReqId: (req: IncomingMessage) => {
-        const id = (req.headers[X_CORRELATION_ID] as string) || randomUUID();
-        return id;
+        const correlationId = req.headers[X_CORRELATION_ID];
+        return Array.isArray(correlationId) ? correlationId[0] : correlationId || randomUUID();
       },
+      // The header name to use for the request ID
+      requestIdHeader: X_CORRELATION_ID,
+      // The log label to use for the request ID
+      requestIdLogLabel: 'correlationId',
     }),
     {
       bufferLogs: true,
     },
   );
+
+  // Add correlation ID to response headers
+  const fastify = app.getHttpAdapter().getInstance();
+  fastify.addHook('onRequest', (request, reply, done) => {
+    reply.header(X_CORRELATION_ID, request.id);
+    done();
+  });
 
   // load logger from the application
   const logger = app.get(Logger);
@@ -44,12 +56,7 @@ async function bootstrap() {
   await app.register(helmet, helmetConf);
   app.useGlobalPipes(new ValidationPipe({}));
 
-  // Apply GraphQL Exception Filter globally (alternative to APP_FILTER provider)
-  // Note: This is less ideal than using APP_FILTER provider in AppModule
-  // app.useGlobalFilters(new GraphQLExceptionFilter(logger));
-
-  // app.setGlobalPrefix(appConf.prefix);
-
+  // start the application
   await app.listen(appConf.port, '0.0.0.0');
 
   // log application startup details
