@@ -1,4 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
+import { CorrelationId } from '@shared/application/decorators';
 
 /**
  * Main application controller
@@ -9,10 +10,12 @@ export class AppController {
   /**
    * Get hello world message
    * Simple endpoint to verify the application is running
+   * @param correlationId - Unique identifier for request tracing
    * @returns A simple hello world greeting message
    */
   @Get()
-  getHello(): string {
+  getHello(@CorrelationId() correlationId: string): string {
+    console.log(`Processing request with correlation ID: ${correlationId}`);
     return 'Hello World';
   }
 }
