@@ -3,9 +3,9 @@ import { UserEntity } from '@modules/user/domain/entities/user.entity';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { ConflictError, DatabaseError, NotFoundError } from '@shared/domain/errors';
+import { PrismaErrorHandlerService } from '@shared/infrastructure/services';
 import { plainToInstance } from 'class-transformer';
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { PinoLogger } from 'nestjs-pino';
 import { UserCreateData, UserFindAllData, UserUpdateData } from '../../domain/types'; // added UserStatus
 
 /**
@@ -17,10 +17,11 @@ import { UserCreateData, UserFindAllData, UserUpdateData } from '../../domain/ty
 export class UserPrismaAdapter extends UserRepository {
   constructor(
     private readonly prisma: PrismaService,
-    @InjectPinoLogger(UserPrismaAdapter.name)
+    private readonly prismaErrorHandler: PrismaErrorHandlerService,
     private readonly logger: PinoLogger,
   ) {
     super();
+    this.logger.setContext(UserPrismaAdapter.name);
   }
 
   /**
@@ -32,25 +33,76 @@ export class UserPrismaAdapter extends UserRepository {
    * @throws InternalServerErrorException for database errors
    */
   async create(data: UserCreateData): Promise<UserEntity> {
+    // Create a logger instance for this method
+    const logger = this.logger;
+    // Assign method context to the logger
+    logger.assign({ method: 'create' });
+
     try {
+      logger.debug({ data }, 'Creating user');
       const createdUser = await this.prisma.user.create({
         data,
       });
+      logger.debug({ user: createdUser }, 'User created successfully');
       return plainToInstance(UserEntity, createdUser);
     } catch (error) {
-      this.processError(error);
+      this.prismaErrorHandler.handleError(
+        error,
+        {
+          context: UserPrismaAdapter.name,
+          messages: {
+            uniqueConstraint: 'User with this email or username already exists',
+            notFound: 'User not found',
+            foreignKeyConstraint: 'Invalid reference in user data',
+            validation: 'Invalid user data provided',
+            connection: 'Database unavailable',
+            unknown: 'An unexpected error occurred while creating user',
+          },
+          codes: {
+            notFound: 'USER_NOT_FOUND',
+          },
+        },
+        logger,
+      );
     }
   }
 
   async update(id: string, data: UserUpdateData): Promise<UserEntity> {
+    // Create a logger instance for this method
+    const logger = this.logger;
+    // Assign method context to the logger
+    logger.assign({ method: 'update' });
+
     try {
+      logger.debug({ query: { id, data } }, 'Updating user');
+
       const updatedUser = await this.prisma.user.update({
         where: { id },
         data,
       });
+
+      logger.debug({ user: updatedUser }, 'User updated successfully');
+
       return plainToInstance(UserEntity, updatedUser);
     } catch (error) {
-      this.processError(error);
+      this.prismaErrorHandler.handleError(
+        error,
+        {
+          context: UserPrismaAdapter.name,
+          messages: {
+            uniqueConstraint: 'User with this email or username already exists',
+            notFound: 'User not found',
+            foreignKeyConstraint: 'Invalid reference in user data',
+            validation: 'Invalid user data provided',
+            connection: 'Database unavailable',
+            unknown: 'An unexpected error occurred while updating user',
+          },
+          codes: {
+            notFound: 'USER_NOT_FOUND',
+          },
+        },
+        logger,
+      );
     }
   }
 
@@ -149,61 +201,18 @@ export class UserPrismaAdapter extends UserRepository {
 
       return users.map(user => plainToInstance(UserEntity, user));
     } catch (error) {
-      this.processError(error);
-    }
-  }
-
-  /**
-   * Centralized error processing for Prisma-related errors
-   * Maps Prisma errors to appropriate domain errors
-   * @param error - The error object to process
-   */
-  private processError(error: unknown): never {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      // Unique constraint violation
-      if (error.code === 'P2002') {
-        const message = 'User with this email or username already exists';
-        this.logger.debug({ originalError: error }, message);
-        throw new ConflictError(message);
-      }
-
-      // Record not found
-      if (error.code === 'P2025') {
-        const message = 'User not found';
-        this.logger.debug({ error }, message);
-        throw new NotFoundError(message, { extensions: { code: 'USER_NOT_FOUND' } });
-      }
-
-      // Foreign key constraint violation
-      if (error.code === 'P2003') {
-        const message = 'Invalid reference in user data';
-        this.logger.debug({ error }, message);
-        throw new ConflictError(message);
-      }
-    }
-
-    // Handle Prisma validation errors
-    if (error instanceof Prisma.PrismaClientValidationError) {
-      const message = 'Invalid user data provided';
-      this.logger.debug({ error }, message);
-      throw new DatabaseError(message);
-    }
-
-    // Handle connection errors
-    if (error instanceof Prisma.PrismaClientInitializationError) {
-      const message = 'Database connection failed';
-      this.logger.error({ error }, message);
-      throw new DatabaseError('Database unavailable');
-    }
-
-    // Log and rethrow unknown errors
-    this.logger.error(
-      {
+      this.prismaErrorHandler.handleError(
         error,
-      },
-      'An unexpected database error occurred',
-    );
-
-    throw new DatabaseError('An unexpected error occurred');
+        {
+          context: UserPrismaAdapter.name,
+          messages: {
+            validation: 'Invalid query parameters provided',
+            connection: 'Database unavailable',
+            unknown: 'An unexpected error occurred while fetching users',
+          },
+        },
+        this.logger,
+      );
+    }
   }
 }
