@@ -9,7 +9,7 @@ import { join } from 'node:path';
     GraphQLModule.forRootAsync<MercuriusDriverConfig>({
       driver: MercuriusDriver,
       useFactory: () => ({
-        autoSchemaFile: join(process.cwd(), 'dist', 'schema.gql'),
+        autoSchemaFile: join(process.cwd(), 'dist', 'schema', 'graphql.gql'),
         introspection: true,
         subscription: {
           fullWsTransport: true,
@@ -22,4 +22,4 @@ import { join } from 'node:path';
     }),
   ],
 })
-export class GraphQConfigLModule {}
+export class GraphQLConfigModule {}

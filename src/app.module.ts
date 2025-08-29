@@ -12,7 +12,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { GraphQLExceptionFilter } from '@shared/infrastructure/filters';
 import { SharedModule } from '@shared/shared.module';
-import { GraphQConfigLModule } from './graphql.module';
+import { GraphQLConfigModule } from './graphql.module';
 import { UserModule } from './modules/user/user.module';
 import { PinoLoggerModule } from './pino-logger.module';
 
@@ -23,8 +23,8 @@ import { PinoLoggerModule } from './pino-logger.module';
       envFilePath: ['.env'],
       isGlobal: true,
     }),
+    GraphQLConfigModule,
     PinoLoggerModule,
-    GraphQConfigLModule,
     SharedModule,
     UserModule,
   ],
