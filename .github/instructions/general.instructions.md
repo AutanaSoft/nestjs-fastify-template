@@ -78,6 +78,10 @@ applyTo: '**'
 - Prefer composition over inheritance
 - Keep functions small and focused on single responsibility
 - Use TypeScript strict mode features
+- Always consult project instructions before generating or modifying code
+- Ask for confirmation before implementing improvements or changes not explicitly specified
+- Be transparent about uncertainties and seek clarification when instructions are ambiguous
+- Project instructions are the authoritative source of truth for all development decisions
 
 ## Performance Guidelines
 
