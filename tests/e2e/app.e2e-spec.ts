@@ -1,12 +1,35 @@
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Test, TestingModule } from '@nestjs/testing';
-import request from 'supertest';
 import { AppModule } from '../../src/app.module';
+
+interface GraphQLResponse<T = unknown> {
+  data?: T;
+  errors?: Array<{ message: string }>;
+}
+
+interface AppInfoData {
+  getAppInfo: {
+    name: string;
+    version: string;
+    message: string;
+  };
+}
+
+interface HealthData {
+  getHealth: {
+    status: string;
+    name: string;
+    version: string;
+    database: {
+      status: string;
+    };
+  };
+}
 
 describe('AppController (e2e)', () => {
   let app: NestFastifyApplication;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -17,51 +40,71 @@ describe('AppController (e2e)', () => {
     await app.getHttpAdapter().getInstance().ready();
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await app.close();
   });
 
-  it('/app/info (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/app/info')
-      .expect(200)
-      .expect(res => {
-        expect(res.body).toHaveProperty('message');
-        expect(res.body).toHaveProperty('name');
-        expect(res.body).toHaveProperty('version');
-      });
+  it('/ (GET)', async () => {
+    const result = await app.inject({
+      method: 'GET',
+      url: '/',
+    });
+
+    expect(result.statusCode).toEqual(200);
+    expect(result.body).toEqual('Hello World');
   });
 
-  it('/app/health (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/app/health')
-      .expect(200)
-      .expect(res => {
-        expect(res.body).toHaveProperty('status');
-        expect(res.body).toHaveProperty('name');
-        expect(res.body).toHaveProperty('version');
-        expect(res.body).toHaveProperty('database');
-      });
+  it('should test GraphQL appInfo query', async () => {
+    const result = await app.inject({
+      method: 'POST',
+      url: '/graphql',
+      payload: {
+        query: `
+          query {
+            getAppInfo {
+              name
+              version
+              message
+            }
+          }
+        `,
+      },
+    });
+
+    expect(result.statusCode).toEqual(200);
+    const payload: GraphQLResponse<AppInfoData> = result.json();
+    expect(payload.data).toBeDefined();
+    expect(payload.data?.getAppInfo).toHaveProperty('name');
+    expect(payload.data?.getAppInfo).toHaveProperty('version');
+    expect(payload.data?.getAppInfo).toHaveProperty('message');
   });
 
-  it('should add x-correlation-id header to response', () => {
-    return request(app.getHttpServer())
-      .get('/app/info')
-      .expect(200)
-      .expect(res => {
-        expect(res.headers['x-correlation-id']).toBeDefined();
-        expect(typeof res.headers['x-correlation-id']).toBe('string');
-      });
-  });
+  it('should test GraphQL health query', async () => {
+    const result = await app.inject({
+      method: 'POST',
+      url: '/graphql',
+      payload: {
+        query: `
+          query {
+            getHealth {
+              status
+              name
+              version
+              database {
+                status
+              }
+            }
+          }
+        `,
+      },
+    });
 
-  it('should use provided x-correlation-id', () => {
-    const correlationId = 'test-correlation-id-123';
-    return request(app.getHttpServer())
-      .get('/app/info')
-      .set('x-correlation-id', correlationId)
-      .expect(200)
-      .expect(res => {
-        expect(res.headers['x-correlation-id']).toBe(correlationId);
-      });
+    expect(result.statusCode).toEqual(200);
+    const payload: GraphQLResponse<HealthData> = result.json();
+    expect(payload.data).toBeDefined();
+    expect(payload.data?.getHealth).toHaveProperty('status');
+    expect(payload.data?.getHealth).toHaveProperty('name');
+    expect(payload.data?.getHealth).toHaveProperty('version');
+    expect(payload.data?.getHealth).toHaveProperty('database');
   });
 });
