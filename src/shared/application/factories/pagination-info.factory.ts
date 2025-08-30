@@ -18,7 +18,36 @@ export class PaginationInfoFactory {
 
     // Calculate derived values
     const totalPages = Math.ceil(totalDocs / limit);
-    const start = Math.max(0, (page - 1) * limit);
+
+    // Handle edge cases for out-of-range pages
+    if (totalDocs === 0) {
+      // No data at all
+      return {
+        totalDocs: 0,
+        start: -1,
+        end: -1,
+        totalPages: 0,
+        page,
+        next: null,
+        previous: page > 1 ? page - 1 : null,
+      } as PaginationInfoDto;
+    }
+
+    if (page > totalPages) {
+      // Page is beyond available data
+      return {
+        totalDocs,
+        start: -1, // Indicates no data for this page
+        end: -1,
+        totalPages,
+        page,
+        next: null,
+        previous: totalPages > 0 ? totalPages : null, // Point to last valid page
+      } as PaginationInfoDto;
+    }
+
+    // Normal case: page is within valid range
+    const start = (page - 1) * limit;
     const currentPageDocs = Math.min(limit, Math.max(0, totalDocs - start));
     const end = currentPageDocs > 0 ? start + currentPageDocs - 1 : -1;
 

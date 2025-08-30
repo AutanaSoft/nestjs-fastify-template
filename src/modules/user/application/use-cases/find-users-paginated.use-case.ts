@@ -31,6 +31,7 @@ export class FindUsersPaginatedUseCase {
     // Create a logger instance for this method
     this.logger.assign({ method: 'execute', params });
     this.logger.debug('Executing paginated user search with parameters');
+
     // Extract and validate pagination parameters
     const page = params.page ?? 1;
     const limit = Math.min(
@@ -55,10 +56,23 @@ export class FindUsersPaginatedUseCase {
       const paginatedData: PaginatedData<UserEntity> =
         await this.userRepository.findAllPaginated(repositoryParams);
 
+      // Calculate if the requested page is valid
+      const totalPages = Math.ceil(paginatedData.totalDocs / limit);
+
+      // Log warning if page is out of range
+      if (page > totalPages && totalPages > 0) {
+        this.logger.warn('Requested page exceeds available pages', {
+          requestedPage: page,
+          totalPages,
+          totalDocs: paginatedData.totalDocs,
+          dataReturned: paginatedData.data.length,
+        });
+      }
+
       // Transform entities to DTOs using plainToInstance
       const userDtos = paginatedData.data.map(user => plainToInstance(UserDto, user));
 
-      // Build complete pagination metadata using factory
+      // Build complete pagination metadata using factory (now handles out-of-range pages correctly)
       const paginationInfo = PaginationInfoFactory.create({
         totalDocs: paginatedData.totalDocs,
         page,
