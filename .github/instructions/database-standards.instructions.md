@@ -2,7 +2,7 @@
 applyTo: '**/*.ts'
 ---
 
-# Prisma Best Practices
+# Database Best Practices with Prisma
 
 ## 1. Schema Design
 
