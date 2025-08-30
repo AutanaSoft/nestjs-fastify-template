@@ -4,22 +4,18 @@ Este directorio contiene las instrucciones de desarrollo para GitHub Copilot y o
 
 ## Estructura de Archivos
 
-### `agent-behavior.instructions.md`
-
-- **Propósito**: Comportamiento del agente GitHub Copilot
-- **Contenido**: Modo de trabajo (análisis vs implementación), directrices de idioma, stack tecnológico básico, contexto del proyecto
-- **Aplicación**: Específico para el comportamiento del agente
+## Estructura de Archivos
 
 ### `code-quality.instructions.md`
 
-- **Propósito**: Estándares generales de calidad de código
-- **Contenido**: Convenciones de nomenclatura básicas, organización de archivos, calidad de código
+- **Propósito**: Estándares generales de calidad de código y convenciones
+- **Contenido**: Convenciones de nomenclatura, organización de archivos, calidad de código, inyección de dependencias, gestión de configuración
 - **Aplicación**: `applyTo: '**'` - Todos los archivos del proyecto
 
 ### `architecture.instructions.md`
 
 - **Propósito**: Arquitectura hexagonal y estructura de módulos NestJS
-- **Contenido**: Estructura de proyecto, capas de arquitectura, inyección de dependencias, sistema de configuración
+- **Contenido**: Estructura de proyecto, capas de arquitectura, sistema de configuración
 - **Aplicación**: `applyTo: '**'` - Todos los archivos del proyecto
 
 ### `typescript-standards.instructions.md`
@@ -62,11 +58,10 @@ Este directorio contiene las instrucciones de desarrollo para GitHub Copilot y o
 
 Los archivos se aplican en el siguiente orden de especialización:
 
-1. **`code-quality.instructions.md`** - Fundamentos generales
+1. **`code-quality.instructions.md`** - Fundamentos generales y convenciones
 2. **`typescript-standards.instructions.md`** - Específico del lenguaje
 3. **`architecture.instructions.md`** - Específico del framework y arquitectura
 4. **Archivos especializados** - GraphQL, Database, Security, Testing, Error Handling
-5. **`agent-behavior.instructions.md`** - Comportamiento del agente
 
 ## Principios de Organización
 
