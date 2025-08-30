@@ -1,6 +1,7 @@
 import { ArgsType, Field, ID } from '@nestjs/graphql';
 import { Type } from 'class-transformer';
 import { IsOptional, IsUUID, ValidateNested } from 'class-validator';
+import { IsValidUsername } from '@shared/application/decorators';
 import {
   UserCreateInputDto,
   UserFindFilterInputDto,
@@ -33,6 +34,30 @@ export class UserUpdateArgsDto {
   @ValidateNested()
   @Type(() => UserUpdateInputDto)
   data!: UserUpdateInputDto;
+}
+
+/**
+ * GraphQL arguments DTO for finding a user by their unique identifier
+ * Contains validation for the user ID parameter
+ */
+@ArgsType()
+export class UserFindByIdArgsDto {
+  /** Unique identifier of the user to find */
+  @Field(() => ID, { description: 'Unique identifier of the user to find' })
+  @IsUUID('all', { message: 'ID must be a valid UUID' })
+  id!: string;
+}
+
+/**
+ * GraphQL arguments DTO for finding a user by their username
+ * Contains validation and normalization for the username parameter
+ */
+@ArgsType()
+export class UserFindByUsernameArgsDto {
+  /** Username of the user to find */
+  @Field(() => String, { description: 'Username of the user to find' })
+  @IsValidUsername()
+  userName!: string;
 }
 
 /**

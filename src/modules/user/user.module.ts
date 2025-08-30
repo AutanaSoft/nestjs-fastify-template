@@ -1,6 +1,11 @@
 import { SharedModule } from '@/shared/shared.module';
 import { Module } from '@nestjs/common';
-import { CreateUserUseCase, FindUserByEmailUseCase } from './application/use-cases';
+import {
+  CreateUserUseCase,
+  FindUserByEmailUseCase,
+  FindUserByIdUseCase,
+  FindUserByUsernameUseCase,
+} from './application/use-cases';
 import { FindUsersUseCase } from './application/use-cases/find-users.use-case';
 import { UpdateUserUseCase } from './application/use-cases/update-user.use-case';
 import { UserRepository } from './domain/repositories/user.repository';
@@ -16,9 +21,9 @@ import { UserResolver } from './infrastructure/resolvers/user.resolver';
     },
     CreateUserUseCase,
     UpdateUserUseCase,
-
-    // FindUserByIdUseCase,
+    FindUserByIdUseCase,
     FindUserByEmailUseCase,
+    FindUserByUsernameUseCase,
     FindUsersUseCase,
     UserResolver,
   ],

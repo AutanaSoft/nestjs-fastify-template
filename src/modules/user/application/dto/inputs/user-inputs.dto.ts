@@ -1,14 +1,7 @@
 import { SortOrder, UserRole, UserSortBy, UserStatus } from '@/modules/user/domain/enums';
 import { Field, InputType, OmitType, PartialType } from '@nestjs/graphql';
-import {
-  IsEmail,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
+import { IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsValidEmail, IsValidUsername } from '@shared/application/decorators';
 
 /**
  * GraphQL input DTO for user creation operations
@@ -18,7 +11,7 @@ import {
 export class UserCreateInputDto {
   /** User's email address - must be unique and valid email format */
   @Field(() => String, { nullable: false, description: 'User email address for authentication' })
-  @IsEmail({}, { message: 'Email must be a valid email address' })
+  @IsValidEmail()
   email: string;
 
   /** User's password - will be hashed before storage, must be 6-16 characters */
@@ -33,8 +26,7 @@ export class UserCreateInputDto {
 
   /** User's display name - must be unique and non-empty */
   @Field(() => String, { nullable: false, description: 'Unique username for user identification' })
-  @IsString({ message: 'Username must be a string' })
-  @IsNotEmpty({ message: 'Username is required' })
+  @IsValidUsername()
   userName: string;
 
   /** Optional user account status - defaults to ACTIVE if not provided */
@@ -80,13 +72,13 @@ export class UserFindFilterInputDto {
   /** Filter users by exact email address match */
   @Field(() => String, { nullable: true, description: 'Filter users by email address pattern' })
   @IsOptional()
-  @IsString()
+  @IsValidEmail()
   email?: string;
 
   /** Filter users by exact username match */
   @Field(() => String, { nullable: true, description: 'Filter users by username pattern' })
   @IsOptional()
-  @IsString()
+  @IsValidUsername()
   userName?: string;
 
   /** Filter users created on or after this date */

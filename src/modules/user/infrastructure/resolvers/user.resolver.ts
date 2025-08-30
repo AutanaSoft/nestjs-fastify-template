@@ -2,12 +2,16 @@ import {
   UserCreateArgsDto,
   UserDto,
   UserFindArgsDto,
+  UserFindByIdArgsDto,
+  UserFindByUsernameArgsDto,
   UserUpdateArgsDto,
 } from '@modules/user/application/dto';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import {
   CreateUserUseCase,
   FindUserByEmailUseCase,
+  FindUserByIdUseCase,
+  FindUserByUsernameUseCase,
   FindUsersUseCase,
   UpdateUserUseCase,
 } from '../../application/use-cases';
@@ -21,15 +25,19 @@ export class UserResolver {
   /**
    * Initializes the UserResolver with required use cases.
    * @param createUserUseCase Use case for creating new users
-   * @param findUsersUseCase Use case for finding and retrieving users
    * @param updateUserUseCase Use case for updating existing users
+   * @param findUsersUseCase Use case for finding and retrieving users
+   * @param findUserByIdUseCase Use case for finding a user by ID
    * @param findUserByEmailUseCase Use case for finding a user by email address
+   * @param findUserByUsernameUseCase Use case for finding a user by username
    */
   constructor(
     private readonly createUserUseCase: CreateUserUseCase,
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly findUsersUseCase: FindUsersUseCase,
+    private readonly findUserByIdUseCase: FindUserByIdUseCase,
     private readonly findUserByEmailUseCase: FindUserByEmailUseCase,
+    private readonly findUserByUsernameUseCase: FindUserByUsernameUseCase,
   ) {}
 
   /**
@@ -41,7 +49,7 @@ export class UserResolver {
    * @throws ConflictException when user already exists
    */
   @Mutation(() => UserDto, { description: 'Creates a new user account with the provided data' })
-  async create(@Args() params: UserCreateArgsDto): Promise<UserDto> {
+  async createUser(@Args() params: UserCreateArgsDto): Promise<UserDto> {
     return await this.createUserUseCase.execute(params);
   }
 
@@ -56,20 +64,20 @@ export class UserResolver {
   @Mutation(() => UserDto, {
     description: 'Updates an existing user account with the provided data',
   })
-  async update(@Args() params: UserUpdateArgsDto): Promise<UserDto> {
+  async updateUser(@Args() params: UserUpdateArgsDto): Promise<UserDto> {
     return await this.updateUserUseCase.execute(params);
   }
 
   /**
-   * Retrieves users based on optional filter and sort criteria.
+   * Finds and retrieves users based on optional filter and sort criteria.
    * Supports pagination, filtering, and sorting through query parameters.
    * @param params Query parameters for filtering and sorting users
    * @returns Promise resolving to an array of user data matching the criteria
    */
   @Query(() => [UserDto], {
-    description: 'Retrieves users based on optional filter and sort criteria',
+    description: 'Finds and retrieves users based on optional filter and sort criteria',
   })
-  async findAll(@Args() params: UserFindArgsDto): Promise<UserDto[]> {
+  async findUsers(@Args() params: UserFindArgsDto): Promise<UserDto[]> {
     return await this.findUsersUseCase.execute(params);
   }
 
@@ -84,10 +92,40 @@ export class UserResolver {
   @Query(() => UserDto, {
     description: 'Finds a user by their email address',
   })
-  async findByEmail(
+  async findUserByEmail(
     @Args('email', { type: () => String, description: 'Email address to search for' })
     email: string,
   ): Promise<UserDto> {
     return await this.findUserByEmailUseCase.execute(email);
+  }
+
+  /**
+   * Finds a user by their unique identifier.
+   * Validates the ID parameter through DTO and delegates search to the application layer.
+   * @param params Arguments containing the user ID to search for
+   * @returns Promise resolving to the user data if found
+   * @throws NotFoundException when user with given ID does not exist
+   * @throws BadRequestException when ID parameter is invalid
+   */
+  @Query(() => UserDto, {
+    description: 'Finds a user by their unique identifier',
+  })
+  async findUser(@Args() params: UserFindByIdArgsDto): Promise<UserDto> {
+    return await this.findUserByIdUseCase.execute(params);
+  }
+
+  /**
+   * Finds a user by their username.
+   * Validates the username parameter through DTO and delegates search to the application layer.
+   * @param params Arguments containing the username to search for
+   * @returns Promise resolving to the user data if found
+   * @throws NotFoundException when user with given username does not exist
+   * @throws BadRequestException when username parameter is invalid
+   */
+  @Query(() => UserDto, {
+    description: 'Finds a user by their username',
+  })
+  async findUserByUsername(@Args() params: UserFindByUsernameArgsDto): Promise<UserDto> {
+    return await this.findUserByUsernameUseCase.execute(params);
   }
 }
