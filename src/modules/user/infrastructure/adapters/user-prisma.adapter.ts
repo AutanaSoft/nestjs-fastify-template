@@ -121,7 +121,7 @@ export class UserPrismaAdapter extends UserRepository {
 
       // Check if user was found
       if (!user) {
-        logger.debug({ user }, 'User not found by ID');
+        logger.debug('User not found by ID');
         return null;
       }
 

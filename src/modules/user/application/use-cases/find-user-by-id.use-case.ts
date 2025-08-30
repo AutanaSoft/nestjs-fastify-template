@@ -43,7 +43,9 @@ export class FindUserByIdUseCase {
       // Handle case when user is not found
       if (!user) {
         logger.warn('User not found by ID');
-        throw new NotFoundError(`User with ID ${args.id} not found`);
+        throw new NotFoundError(`User not found`, {
+          extensions: { code: 'USER_NOT_FOUND' },
+        });
       }
 
       logger.debug({ user }, 'User found by ID successfully');
