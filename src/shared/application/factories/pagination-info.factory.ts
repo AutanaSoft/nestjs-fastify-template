@@ -42,13 +42,13 @@ export class PaginationInfoFactory {
    * @param page - The requested page number
    * @returns PaginationInfoDto representing empty pagination state
    */
-  /* static createEmpty(limit: number, page: number = 1): PaginationInfoDto {
+  static createEmpty(limit: number, page: number = 1): PaginationInfoDto {
     return this.create({
       totalDocs: 0,
       limit,
       page,
     });
-  } */
+  }
 
   /**
    * Creates a PaginationInfoDto instance for single-page results
@@ -56,11 +56,11 @@ export class PaginationInfoFactory {
    * @param limit - The page limit used
    * @returns PaginationInfoDto representing single-page results
    */
-  /* static createSinglePage(totalDocs: number, limit: number): PaginationInfoDto {
+  static createSinglePage(totalDocs: number, limit: number): PaginationInfoDto {
     return this.create({
       totalDocs,
       limit,
       page: 1,
     });
-  } */
+  }
 }

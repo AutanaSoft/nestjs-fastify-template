@@ -1,11 +1,11 @@
 import { PaginatedData, PaginatedResult, PAGINATION_LIMITS } from '@/shared/domain/types';
-import { PaginationInfoFactory } from '@shared/application/factories';
 import { UserEntity } from '@modules/user/domain/entities/user.entity';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import { UserFindAllPaginateData } from '@modules/user/domain/types';
 import { Injectable } from '@nestjs/common';
-import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { PaginationInfoFactory } from '@shared/application/factories';
 import { plainToInstance } from 'class-transformer';
+import { PinoLogger } from 'nestjs-pino';
 import { UserFindPaginatedArgsDto } from '../dto/args/user-args.dto';
 import { UserDto } from '../dto/responses/user.dto';
 
@@ -17,9 +17,10 @@ import { UserDto } from '../dto/responses/user.dto';
 export class FindUsersPaginatedUseCase {
   constructor(
     private readonly userRepository: UserRepository,
-    @InjectPinoLogger(FindUsersPaginatedUseCase.name)
     private readonly logger: PinoLogger,
-  ) {}
+  ) {
+    this.logger.setContext(FindUsersPaginatedUseCase.name);
+  }
 
   /**
    * Executes the find users paginated operation with optional filtering and sorting
@@ -27,6 +28,9 @@ export class FindUsersPaginatedUseCase {
    * @returns Promise resolving to a paginated result containing user DTOs and pagination metadata
    */
   async execute(params: UserFindPaginatedArgsDto): Promise<PaginatedResult<UserDto>> {
+    // Create a logger instance for this method
+    this.logger.assign({ method: 'execute', params });
+    this.logger.debug('Executing paginated user search with parameters');
     // Extract and validate pagination parameters
     const page = params.page ?? 1;
     const limit = Math.min(
@@ -37,20 +41,6 @@ export class FindUsersPaginatedUseCase {
     // Calculate skip/take for repository (use case responsibility)
     const skip = (page - 1) * limit;
     const take = limit;
-
-    this.logger.info('Starting paginated user search', {
-      page,
-      limit,
-      skip,
-      take,
-      hasFilters: !!(
-        params.filter?.email ||
-        params.filter?.userName ||
-        params.filter?.status ||
-        params.filter?.role
-      ),
-      hasSorting: !!(params.sort?.sortBy || params.sort?.sortOrder),
-    });
 
     // Build repository query parameters with direct skip/take
     const repositoryParams: UserFindAllPaginateData = {
@@ -75,17 +65,14 @@ export class FindUsersPaginatedUseCase {
         limit,
       });
 
-      this.logger.info('Paginated user search completed', {
-        totalFound: paginationInfo.totalDocs,
-        currentPageCount: userDtos.length,
-        page: paginationInfo.page,
-        totalPages: paginationInfo.totalPages,
-      });
-
-      return {
+      const result = {
         data: userDtos,
         paginationInfo,
       };
+
+      this.logger.debug({ searchResult: result }, 'Paginated user search completed');
+
+      return result;
     } catch (error) {
       this.logger.error('Error during paginated user search', {
         error: error instanceof Error ? error.message : 'Unknown error',
