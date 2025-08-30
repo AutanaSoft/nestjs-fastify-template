@@ -1,7 +1,6 @@
 import {
   UserCreateArgsDto,
   UserDto,
-  UserFindArgsDto,
   UserFindByIdArgsDto,
   UserFindByUsernameArgsDto,
   UserFindPaginatedArgsDto,
@@ -14,7 +13,6 @@ import {
   FindUserByEmailUseCase,
   FindUserByIdUseCase,
   FindUserByUsernameUseCase,
-  FindUsersUseCase,
   FindUsersPaginatedUseCase,
   UpdateUserUseCase,
 } from '../../application/use-cases';
@@ -38,7 +36,6 @@ export class UserResolver {
   constructor(
     private readonly createUserUseCase: CreateUserUseCase,
     private readonly updateUserUseCase: UpdateUserUseCase,
-    private readonly findUsersUseCase: FindUsersUseCase,
     private readonly findUsersPaginatedUseCase: FindUsersPaginatedUseCase,
     private readonly findUserByIdUseCase: FindUserByIdUseCase,
     private readonly findUserByEmailUseCase: FindUserByEmailUseCase,
@@ -71,19 +68,6 @@ export class UserResolver {
   })
   async updateUser(@Args() params: UserUpdateArgsDto): Promise<UserDto> {
     return await this.updateUserUseCase.execute(params);
-  }
-
-  /**
-   * Finds and retrieves users based on optional filter and sort criteria.
-   * Supports pagination, filtering, and sorting through query parameters.
-   * @param params Query parameters for filtering and sorting users
-   * @returns Promise resolving to an array of user data matching the criteria
-   */
-  @Query(() => [UserDto], {
-    description: 'Finds and retrieves users based on optional filter and sort criteria',
-  })
-  async findUsers(@Args() params: UserFindArgsDto): Promise<UserDto[]> {
-    return await this.findUsersUseCase.execute(params);
   }
 
   /**
@@ -148,11 +132,6 @@ export class UserResolver {
   async findUsersPaginated(
     @Args() params: UserFindPaginatedArgsDto,
   ): Promise<UserPaginatedResponseDto> {
-    const result = await this.findUsersPaginatedUseCase.execute(params);
-
-    return {
-      data: result.data,
-      paginationInfo: result.paginationInfo,
-    };
+    return await this.findUsersPaginatedUseCase.execute(params);
   }
 }

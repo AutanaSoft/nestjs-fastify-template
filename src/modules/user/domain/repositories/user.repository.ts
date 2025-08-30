@@ -1,6 +1,6 @@
 import { PaginatedData } from '@/shared/domain/types';
 import { UserEntity } from '../entities/user.entity';
-import { UserCreateData, UserFindAllData, UserFindAllPaginateData, UserUpdateData } from '../types';
+import { UserCreateData, UserFindAllPaginateData, UserUpdateData } from '../types';
 
 /**
  * Abstract repository interface for user data persistence operations
@@ -42,13 +42,6 @@ export abstract class UserRepository {
    * @returns Promise resolving to the user entity if found, null otherwise
    */
   abstract findByUserName(userName: string): Promise<UserEntity | null>;
-
-  /**
-   * Retrieves all users based on filter and sort criteria
-   * @param params - Query parameters including optional filters and sorting options
-   * @returns Promise resolving to an array of user entities matching the criteria
-   */
-  abstract findAll(params: UserFindAllData): Promise<UserEntity[]>;
 
   /**
    * Retrieves paginated users based on filter, sort, and pagination criteria

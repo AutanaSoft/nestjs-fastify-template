@@ -7,12 +7,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaErrorHandlerService } from '@shared/infrastructure/services';
 import { plainToInstance } from 'class-transformer';
 import { PinoLogger } from 'nestjs-pino';
-import {
-  UserCreateData,
-  UserFindAllData,
-  UserFindAllPaginateData,
-  UserUpdateData,
-} from '../../domain/types';
+import { UserCreateData, UserFindAllPaginateData, UserUpdateData } from '../../domain/types';
 
 /**
  * Prisma adapter implementation for user repository operations
@@ -226,85 +221,6 @@ export class UserPrismaAdapter extends UserRepository {
           },
         },
         logger,
-      );
-    }
-  }
-
-  /**
-   * Retrieves users based on filter and sort criteria
-   * Supports filtering by email, username, status, role, and date ranges
-   * Implements case-insensitive search for text fields and proper date filtering
-   * @param query - Query parameters containing optional filters and sorting options
-   * @returns Promise resolving to array of user entities matching the criteria
-   * @throws InternalServerErrorException for database query errors
-   */
-  async findAll(query: UserFindAllData): Promise<UserEntity[]> {
-    try {
-      const { filter, sort } = query;
-
-      /** Build array of filter conditions to be combined with AND logic */
-      const conditions: Prisma.UserWhereInput[] = [];
-
-      // Apply filters if query is provided
-      if (filter) {
-        /** Apply case-insensitive email filter using contains */
-        if (filter.email) {
-          conditions.push({ email: { contains: filter.email, mode: 'insensitive' } });
-        }
-        /** Apply case-insensitive username filter using contains */
-        if (filter.userName) {
-          conditions.push({ userName: { contains: filter.userName, mode: 'insensitive' } });
-        }
-        /** Apply exact status filter */
-        if (filter.status) {
-          conditions.push({ status: filter.status });
-        }
-        /** Apply exact role filter */
-        if (filter.role) {
-          conditions.push({ role: filter.role });
-        }
-        /** Apply date range filter for creation date */
-        if (filter.createdAtFrom || filter.createdAtTo) {
-          const createdAtCondition: Prisma.DateTimeFilter = {};
-          if (filter.createdAtFrom) {
-            createdAtCondition.gte = filter.createdAtFrom;
-          }
-          if (filter.createdAtTo) {
-            createdAtCondition.lte = filter.createdAtTo;
-          }
-          conditions.push({ createdAt: createdAtCondition });
-        }
-      }
-
-      /** Combine all conditions with AND logic, or use empty object for no filtering */
-      const where: Prisma.UserWhereInput = conditions.length > 0 ? { AND: conditions } : {};
-
-      /** Build order by clause with fallback to creation date descending */
-      const orderBy: Prisma.UserOrderByWithRelationInput = {};
-      if (sort?.sortBy) {
-        orderBy[sort.sortBy] = sort.sortOrder || 'asc';
-      } else {
-        // Default sorting by createdAt desc if no sorting specified
-        orderBy.createdAt = 'desc';
-      }
-
-      const users = await this.prisma.user.findMany({
-        where,
-        orderBy,
-      });
-
-      return users.map(user => plainToInstance(UserEntity, user));
-    } catch (error) {
-      this.prismaErrorHandler.handleError(
-        error,
-        {
-          messages: {
-            validation: 'Invalid query parameters provided',
-            connection: 'Database unavailable',
-            unknown: 'An unexpected error occurred while fetching users',
-          },
-        },
-        this.logger,
       );
     }
   }
