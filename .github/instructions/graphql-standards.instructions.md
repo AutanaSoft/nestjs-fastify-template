@@ -21,33 +21,112 @@ type User {
   id: ID!
   """User's email address"""
   email: String!
-  """User's display name"""
-  name: String!
+  """User's unique username"""
+  userName: String!
+  """User account status"""
+  status: UserStatus!
+  """User role for permissions"""
+  role: UserRole!
   """User creation timestamp"""
   createdAt: DateTime!
-  """User's posts"""
-  posts: [Post!]!
-}
-```
-
-### Input Types and Validation
-
-- Create specific input types for mutations: `UserCreateInput`, `UserUpdateInput`
-- Use enums for constrained values: `enum UserRole { ADMIN, USER, GUEST }`
-- Implement field-level validation with custom scalars when needed
-- Use interfaces for shared fields across types
-
-```typescript
-input UserCreateInput {
-  email: String!
-  name: String!
-  role: UserRole = USER
+  """User last update timestamp"""
+  updatedAt: DateTime!
 }
 
 enum UserRole {
+  """Administrator with full system access"""
   ADMIN
+  """Regular user with standard permissions"""
   USER
-  GUEST
+}
+
+enum UserStatus {
+  """User has registered but not yet activated their account"""
+  REGISTERED
+  """User account is active and fully functional"""
+  ACTIVE
+  """User account has been banned and cannot access the system"""
+  BANNED
+  """User account is temporarily inactive"""
+  INACTIVE
+}
+```
+
+### ArgsTypes and Input Validation
+
+- Prefer ArgsType classes for multiple parameters with validation decorators
+- Use nested InputType within ArgsType for complex data structures
+- Use direct parameter binding for single simple parameters
+- Use enums for constrained values: `enum UserRole { ADMIN, USER }`
+- Implement field-level validation with class-validator decorators
+- Use proper typing with GraphQL decorators and validation
+
+```typescript
+// ArgsType with nested InputType for complex operations
+@ArgsType()
+export class UserCreateArgsDto {
+  @Field(() => UserCreateInputDto, { description: 'Data required to create a new user' })
+  @ValidateNested()
+  @Type(() => UserCreateInputDto)
+  data!: UserCreateInputDto;
+}
+
+@ArgsType()
+export class UserUpdateArgsDto {
+  @Field(() => ID, { description: 'Unique identifier of the user to update' })
+  @IsUUID('all', { message: 'ID must be a valid ID' })
+  id: string;
+
+  @Field(() => UserUpdateInputDto, { description: 'Data required to update an existing user' })
+  @ValidateNested()
+  @Type(() => UserUpdateInputDto)
+  data!: UserUpdateInputDto;
+}
+
+// ArgsType with optional filter and sort fields
+@ArgsType()
+export class UserFindArgsDto {
+  @Field(() => UserFindFilterInputDto, {
+    nullable: true,
+    description: 'Optional filter criteria for user search',
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UserFindFilterInputDto)
+  filter?: UserFindFilterInputDto;
+
+  @Field(() => UserSortOrderInputDto, {
+    nullable: true,
+    description: 'Optional sorting parameters for user results',
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UserSortOrderInputDto)
+  sort?: UserSortOrderInputDto;
+}
+
+// InputType for the actual data structure
+@InputType()
+export class UserCreateInputDto {
+  @Field(() => String, { description: 'User email address for authentication' })
+  @IsEmail({}, { message: 'Email must be a valid email address' })
+  email: string;
+
+  @Field(() => String, { description: 'User password for authentication (6-16 characters)' })
+  @IsString({ message: 'Password must be a string' })
+  @MinLength(6, { message: 'Password must be at least 6 characters long' })
+  @MaxLength(16, { message: 'Password must be at most 16 characters long' })
+  password: string;
+
+  @Field(() => String, { description: 'Unique username for user identification' })
+  @IsString({ message: 'Username must be a string' })
+  @IsNotEmpty({ message: 'Username is required' })
+  userName: string;
+
+  @Field(() => UserRole, { nullable: true, description: 'Optional initial user role assignment' })
+  @IsOptional()
+  @IsEnum(UserRole, { message: 'Role must be a valid UserRole enum value' })
+  role?: UserRole;
 }
 ```
 
@@ -67,6 +146,8 @@ export class UserResolver {
   constructor(
     private readonly createUserUseCase: CreateUserUseCase,
     private readonly findUserUseCase: FindUserUseCase,
+    private readonly findUsersUseCase: FindUsersUseCase,
+    private readonly findUserByEmailUseCase: FindUserByEmailUseCase,
   ) {}
 
   @Query(() => User, { nullable: true })
@@ -85,10 +166,24 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
-  async createUser(@Args('input') input: UserCreateInput): Promise<UserResponse> {
-    const result = await this.createUserUseCase.execute(input);
+  async createUser(@Args() args: UserCreateArgsDto): Promise<UserResponse> {
+    const result = await this.createUserUseCase.execute(args);
     return result;
   }
+
+  @Query(() => [User])
+  async findAll(@Args() args: UserFindArgsDto): Promise<UserResponse[]> {
+    return this.findUsersUseCase.execute(args);
+  }
+
+  @Query(() => User)
+  async findByEmail(
+    @Args('email', { type: () => String, description: 'Email address to search for' })
+    email: string,
+  ): Promise<UserResponse> {
+    return this.findUserByEmailUseCase.execute(email);
+  }
+}
 }
 ```
 
@@ -160,74 +255,7 @@ async author(
 }
 ```
 
-## 4. Authentication and Authorization
-
-### Authentication with Guards
-
-- Use NestJS guards for authentication at resolver level
-- Implement JWT token validation in GraphQL context
-- Extract user information from token and add to context
-- Handle authentication errors with proper GraphQL errors
-
-```typescript
-@Injectable()
-export class GraphQLAuthGuard extends AuthGuard('jwt') {
-  getRequest(context: ExecutionContext): any {
-    const ctx = GqlExecutionContext.create(context);
-    return ctx.getContext().req;
-  }
-
-  handleRequest<User>(err: any, user: User): User {
-    if (err || !user) {
-      throw new GraphQLError('Authentication required', {
-        extensions: { code: 'UNAUTHENTICATED' }
-      });
-    }
-    return user;
-  }
-}
-
-// Apply to resolvers
-@UseGuards(GraphQLAuthGuard)
-@Mutation(() => User)
-async updateProfile(@Args('input') input: UpdateProfileInput): Promise<User> {
-  // Implementation
-}
-```
-
-### Role-Based Authorization
-
-- Implement custom authorization decorators
-- Check permissions at field and operation level
-- Use context to access current user information
-- Implement resource-based authorization when needed
-
-```typescript
-@Injectable()
-export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
-
-  canActivate(context: ExecutionContext): boolean {
-    const roles = this.reflector.get<UserRole[]>('roles', context.getHandler());
-    if (!roles) return true;
-
-    const ctx = GqlExecutionContext.create(context);
-    const user = ctx.getContext().req.user;
-
-    return roles.includes(user.role);
-  }
-}
-
-// Usage
-@Roles(UserRole.ADMIN)
-@UseGuards(GraphQLAuthGuard, RolesGuard)
-@Mutation(() => Boolean)
-async deleteUser(@Args('id') id: string): Promise<boolean> {
-  // Implementation
-}
-```
-
-## 5. GraphQL Error Handling
+## 4. GraphQL Error Handling
 
 ### Domain Error Mapping
 
@@ -300,7 +328,7 @@ private transformValidationErrors(errors: ValidationError[]): GraphQLFormattedEr
 }
 ```
 
-## 6. Mercurius Subscriptions
+## 5. Mercurius Subscriptions
 
 ### PubSub Configuration
 
@@ -356,8 +384,8 @@ export class PostSubscriptionResolver {
   }
 
   @Mutation(() => Post)
-  async createPost(@Args('input') input: PostCreateInput): Promise<Post> {
-    const post = await this.createPostUseCase.execute(input);
+  async createPost(@Args() args: PostCreateArgsDto): Promise<Post> {
+    const post = await this.createPostUseCase.execute(args);
 
     // Publish to subscribers
     await this.pubSub.publish('POST_CREATED', { newPost: post });
@@ -374,7 +402,7 @@ export class PostSubscriptionResolver {
 - Handle connection timeouts and reconnections
 - Monitor subscription performance and resource usage
 
-## 7. Testing GraphQL Resolvers
+## 6. Testing GraphQL Resolvers
 
 ### Unit Testing Resolvers
 
@@ -476,7 +504,7 @@ describe('GraphQL Integration', () => {
 });
 ```
 
-## 8. Performance Optimization
+## 7. Performance Optimization
 
 ### Query Complexity Analysis
 
@@ -572,7 +600,7 @@ async users(
 }
 ```
 
-## 9. Code Organization and Architecture
+## 8. Code Organization and Architecture
 
 ### Hexagonal Architecture Integration
 
@@ -630,7 +658,7 @@ export class DateTimeScalar implements CustomScalar<string, Date> {
 }
 ```
 
-## 10. Development Workflow and Tools
+## 9. Development Workflow and Tools
 
 ### Schema-First vs Code-First Approach
 
