@@ -1,5 +1,5 @@
 ---
-applyTo: '**'
+applyTo: '**/*.ts'
 ---
 
 # Error Handling Best Practices

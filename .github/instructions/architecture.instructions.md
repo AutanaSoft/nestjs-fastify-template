@@ -1,5 +1,5 @@
 ---
-applyTo: '**'
+applyTo: '**/*.ts'
 ---
 
 # NestJS Best Practices with Fastify and Hexagonal Architecture
