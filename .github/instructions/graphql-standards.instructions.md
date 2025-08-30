@@ -130,6 +130,62 @@ export class UserCreateInputDto {
 }
 ```
 
+### Response DTOs with Proper Mapping
+
+- Define ObjectType classes for GraphQL responses with proper field typing
+- Use transformation from domain entities to DTOs for data encapsulation
+- Implement proper field descriptions for schema documentation
+- Never expose sensitive data like passwords in response types
+- Use proper GraphQL scalar types and nullable fields
+
+```typescript
+@ObjectType()
+export class UserDto {
+  @Field(() => ID, { description: 'Unique user identifier' })
+  id: string;
+
+  @Field(() => String, { description: 'User email address' })
+  email: string;
+
+  @Field(() => String, { description: 'User display name' })
+  userName: string;
+
+  @Field(() => UserStatus, { description: 'Current account status' })
+  status: UserStatus;
+
+  @Field(() => UserRole, { description: 'User role for permissions' })
+  role: UserRole;
+
+  @Field(() => Date, { description: 'Account creation timestamp' })
+  createdAt: Date;
+
+  @Field(() => Date, { description: 'Last update timestamp' })
+  updatedAt: Date;
+}
+
+// Pagination response types
+@ObjectType()
+export class UserEdge {
+  @Field(() => UserDto)
+  node: UserDto;
+
+  @Field(() => String)
+  cursor: string;
+}
+
+@ObjectType()
+export class UserConnection {
+  @Field(() => [UserEdge])
+  edges: UserEdge[];
+
+  @Field(() => PageInfo)
+  pageInfo: PageInfo;
+
+  @Field(() => Int, { nullable: true, description: 'Total count when requested' })
+  totalCount?: number;
+}
+```
+
 ## 2. Resolver Implementation with Hexagonal Architecture
 
 ### Resolver Structure in Infrastructure Layer
@@ -206,7 +262,89 @@ async postCount(@Parent() user: User): Promise<number> {
 }
 ```
 
-## 3. DataLoader Pattern for N+1 Query Prevention
+## 3. GraphQL Custom Decorators and Context
+
+### Custom Parameter Decorators
+
+- Create type-safe parameter decorators for GraphQL-specific functionality
+- Use GqlExecutionContext for accessing GraphQL request context
+- Implement decorators for common patterns like current user extraction
+- Ensure proper typing for decorator return values
+
+```typescript
+// Type-safe current user decorator for GraphQL
+export function CurrentUser(): ParameterDecorator {
+  return createParamDecorator<UserEntity>(
+    (data: unknown, context: ExecutionContext): UserEntity => {
+      const ctx = GqlExecutionContext.create(context);
+      const request = ctx.getContext().req;
+
+      if (!request.user) {
+        throw new GraphQLError('User not authenticated', {
+          extensions: { code: 'UNAUTHENTICATED' },
+        });
+      }
+
+      return request.user as UserEntity;
+    },
+  )();
+}
+
+// Usage in GraphQL resolvers
+@Resolver(() => UserDto)
+export class UserResolver {
+  @Query(() => UserDto, { description: 'Get current user profile' })
+  async me(@CurrentUser() user: UserEntity): Promise<UserDto> {
+    return plainToInstance(UserDto, user);
+  }
+
+  @Mutation(() => UserDto, { description: 'Update current user profile' })
+  async updateProfile(
+    @CurrentUser() user: UserEntity,
+    @Args() args: UserUpdateArgsDto,
+  ): Promise<UserDto> {
+    const updatedUser = await this.updateUserUseCase.execute(user.id, args);
+    return updatedUser;
+  }
+}
+```
+
+### GraphQL Context Integration
+
+```typescript
+// Define GraphQL context interface
+export interface GraphQLContext {
+  req: FastifyRequest & { user?: UserEntity };
+  res: FastifyReply;
+  dataSources: {
+    userLoader: UserDataLoader;
+    postLoader: PostDataLoader;
+  };
+}
+
+// Context factory for GraphQL
+export function createGraphQLContext({ request, reply }): GraphQLContext {
+  return {
+    req: request,
+    res: reply,
+    dataSources: {
+      userLoader: new UserDataLoader(userRepository),
+      postLoader: new PostDataLoader(postRepository),
+    },
+  };
+}
+
+// Usage with typed context
+@ResolveField(() => [PostDto])
+async posts(
+  @Parent() user: UserDto,
+  @Context() context: GraphQLContext
+): Promise<PostDto[]> {
+  return context.dataSources.postLoader.loadByUserId(user.id);
+}
+```
+
+## 4. DataLoader Pattern for N+1 Query Prevention
 
 ### DataLoader Implementation
 
@@ -255,7 +393,7 @@ async author(
 }
 ```
 
-## 4. GraphQL Error Handling
+## 5. GraphQL Error Handling
 
 ### Domain Error Mapping
 
@@ -328,7 +466,7 @@ private transformValidationErrors(errors: ValidationError[]): GraphQLFormattedEr
 }
 ```
 
-## 5. Mercurius Subscriptions
+## 6. Mercurius Subscriptions
 
 ### PubSub Configuration
 
@@ -402,7 +540,7 @@ export class PostSubscriptionResolver {
 - Handle connection timeouts and reconnections
 - Monitor subscription performance and resource usage
 
-## 6. Testing GraphQL Resolvers
+## 7. Testing GraphQL Resolvers
 
 ### Unit Testing Resolvers
 
@@ -504,7 +642,121 @@ describe('GraphQL Integration', () => {
 });
 ```
 
-## 7. Performance Optimization
+### Testing Custom Decorators and Context
+
+- Test custom decorators behavior in isolation
+- Mock GraphQL execution context for decorator testing
+- Verify proper error handling for unauthenticated requests
+- Test context injection and data loader integration
+
+```typescript
+describe('@CurrentUser Decorator', () => {
+  it('should extract user from GraphQL context', () => {
+    const mockUser: UserEntity = {
+      id: '123',
+      email: 'test@example.com',
+      userName: 'testuser',
+      // ... other properties
+    };
+
+    const mockExecutionContext = {
+      switchToHttp: () => ({
+        getRequest: () => ({ user: mockUser }),
+      }),
+      getClass: jest.fn(),
+      getHandler: jest.fn(),
+      getArgs: jest.fn(),
+      getArgByIndex: jest.fn(),
+      switchToRpc: jest.fn(),
+      switchToWs: jest.fn(),
+    } as ExecutionContext;
+
+    // Mock GqlExecutionContext
+    jest.spyOn(GqlExecutionContext, 'create').mockReturnValue({
+      getContext: () => ({ req: { user: mockUser } }),
+      getInfo: jest.fn(),
+      getArgs: jest.fn(),
+    } as any);
+
+    const currentUserDecorator = CurrentUser();
+    const result = currentUserDecorator({}, mockExecutionContext, 0);
+
+    expect(result).toEqual(mockUser);
+  });
+
+  it('should throw error when user is not authenticated', () => {
+    const mockExecutionContext = {
+      // ... mock without user
+    } as ExecutionContext;
+
+    jest.spyOn(GqlExecutionContext, 'create').mockReturnValue({
+      getContext: () => ({ req: {} }), // No user
+      getInfo: jest.fn(),
+      getArgs: jest.fn(),
+    } as any);
+
+    expect(() => {
+      const currentUserDecorator = CurrentUser();
+      currentUserDecorator({}, mockExecutionContext, 0);
+    }).toThrow(GraphQLError);
+  });
+});
+```
+
+### Integration Testing with GraphQL Context
+
+```typescript
+describe('UserResolver Integration', () => {
+  let app: INestApplication;
+  let userRepository: UserRepository;
+
+  beforeAll(async () => {
+    const module = await Test.createTestingModule({
+      imports: [AppModule],
+    })
+      .overrideProvider(UserRepository)
+      .useValue(mockUserRepository)
+      .compile();
+
+    app = module.createNestApplication();
+    await app.init();
+    userRepository = module.get<UserRepository>(UserRepository);
+  });
+
+  it('should handle authenticated user queries', async () => {
+    const mockUser = UserTestDataFactory.createUserEntity();
+
+    // Mock authenticated context
+    const authHeaders = {
+      Authorization: `Bearer ${generateJwtToken(mockUser)}`,
+    };
+
+    const query = `
+      query Me {
+        me {
+          id
+          email
+          userName
+        }
+      }
+    `;
+
+    const response = await request(app.getHttpServer())
+      .post('/graphql')
+      .set(authHeaders)
+      .send({ query })
+      .expect(200);
+
+    expect(response.body.data.me).toMatchObject({
+      id: mockUser.id,
+      email: mockUser.email,
+      userName: mockUser.userName,
+    });
+  });
+});
+```
+
+## 8. Performance Optimization
 
 ### Query Complexity Analysis
 
@@ -600,7 +852,7 @@ async users(
 }
 ```
 
-## 8. Code Organization and Architecture
+## 9. Code Organization and Architecture
 
 ### Hexagonal Architecture Integration
 
@@ -615,17 +867,66 @@ async users(
 ```
 src/modules/user/
 ├── infrastructure/
-│   └── controllers/
-│       ├── user.resolver.ts          # GraphQL resolver
-│       └── user-subscription.resolver.ts # Subscription resolver
+│   ├── controllers/
+│   │   ├── user.resolver.ts          # GraphQL resolver
+│   │   └── user-subscription.resolver.ts # Subscription resolver
+│   └── adapters/
+│       └── user-prisma.adapter.ts    # Database adapter
 ├── application/
 │   ├── dto/
-│   │   ├── user-create.input.ts      # GraphQL input types
-│   │   ├── user-update.input.ts      # GraphQL input types
-│   │   └── user.response.ts          # GraphQL response types
+│   │   ├── args/                     # ArgsType classes
+│   │   │   └── user-args.dto.ts      # @ArgsType definitions
+│   │   ├── inputs/                   # InputType classes
+│   │   │   └── user-inputs.dto.ts    # @InputType definitions
+│   │   └── responses/                # ObjectType classes
+│   │       └── user-responses.dto.ts # @ObjectType definitions
 │   └── use-cases/
 │       ├── create-user.use-case.ts   # Business logic
 │       └── find-user.use-case.ts     # Business logic
+└── domain/
+    ├── entities/
+    │   └── user.entity.ts            # Domain entity
+    ├── repositories/
+    │   └── user.repository.ts        # Repository interface
+    └── enums/
+        └── user.enums.ts             # Domain enums with GraphQL registration
+```
+
+### GraphQL Schema Organization
+
+- Co-locate related types, inputs, and resolvers by domain
+- Use schema stitching or federation for large applications
+- Keep schema files organized by feature/module
+- Use consistent naming conventions across schema definitions
+
+```typescript
+// Domain enum with GraphQL registration
+export enum UserRole {
+  ADMIN = 'ADMIN',
+  USER = 'USER',
+}
+
+registerEnumType(UserRole, {
+  name: 'UserRole',
+  description: 'User roles defining permission levels within the system',
+  valuesMap: {
+    ADMIN: { description: 'Administrator with full system access' },
+    USER: { description: 'Regular user with standard permissions' },
+  },
+});
+
+// Schema-first approach with type definitions
+const typeDefs = `
+  extend type Query {
+    user(id: ID!): User
+    users(filter: UserFilterInput): [User!]!
+  }
+  
+  extend type Mutation {
+    createUser(data: UserCreateInputDto!): User!
+    updateUser(id: ID!, data: UserUpdateInputDto!): User!
+  }
+`;
 ```
 
 ### Type Safety with GraphQL
@@ -658,7 +959,7 @@ export class DateTimeScalar implements CustomScalar<string, Date> {
 }
 ```
 
-## 9. Development Workflow and Tools
+## 10. Development Workflow and Tools
 
 ### Schema-First vs Code-First Approach
 
