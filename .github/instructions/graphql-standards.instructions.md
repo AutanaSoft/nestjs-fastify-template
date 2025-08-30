@@ -1,5 +1,5 @@
 ---
-applyTo: '**/*.ts'
+applyTo: '**'
 ---
 
 # GraphQL Best Practices with Mercurius

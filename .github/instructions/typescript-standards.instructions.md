@@ -1,5 +1,5 @@
 ---
-applyTo: '**/*.ts'
+applyTo: '**'
 ---
 
 # TypeScript Best Practices for NestJS with Hexagonal Architecture

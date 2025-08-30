@@ -1,5 +1,5 @@
 ---
-applyTo: '**/*.ts'
+applyTo: '**'
 ---
 
 # Database Best Practices with Prisma

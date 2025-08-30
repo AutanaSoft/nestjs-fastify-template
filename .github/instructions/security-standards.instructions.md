@@ -1,5 +1,5 @@
 ---
-applyTo: '**/*.ts'
+applyTo: '**'
 ---
 
 # Security Best Practices
