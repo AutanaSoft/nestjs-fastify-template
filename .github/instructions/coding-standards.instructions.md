@@ -2,7 +2,7 @@
 applyTo: '**'
 ---
 
-# NestJS Fastify Template - General Coding Standards
+# General Coding Standards
 
 ## Naming Conventions
 
@@ -13,22 +13,12 @@ applyTo: '**'
 - Prefix private class members with underscore (\_)
 - Suffix DTOs with `Dto`, entities with `Entity`, services with `Service`
 
-### Hexagonal Architecture Conventions
-
-- **Resolvers**: `EntityResolver` (e.g., `UserResolver`)
-- **Use Cases**: `VerbEntityUseCase` (e.g., `CreateUserUseCase`)
-- **Domain Services**: `EntityDomainService` (e.g., `UserDomainService`)
-- **Repository Interfaces**: `EntityRepository` (e.g., `UserRepository`)
-- **Repository Implementations**: `EntityPrismaAdapter` (e.g., `UserPrismaAdapter`)
-- **Domain Events**: `EntityVerbedEvent` (e.g., `UserCreatedEvent`)
-- **Domain Exceptions**: `EntityDomainException` (e.g., `UserNotFoundDomainException`)
-
 ## File Organization
 
-- Group related files in feature modules following hexagonal architecture
+- Group related files in feature modules following project architecture
 - Use barrel exports with `index.ts` files for clean imports
 - Place configuration files in `src/config/` with typed factory pattern
-- Store shared utilities in `src/shared/` organized by layer (domain/application/infrastructure)
+- Store shared utilities in `src/shared/` organized by layer
 
 ## Import Organization
 
@@ -37,19 +27,29 @@ applyTo: '**'
 - Internal imports with path mapping third (`@/`, `@config/`, `@shared/`, `@modules/`)
 - Relative imports last (avoid when possible)
 
-## Error Handling
+## Configuration Management
 
-- Use try/catch blocks for all async operations
-- Implement custom exception classes extending built-in Error
-- Use NestJS exception filters for global error handling
-- Always log errors with structured context using Pino logger
-- Include correlation IDs for request tracing
-- Throw specific HTTP exceptions (BadRequestException, NotFoundException, etc.)
+- Use typed configuration with factory pattern
+- Provide sensible defaults for development environment
+- Validate required environment variables on startup
+- Use readonly properties for configuration objects
+- Centralize all configuration in designated directory
 
-### Domain Error Handling
+## Code Quality
 
-- Create domain-specific exceptions extending Error class
-- Use consistent error codes and messages across domain
+- Use ESLint with TypeScript strict rules
+- Format code with Prettier
+- Follow conventional commit message format
+- Prefer composition over inheritance
+- Keep functions small and focused on single responsibility
+- Use TypeScript strict mode features
+- Always consult project instructions before generating or modifying code
+- Ask for confirmation before implementing improvements or changes not explicitly specified
+- Be transparent about uncertainties and seek clarification when instructions are ambiguous
+- Project instructions are the authoritative source of truth for all development decisions
+- Implement proper type safety across all layers
+- Use readonly properties for immutable data structures
+- Leverage discriminated unions for type safety in complex scenarios
 - Map domain errors to appropriate GraphQL errors
 - Use GraphQLError with proper extensions for client consumption
 - Implement error boundaries for different layers
