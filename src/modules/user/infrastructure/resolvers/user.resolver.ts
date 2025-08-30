@@ -4,6 +4,8 @@ import {
   UserFindArgsDto,
   UserFindByIdArgsDto,
   UserFindByUsernameArgsDto,
+  UserFindPaginatedArgsDto,
+  UserPaginatedResponseDto,
   UserUpdateArgsDto,
 } from '@modules/user/application/dto';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
@@ -13,6 +15,7 @@ import {
   FindUserByIdUseCase,
   FindUserByUsernameUseCase,
   FindUsersUseCase,
+  FindUsersPaginatedUseCase,
   UpdateUserUseCase,
 } from '../../application/use-cases';
 
@@ -27,6 +30,7 @@ export class UserResolver {
    * @param createUserUseCase Use case for creating new users
    * @param updateUserUseCase Use case for updating existing users
    * @param findUsersUseCase Use case for finding and retrieving users
+   * @param findUsersPaginatedUseCase Use case for finding and retrieving users with pagination
    * @param findUserByIdUseCase Use case for finding a user by ID
    * @param findUserByEmailUseCase Use case for finding a user by email address
    * @param findUserByUsernameUseCase Use case for finding a user by username
@@ -35,6 +39,7 @@ export class UserResolver {
     private readonly createUserUseCase: CreateUserUseCase,
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly findUsersUseCase: FindUsersUseCase,
+    private readonly findUsersPaginatedUseCase: FindUsersPaginatedUseCase,
     private readonly findUserByIdUseCase: FindUserByIdUseCase,
     private readonly findUserByEmailUseCase: FindUserByEmailUseCase,
     private readonly findUserByUsernameUseCase: FindUserByUsernameUseCase,
@@ -127,5 +132,27 @@ export class UserResolver {
   })
   async findUserByUsername(@Args() params: UserFindByUsernameArgsDto): Promise<UserDto> {
     return await this.findUserByUsernameUseCase.execute(params);
+  }
+
+  /**
+   * Finds and retrieves users with pagination support based on optional filter and sort criteria.
+   * Supports pagination, filtering, and sorting through query parameters.
+   * Returns paginated results with metadata including total count and page information.
+   * @param params Query parameters for pagination, filtering and sorting users
+   * @returns Promise resolving to paginated user data with pagination metadata
+   */
+  @Query(() => UserPaginatedResponseDto, {
+    description:
+      'Finds and retrieves users with pagination support based on optional filter and sort criteria',
+  })
+  async findUsersPaginated(
+    @Args() params: UserFindPaginatedArgsDto,
+  ): Promise<UserPaginatedResponseDto> {
+    const result = await this.findUsersPaginatedUseCase.execute(params);
+
+    return {
+      data: result.data,
+      paginationInfo: result.paginationInfo,
+    };
   }
 }

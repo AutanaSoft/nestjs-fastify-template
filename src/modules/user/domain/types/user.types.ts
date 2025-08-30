@@ -1,3 +1,4 @@
+import { PaginateData } from '@shared/domain/types';
 import { SortOrder, UserRole, UserSortBy, UserStatus } from '../enums';
 
 /**
@@ -28,8 +29,8 @@ export type UserUpdateData = Partial<UserCreateData>;
 export type UserPaginateData = {
   /** Page number starting from 1 */
   page: number;
-  /** Number of items per page */
-  limit: number;
+  /** Number of items to take for this page */
+  take: number;
 };
 
 /**
@@ -73,7 +74,7 @@ export type UserFindAllData = {
 };
 
 /**
- * Combined parameters for paginated user queries
- * Includes pagination, filtering, and sorting options
+ * Combined parameters for paginated user repository queries
+ * Includes direct Prisma pagination, filtering, and sorting options
  */
-export type UserFindAllPaginateData = UserPaginateData & UserFindAllData;
+export type UserFindAllPaginateData = PaginateData & UserFindAllData;

@@ -1,4 +1,5 @@
 import { PrismaService } from '@/shared/application/services/prisma.service';
+import { PaginatedData } from '@/shared/domain/types';
 import { UserEntity } from '@modules/user/domain/entities/user.entity';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import { Injectable } from '@nestjs/common';
@@ -6,7 +7,12 @@ import { Prisma } from '@prisma/client';
 import { PrismaErrorHandlerService } from '@shared/infrastructure/services';
 import { plainToInstance } from 'class-transformer';
 import { PinoLogger } from 'nestjs-pino';
-import { UserCreateData, UserFindAllData, UserUpdateData } from '../../domain/types'; // added UserStatus
+import {
+  UserCreateData,
+  UserFindAllData,
+  UserFindAllPaginateData,
+  UserUpdateData,
+} from '../../domain/types';
 
 /**
  * Prisma adapter implementation for user repository operations
@@ -296,6 +302,96 @@ export class UserPrismaAdapter extends UserRepository {
             validation: 'Invalid query parameters provided',
             connection: 'Database unavailable',
             unknown: 'An unexpected error occurred while fetching users',
+          },
+        },
+        this.logger,
+      );
+    }
+  }
+
+  /**
+   * Retrieves paginated users based on filter, sort, and pagination criteria
+   * Supports filtering by email, username, status, role, and date ranges
+   * Implements case-insensitive search for text fields and proper date filtering
+   * Returns only data and count - no pagination calculations
+   * @param query - Query parameters including skip, take, optional filters and sorting options
+   * @returns Promise resolving to data and total count only
+   * @throws InternalServerErrorException for database query errors
+   */
+  async findAllPaginated(query: UserFindAllPaginateData): Promise<PaginatedData<UserEntity>> {
+    try {
+      const { filter, sort, skip, take } = query;
+
+      /** Build array of filter conditions to be combined with AND logic */
+      const conditions: Prisma.UserWhereInput[] = [];
+
+      // Apply filters if query is provided
+      if (filter) {
+        /** Apply case-insensitive email filter using contains */
+        if (filter.email) {
+          conditions.push({ email: { contains: filter.email, mode: 'insensitive' } });
+        }
+        /** Apply case-insensitive username filter using contains */
+        if (filter.userName) {
+          conditions.push({ userName: { contains: filter.userName, mode: 'insensitive' } });
+        }
+        /** Apply exact status filter */
+        if (filter.status) {
+          conditions.push({ status: filter.status });
+        }
+        /** Apply exact role filter */
+        if (filter.role) {
+          conditions.push({ role: filter.role });
+        }
+        /** Apply date range filter for creation date */
+        if (filter.createdAtFrom || filter.createdAtTo) {
+          const createdAtCondition: Prisma.DateTimeFilter = {};
+          if (filter.createdAtFrom) {
+            createdAtCondition.gte = filter.createdAtFrom;
+          }
+          if (filter.createdAtTo) {
+            createdAtCondition.lte = filter.createdAtTo;
+          }
+          conditions.push({ createdAt: createdAtCondition });
+        }
+      }
+
+      /** Combine all conditions with AND logic, or use empty object for no filtering */
+      const where: Prisma.UserWhereInput = conditions.length > 0 ? { AND: conditions } : {};
+
+      /** Build order by clause with fallback to creation date descending */
+      const orderBy: Prisma.UserOrderByWithRelationInput = {};
+      if (sort?.sortBy) {
+        orderBy[sort.sortBy] = sort.sortOrder || 'asc';
+      } else {
+        // Default sorting by createdAt desc if no sorting specified
+        orderBy.createdAt = 'desc';
+      }
+
+      // Execute queries in parallel for better performance
+      const [users, totalDocs] = await Promise.all([
+        this.prisma.user.findMany({
+          where,
+          orderBy,
+          skip,
+          take,
+        }),
+        this.prisma.user.count({ where }),
+      ]);
+
+      // Return only data and count - let use case handle pagination calculations
+      return {
+        data: users.map(user => plainToInstance(UserEntity, user)),
+        totalDocs,
+      };
+    } catch (error) {
+      this.prismaErrorHandler.handleError(
+        error,
+        {
+          messages: {
+            validation: 'Invalid query parameters provided',
+            connection: 'Database unavailable',
+            unknown: 'An unexpected error occurred while fetching paginated users',
           },
         },
         this.logger,

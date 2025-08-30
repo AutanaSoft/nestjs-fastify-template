@@ -1,33 +1,67 @@
 /**
  * Type definitions for pagination operations
- * Provides branded types and interfaces for type-safe pagination handling
+ * Provides interfaces and types for type-safe pagination handling
  */
 
-/**
- * Branded type for page numbers to prevent mixing with regular numbers
- * Ensures page numbers are properly validated and used consistently
- */
-export type PageNumber = number & { readonly __brand: 'PageNumber' };
+// =============================================================================
+// CORE INTERFACES
+// =============================================================================
 
 /**
- * Branded type for document counts to distinguish from other numeric values
- * Helps prevent confusion between different types of counts in the system
+ * Repository pagination parameters using direct database values
+ * Used by repository adapters for database query operations (skip/take pattern)
  */
-export type DocumentCount = number & { readonly __brand: 'DocumentCount' };
-
-/**
- * Configuration interface for pagination operations
- * Defines the required parameters for creating pagination information
- */
-export interface PaginationConfig {
-  readonly page: PageNumber;
-  readonly limit: number;
-  readonly totalDocs: DocumentCount;
+export interface PaginateData {
+  /** Number of records to skip (0-based) */
+  readonly skip: number;
+  /** Number of records to take */
+  readonly take: number;
 }
 
 /**
- * Interface for pagination query parameters
- * Used for incoming pagination requests from clients
+ * Simple interface for paginated data from repositories (infrastructure layer)
+ * Contains raw data and minimal metadata needed for use case layer processing
+ */
+export interface PaginatedData<T> {
+  /** Array of data items for the current page */
+  readonly data: T[];
+  /** Total number of documents available in the complete dataset */
+  readonly totalDocs: number;
+}
+
+/**
+ * Complete interface for paginated results in the application layer
+ * Provides rich metadata for client consumption with navigation information
+ */
+export interface PaginatedResult<T> {
+  /** Array of data items for the current page */
+  readonly data: T[];
+  /** Pagination metadata including total counts and navigation information */
+  readonly paginationInfo: {
+    /** Total number of documents available in the complete dataset */
+    readonly totalDocs: number;
+    /** Zero-based index of the first record in the current page */
+    readonly start: number;
+    /** Zero-based index of the last record in the current page */
+    readonly end: number;
+    /** Total number of pages available in the dataset */
+    readonly totalPages: number;
+    /** Current page number (1-based indexing) */
+    readonly page: number;
+    /** Next page number if available, null if on last page */
+    readonly next?: number | null;
+    /** Previous page number if available, null if on first page */
+    readonly previous?: number | null;
+  };
+}
+
+// =============================================================================
+// QUERY INTERFACES
+// =============================================================================
+
+/**
+ * Interface for pagination query parameters from clients
+ * Used for incoming pagination requests with optional parameters
  */
 export interface PaginationQueryParams {
   readonly page?: number;
@@ -35,51 +69,9 @@ export interface PaginationQueryParams {
   readonly offset?: number;
 }
 
-/**
- * Type guard to validate if a number is a valid page number
- * @param value - Number to validate
- * @returns True if the value is a valid page number (positive integer)
- */
-export function isValidPageNumber(value: number): value is PageNumber {
-  return Number.isInteger(value) && value > 0;
-}
-
-/**
- * Type guard to validate if a number is a valid document count
- * @param value - Number to validate
- * @returns True if the value is a valid document count (non-negative integer)
- */
-export function isValidDocumentCount(value: number): value is DocumentCount {
-  return Number.isInteger(value) && value >= 0;
-}
-
-/**
- * Creates a validated PageNumber from a regular number
- * @param value - The page number value
- * @returns Branded PageNumber type
- * @throws Error if the value is not a valid page number
- */
-export function createPageNumber(value: number): PageNumber {
-  if (!isValidPageNumber(value)) {
-    throw new Error(`Invalid page number: ${value}. Page numbers must be positive integers.`);
-  }
-  return value;
-}
-
-/**
- * Creates a validated DocumentCount from a regular number
- * @param value - The document count value
- * @returns Branded DocumentCount type
- * @throws Error if the value is not a valid document count
- */
-export function createDocumentCount(value: number): DocumentCount {
-  if (!isValidDocumentCount(value)) {
-    throw new Error(
-      `Invalid document count: ${value}. Document counts must be non-negative integers.`,
-    );
-  }
-  return value;
-}
+// =============================================================================
+// CONSTANTS
+// =============================================================================
 
 /**
  * Default pagination limits to prevent excessive resource usage

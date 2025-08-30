@@ -1,7 +1,7 @@
 import { SortOrder, UserRole, UserSortBy, UserStatus } from '@/modules/user/domain/enums';
 import { Field, InputType, OmitType, PartialType } from '@nestjs/graphql';
-import { IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { IsValidEmail, IsValidUsername } from '@shared/application/decorators';
+import { IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 /**
  * GraphQL input DTO for user creation operations

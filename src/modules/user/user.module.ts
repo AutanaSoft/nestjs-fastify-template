@@ -5,6 +5,7 @@ import {
   FindUserByEmailUseCase,
   FindUserByIdUseCase,
   FindUserByUsernameUseCase,
+  FindUsersPaginatedUseCase,
 } from './application/use-cases';
 import { FindUsersUseCase } from './application/use-cases/find-users.use-case';
 import { UpdateUserUseCase } from './application/use-cases/update-user.use-case';
@@ -25,6 +26,7 @@ import { UserResolver } from './infrastructure/resolvers/user.resolver';
     FindUserByEmailUseCase,
     FindUserByUsernameUseCase,
     FindUsersUseCase,
+    FindUsersPaginatedUseCase,
     UserResolver,
   ],
 })

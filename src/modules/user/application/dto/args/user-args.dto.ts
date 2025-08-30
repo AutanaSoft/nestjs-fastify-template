@@ -1,7 +1,8 @@
+import { PaginatedParamsDto } from '@/shared/application/dto/inputs';
 import { ArgsType, Field, ID } from '@nestjs/graphql';
+import { IsValidUsername } from '@shared/application/decorators';
 import { Type } from 'class-transformer';
 import { IsOptional, IsUUID, ValidateNested } from 'class-validator';
-import { IsValidUsername } from '@shared/application/decorators';
 import {
   UserCreateInputDto,
   UserFindFilterInputDto,
@@ -66,6 +67,29 @@ export class UserFindByUsernameArgsDto {
  */
 @ArgsType()
 export class UserFindArgsDto {
+  /** Optional filter criteria to narrow down user search results */
+  @Field(() => UserFindFilterInputDto, {
+    nullable: true,
+    description: 'Optional filter criteria for user search',
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UserFindFilterInputDto)
+  filter?: UserFindFilterInputDto;
+
+  /** Optional sorting configuration to order user search results */
+  @Field(() => UserSortOrderInputDto, {
+    nullable: true,
+    description: 'Optional sorting parameters for user results',
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UserSortOrderInputDto)
+  sort?: UserSortOrderInputDto;
+}
+
+@ArgsType()
+export class UserFindPaginatedArgsDto extends PaginatedParamsDto {
   /** Optional filter criteria to narrow down user search results */
   @Field(() => UserFindFilterInputDto, {
     nullable: true,
