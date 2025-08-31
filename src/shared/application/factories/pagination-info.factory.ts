@@ -15,44 +15,87 @@ export class PaginationInfoFactory {
    */
   static create(options: { totalDocs: number; limit: number; page: number }): PaginationInfoDto {
     const { totalDocs, limit, page } = options;
+    const totalPages = this.calculateTotalPages(totalDocs, limit);
 
-    // Calculate derived values
-    const totalPages = Math.ceil(totalDocs / limit);
-
-    // Handle edge cases for out-of-range pages
+    // Handle edge cases for empty data or out-of-range pages
     if (totalDocs === 0) {
-      // No data at all
-      return {
-        totalDocs: 0,
-        start: -1,
-        end: -1,
-        totalPages: 0,
-        page,
-        next: null,
-        previous: page > 1 ? page - 1 : null,
-      } as PaginationInfoDto;
+      return this.createEmptyDataResponse(page);
     }
 
     if (page > totalPages) {
-      // Page is beyond available data
-      return {
-        totalDocs,
-        start: -1, // Indicates no data for this page
-        end: -1,
-        totalPages,
-        page,
-        next: null,
-        previous: totalPages > 0 ? totalPages : null, // Point to last valid page
-      } as PaginationInfoDto;
+      return this.createOutOfRangeResponse(totalDocs, totalPages, page);
     }
 
     // Normal case: page is within valid range
-    const start = (page - 1) * limit;
-    const currentPageDocs = Math.min(limit, Math.max(0, totalDocs - start));
-    const end = currentPageDocs > 0 ? start + currentPageDocs - 1 : -1;
+    return this.createValidPageResponse(totalDocs, limit, page, totalPages);
+  }
 
-    const next = page < totalPages ? page + 1 : null;
-    const previous = page > 1 ? page - 1 : null;
+  /**
+   * Calculates the total number of pages based on total documents and page limit
+   * @param totalDocs - Total number of documents
+   * @param limit - Number of documents per page
+   * @returns Total number of pages
+   */
+  private static calculateTotalPages(totalDocs: number, limit: number): number {
+    return Math.ceil(totalDocs / limit);
+  }
+
+  /**
+   * Creates pagination info for empty dataset
+   * @param page - Requested page number
+   * @returns PaginationInfoDto for empty results
+   */
+  private static createEmptyDataResponse(page: number): PaginationInfoDto {
+    return {
+      totalDocs: 0,
+      start: -1,
+      end: -1,
+      totalPages: 0,
+      page,
+      next: null,
+      previous: page > 1 ? page - 1 : null,
+    };
+  }
+
+  /**
+   * Creates pagination info for page numbers beyond available data
+   * @param totalDocs - Total number of documents
+   * @param totalPages - Total number of pages
+   * @param page - Requested page number
+   * @returns PaginationInfoDto for out-of-range page
+   */
+  private static createOutOfRangeResponse(
+    totalDocs: number,
+    totalPages: number,
+    page: number,
+  ): PaginationInfoDto {
+    return {
+      totalDocs,
+      start: -1, // Indicates no data for this page
+      end: -1,
+      totalPages,
+      page,
+      next: null,
+      previous: totalPages > 0 ? totalPages : null, // Point to last valid page
+    };
+  }
+
+  /**
+   * Creates pagination info for valid page within range
+   * @param totalDocs - Total number of documents
+   * @param limit - Number of documents per page
+   * @param page - Requested page number
+   * @param totalPages - Total number of pages
+   * @returns PaginationInfoDto for valid page
+   */
+  private static createValidPageResponse(
+    totalDocs: number,
+    limit: number,
+    page: number,
+    totalPages: number,
+  ): PaginationInfoDto {
+    const { start, end } = this.calculateStartEndIndices(page, limit, totalDocs);
+    const { next, previous } = this.calculateNavigationLinks(page, totalPages);
 
     return {
       totalDocs,
@@ -62,7 +105,42 @@ export class PaginationInfoFactory {
       page,
       next,
       previous,
-    } as PaginationInfoDto;
+    };
+  }
+
+  /**
+   * Calculates the start and end indices for the current page
+   * @param page - Current page number
+   * @param limit - Number of documents per page
+   * @param totalDocs - Total number of documents
+   * @returns Object with start and end indices
+   */
+  private static calculateStartEndIndices(
+    page: number,
+    limit: number,
+    totalDocs: number,
+  ): { start: number; end: number } {
+    const start = (page - 1) * limit;
+    const currentPageDocs = Math.min(limit, Math.max(0, totalDocs - start));
+    const end = currentPageDocs > 0 ? start + currentPageDocs - 1 : -1;
+
+    return { start, end };
+  }
+
+  /**
+   * Calculates the next and previous page links
+   * @param page - Current page number
+   * @param totalPages - Total number of pages
+   * @returns Object with next and previous page numbers
+   */
+  private static calculateNavigationLinks(
+    page: number,
+    totalPages: number,
+  ): { next: number | null; previous: number | null } {
+    const next = page < totalPages ? page + 1 : null;
+    const previous = page > 1 ? page - 1 : null;
+
+    return { next, previous };
   }
 
   /**
