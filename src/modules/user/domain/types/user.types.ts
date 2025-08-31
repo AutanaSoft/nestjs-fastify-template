@@ -1,5 +1,5 @@
 import { SortOrder } from '@/shared/domain/enums';
-import { PaginateInputData } from '@shared/domain/types';
+import { PaginateData } from '@shared/domain/types';
 import { UserOrderBy, UserRole, UserStatus } from '../enums';
 
 /**
@@ -57,7 +57,7 @@ export type UserOrderByData = {
  * Combined filter and sort parameters for finding users
  * Used for non-paginated queries
  */
-export type UserFindPaginatedInputData = {
+export type UserFindPaginatedData = {
   /** Optional filter criteria */
   filter?: UserFindFilterData;
   /** Optional sort configuration */
@@ -68,4 +68,4 @@ export type UserFindPaginatedInputData = {
  * Combined parameters for paginated user repository queries
  * Includes direct Prisma pagination, filtering, and sorting options
  */
-export type UserFindAllPaginateData = PaginateInputData & UserFindPaginatedInputData;
+export type UserFindAllPaginateData = PaginateData & UserFindPaginatedData;

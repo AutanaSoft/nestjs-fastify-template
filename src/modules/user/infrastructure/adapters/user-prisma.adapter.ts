@@ -241,7 +241,8 @@ export class UserPrismaAdapter extends UserRepository {
 
     try {
       logger.assign({ query });
-      const { filter, orderBy, skip, take } = query;
+      const { filter, orderBy, page, take } = query;
+      const skip = (page - 1) * take;
 
       /** Build array of filter conditions to be combined with AND logic */
       const conditions: Prisma.UserWhereInput[] = [];

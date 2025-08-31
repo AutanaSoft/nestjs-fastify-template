@@ -1,4 +1,4 @@
-import { PaginatedData, PaginatedResult, PAGINATION_LIMITS } from '@/shared/domain/types';
+import { PaginatedData, PaginatedResult } from '@/shared/domain/types';
 import { UserEntity } from '@modules/user/domain/entities/user.entity';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import { UserFindAllPaginateData } from '@modules/user/domain/types';
@@ -33,22 +33,14 @@ export class FindUsersPaginatedUseCase {
     this.logger.debug('Executing paginated user search with parameters');
 
     // Extract and validate pagination parameters
-    const page = params.page ?? 1;
-    const limit = Math.min(
-      params.limit ?? PAGINATION_LIMITS.DEFAULT_LIMIT,
-      PAGINATION_LIMITS.MAX_LIMIT,
-    );
-
-    // Calculate skip/take for repository (use case responsibility)
-    const skip = (page - 1) * limit;
-    const take = limit;
+    const { page, take, filter, orderBy } = params;
 
     // Build repository query parameters with direct skip/take
     const repositoryParams: UserFindAllPaginateData = {
-      skip,
+      page,
       take,
-      filter: params.filter,
-      orderBy: params.orderBy,
+      filter,
+      orderBy,
     };
 
     try {
@@ -57,7 +49,7 @@ export class FindUsersPaginatedUseCase {
         await this.userRepository.findAllPaginated(repositoryParams);
 
       // Calculate if the requested page is valid
-      const totalPages = Math.ceil(paginatedData.totalDocs / limit);
+      const totalPages = Math.ceil(paginatedData.totalDocs / take);
 
       // Log warning if page is out of range
       if (page > totalPages && totalPages > 0) {
@@ -76,7 +68,7 @@ export class FindUsersPaginatedUseCase {
       const paginationInfo = PaginationInfoFactory.create({
         totalDocs: paginatedData.totalDocs,
         page,
-        limit,
+        take,
       });
 
       const result = {

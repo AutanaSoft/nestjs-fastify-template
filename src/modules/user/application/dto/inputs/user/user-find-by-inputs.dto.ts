@@ -1,11 +1,11 @@
 import { IsValidEmail, IsValidUsername } from '@/shared/application/decorators';
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, InputType } from '@nestjs/graphql';
 import { IsUUID } from 'class-validator';
 
 /**
  * DTO for finding a user by their ID
  */
-@ObjectType()
+@InputType()
 export class UserFindByIdInputDto {
   @Field(() => ID, { description: 'Unique identifier of the user' })
   @IsUUID('all', { message: 'ID must be a valid UUID' })
@@ -15,7 +15,7 @@ export class UserFindByIdInputDto {
 /**
  * DTO for finding a user by their email
  */
-@ObjectType()
+@InputType()
 export class UserFindByEmailInputDto {
   @Field(() => String, { description: 'Email address of the user' })
   @IsValidEmail()
@@ -25,7 +25,7 @@ export class UserFindByEmailInputDto {
 /**
  * DTO for finding a user by their userName
  */
-@ObjectType()
+@InputType()
 export class UserFindByUserNameInputDto {
   @Field(() => String, { description: 'Username of the user' })
   @IsValidUsername()

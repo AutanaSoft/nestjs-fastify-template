@@ -8,13 +8,13 @@
 // =============================================================================
 
 /**
- * Repository pagination parameters using direct database values
- * Used by repository adapters for database query operations (skip/take pattern)
+ * Repository pagination parameters for database operations
+ * Used by infrastructure layer adapters to handle pagination queries with page-based approach
  */
-export interface PaginateInputData {
-  /** Number of records to skip (0-based) */
-  readonly skip: number;
-  /** Number of records to take */
+export interface PaginateData {
+  /** Current page number requested (1-based indexing) */
+  readonly page: number;
+  /** Number of items per page to retrieve from the database */
   readonly take: number;
 }
 
@@ -68,8 +68,8 @@ export interface PaginationOptions {
   /** Total number of documents in the dataset */
   readonly totalDocs: number;
   /** Maximum number of documents per page */
-  readonly limit: number;
-  /** Current page number (1-based indexing) */
+  readonly take: number;
+  /** Current page number requested (1-based indexing) */
   readonly page: number;
 }
 
@@ -105,7 +105,7 @@ export interface PaginationNavigation {
  */
 export interface PaginationQueryParams {
   readonly page?: number;
-  readonly limit?: number;
+  readonly take?: number;
   readonly offset?: number;
 }
 
@@ -116,11 +116,11 @@ export interface PaginationQueryParams {
 /**
  * Default pagination limits to prevent excessive resource usage
  */
-export const PAGINATION_LIMITS = {
+export const PAGINATION_TAKE_LIMITS = {
   /** Maximum number of items per page */
   MAX_LIMIT: 100,
   /** Default number of items per page */
-  DEFAULT_LIMIT: 10,
+  DEFAULT_LIMIT: 25,
   /** Minimum number of items per page */
   MIN_LIMIT: 1,
 } as const;

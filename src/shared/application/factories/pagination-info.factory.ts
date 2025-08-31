@@ -19,8 +19,8 @@ export class PaginationInfoFactory {
    * @returns Properly constructed PaginationInfoDto instance
    */
   static create(options: PaginationOptions): PaginationInfoDto {
-    const { totalDocs, limit, page } = options;
-    const totalPages = this.calculateTotalPages(totalDocs, limit);
+    const { totalDocs, take, page } = options;
+    const totalPages = this.calculateTotalPages(totalDocs, take);
 
     // Handle edge cases for empty data or out-of-range pages
     if (totalDocs === 0) {
@@ -32,17 +32,17 @@ export class PaginationInfoFactory {
     }
 
     // Normal case: page is within valid range
-    return this.createValidPageResponse(totalDocs, limit, page, totalPages);
+    return this.createValidPageResponse(totalDocs, take, page, totalPages);
   }
 
   /**
-   * Calculates the total number of pages based on total documents and page limit
+   * Calculates the total number of pages based on total documents and page take
    * @param totalDocs - Total number of documents
-   * @param limit - Number of documents per page
+   * @param take - Number of documents per page
    * @returns Total number of pages
    */
-  private static calculateTotalPages(totalDocs: number, limit: number): number {
-    return Math.ceil(totalDocs / limit);
+  private static calculateTotalPages(totalDocs: number, take: number): number {
+    return Math.ceil(totalDocs / take);
   }
 
   /**
@@ -88,18 +88,18 @@ export class PaginationInfoFactory {
   /**
    * Creates pagination info for valid page within range
    * @param totalDocs - Total number of documents
-   * @param limit - Number of documents per page
+   * @param take - Number of documents per page
    * @param page - Requested page number
    * @param totalPages - Total number of pages
    * @returns PaginationInfoDto for valid page
    */
   private static createValidPageResponse(
     totalDocs: number,
-    limit: number,
+    take: number,
     page: number,
     totalPages: number,
   ): PaginationInfoDto {
-    const { start, end } = this.calculateStartEndIndices(page, limit, totalDocs);
+    const { start, end } = this.calculateStartEndIndices(page, take, totalDocs);
     const { next, previous } = this.calculateNavigationLinks(page, totalPages);
 
     return {
@@ -116,17 +116,17 @@ export class PaginationInfoFactory {
   /**
    * Calculates the start and end indices for the current page
    * @param page - Current page number
-   * @param limit - Number of documents per page
+   * @param take - Number of documents per page
    * @param totalDocs - Total number of documents
    * @returns Object with start and end indices
    */
   private static calculateStartEndIndices(
     page: number,
-    limit: number,
+    take: number,
     totalDocs: number,
   ): PaginationIndices {
-    const start = (page - 1) * limit;
-    const currentPageDocs = Math.min(limit, Math.max(0, totalDocs - start));
+    const start = (page - 1) * take;
+    const currentPageDocs = Math.min(take, Math.max(0, totalDocs - start));
     const end = currentPageDocs > 0 ? start + currentPageDocs - 1 : -1;
 
     return { start, end };
@@ -147,14 +147,14 @@ export class PaginationInfoFactory {
 
   /**
    * Creates a PaginationInfoDto instance for empty results
-   * @param limit - The requested page limit
+   * @param take - The requested page take
    * @param page - The requested page number (defaults to 1)
    * @returns PaginationInfoDto representing empty pagination state
    */
-  static createEmpty(limit: number, page: number = 1): PaginationInfoDto {
+  static createEmpty(take: number, page: number = 1): PaginationInfoDto {
     const options: PaginationOptions = {
       totalDocs: 0,
-      limit,
+      take,
       page,
     };
     return this.create(options);
@@ -162,14 +162,14 @@ export class PaginationInfoFactory {
 
   /**
    * Creates a PaginationInfoDto instance for single-page results
-   * @param totalDocs - Total number of documents (should be <= limit)
-   * @param limit - The page limit used
+   * @param totalDocs - Total number of documents (should be <= take)
+   * @param take - The page take used
    * @returns PaginationInfoDto representing single-page results
    */
-  static createSinglePage(totalDocs: number, limit: number): PaginationInfoDto {
+  static createSinglePage(totalDocs: number, take: number): PaginationInfoDto {
     const options: PaginationOptions = {
       totalDocs,
-      limit,
+      take,
       page: 1,
     };
     return this.create(options);
