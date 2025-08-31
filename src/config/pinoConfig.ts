@@ -1,12 +1,22 @@
+/**
+ * Pino Logger Configuration Module
+ *
+ * This module configures the Pino logger for NestJS with features like:
+ * - Log rotation with pino-roll
+ * - Different transports for development and production
+ * - Automatic redaction of sensitive information
+ * - Custom formatting and structured logging
+ * - Correlation IDs for request tracking
+ */
+
 import { registerAs } from '@nestjs/config';
 import { Params } from 'nestjs-pino';
 import { IncomingMessage } from 'node:http';
 import { join } from 'node:path';
 
 /**
- * List of sensitive keys to redact from logs for GDPR/security compliance.
- * Any property whose key includes one of these strings (case-insensitive)
- * will be replaced with '[REDACTED]' in the log output.
+ * List of sensitive keys that will be automatically redacted from logs
+ * All keys containing these strings (case-insensitive) will have their values replaced with '[REDACTED]'
  */
 const SENSITIVE_KEYS: readonly string[] = [
   'password',
@@ -21,15 +31,11 @@ const SENSITIVE_KEYS: readonly string[] = [
 ];
 
 /**
- * Recursively redacts sensitive fields from a log object.
+ * Recursively redacts sensitive information from log objects
  *
- * - Replaces any property whose key includes a sensitive string with '[REDACTED]'.
- * - Handles nested objects and arrays.
- * - Prevents infinite recursion on circular references using a WeakSet.
- *
- * @param obj The log object to redact.
- * @param seen (internal) Tracks visited objects to avoid cycles.
- * @returns A new object with sensitive fields redacted.
+ * @param obj - The object to redact sensitive information from
+ * @param seen - WeakSet used to prevent circular reference loops
+ * @returns A new object with sensitive information redacted
  */
 function redactSensitiveLogObject(
   obj: Record<string, unknown>,
@@ -60,41 +66,34 @@ function redactSensitiveLogObject(
 }
 
 /**
- * Pino logger configuration for NestJS (Fastify) with GDPR-compliant redaction.
+ * Pino configuration factory
+ * Registers configuration using NestJS Config module with 'pinoConfig' namespace
  *
- * - Uses pino-pretty in development for human-readable logs.
- * - Uses pino-roll for file-based log rotation (general and error logs).
- * - Applies custom attribute keys for request/response/error/time.
- * - Adds ISO timestamp to each log entry.
- * - Adds correlationId and context to each log entry.
- * - Applies a global formatter to redact sensitive fields from all logs.
+ * Environment variables:
+ * - NODE_ENV: Environment mode ('production', 'development', etc.)
+ * - LOG_LEVEL: Minimum log level to output (default: 'debug' in dev, 'info' in prod)
+ * - LOG_DIR: Directory to store log files (default: './logs')
+ * - LOG_MAX_SIZE: Maximum size of log files in bytes (default: 10MB)
+ * - LOG_MAX_FILES: Maximum number of log files to keep (default: 7)
+ * - LOG_ROTATION_FREQUENCY: How often to rotate logs (default: 'daily')
  *
- * @see https://getpino.io/
- * @see https://github.com/pinojs/pino-pretty
- * @see https://github.com/arthurint/pino-roll
+ * @returns Pino logger configuration for nestjs-pino
  */
 export default registerAs('pinoConfig', (): Params => {
+  // Extract environment variables with sensible defaults
   const isProduction = process.env.NODE_ENV === 'production';
   const logLevel = process.env.LOG_LEVEL || (isProduction ? 'info' : 'debug');
   const logDir = process.env.LOG_DIR || join(process.cwd(), 'logs');
-  const logMaxSize = parseInt(process.env.LOG_MAX_SIZE || '10485760', 10);
+  const logMaxSize = parseInt(process.env.LOG_MAX_SIZE || '10485760', 10); // 10MB default
   const logMaxFiles = parseInt(process.env.LOG_MAX_FILES || '7', 10);
   const logRotationFrequency = process.env.LOG_ROTATION_FREQUENCY || 'daily';
 
   return {
     pinoHttp: {
-      /**
-       * Log level (info in production, debug otherwise)
-       */
       level: logLevel,
-      /**
-       * Log transport targets:
-       * - pino-pretty (dev only)
-       * - pino-roll (general and error logs)
-       */
       transport: {
         targets: [
-          // pino-pretty only in development
+          // Pretty-printed console logs only in development mode
           ...(isProduction
             ? []
             : [
@@ -111,7 +110,7 @@ export default registerAs('pinoConfig', (): Params => {
                   },
                 },
               ]),
-          // pino-roll for general logs (always enabled)
+          // File-based logging with rotation for general logs (always active)
           {
             target: 'pino-roll',
             level: logLevel,
@@ -126,7 +125,7 @@ export default registerAs('pinoConfig', (): Params => {
               extension: '.log',
             },
           },
-          // pino-roll for error logs (always enabled)
+          // Separate file for error logs to make troubleshooting easier (always active)
           {
             target: 'pino-roll',
             level: 'error',
@@ -143,29 +142,21 @@ export default registerAs('pinoConfig', (): Params => {
           },
         ],
       },
-      /**
-       * Custom attribute keys for log structure
-       */
+      // Customize key names in the log output
       customAttributeKeys: {
         req: 'request',
         res: 'response',
         err: 'error',
         responseTime: 'timeTaken',
       },
-      /**
-       * ISO timestamp for each log entry
-       */
-      timestamp: () => `,"time":"${new Date().toISOString()}",`,
-      /**
-       * Adds context and correlationId to each log entry
-       */
+      // Ensure consistent timestamp format in ISO format
+      timestamp: () => `,"time":"${new Date().toISOString()}"`,
+      // Add custom properties to each log entry for better context and traceability
       customProps: (req: IncomingMessage) => ({
         context: req.url || 'HTTP',
         correlationId: req.id || 'x-correlation-id-not-found',
       }),
-      /**
-       * Global log formatter: applies deep redaction to all log objects
-       */
+      // Apply sensitive data redaction to all log objects
       formatters: {
         log: (logObj: Record<string, unknown>) => redactSensitiveLogObject(logObj),
       },
