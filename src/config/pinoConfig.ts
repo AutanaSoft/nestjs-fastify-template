@@ -3,6 +3,48 @@ import { Params } from 'nestjs-pino';
 import { IncomingMessage } from 'node:http';
 import { join } from 'node:path';
 
+// List of sensitive keys to redact
+const SENSITIVE_KEYS: readonly string[] = [
+  'password',
+  'currentPassword',
+  'newPassword',
+  'token',
+  'accessToken',
+  'refreshToken',
+  'secret',
+  'apiKey',
+  // Add more as needed
+];
+
+// Strict log object redactor for pino formatters
+function redactSensitiveLogObject(
+  obj: Record<string, unknown>,
+  seen = new WeakSet<object>(),
+): Record<string, unknown> {
+  if (seen.has(obj)) {
+    return {}; // Prevent circular reference infinite loop
+  }
+  seen.add(obj);
+  const result: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (SENSITIVE_KEYS.some(sensitive => k.toLowerCase().includes(sensitive.toLowerCase()))) {
+      result[k] = '[REDACTED]';
+    } else if (Array.isArray(v)) {
+      result[k] = (v as unknown[]).map(item =>
+        typeof item === 'object' && item !== null
+          ? redactSensitiveLogObject(item as Record<string, unknown>, seen)
+          : item,
+      );
+    } else if (typeof v === 'object' && v !== null) {
+      result[k] = redactSensitiveLogObject(v as Record<string, unknown>, seen);
+    } else {
+      result[k] = v;
+    }
+  }
+  seen.delete(obj);
+  return result;
+}
+
 export default registerAs('pinoConfig', (): Params => {
   const isProduction = process.env.NODE_ENV === 'production';
   const logLevel = process.env.LOG_LEVEL || (isProduction ? 'info' : 'debug');
@@ -76,20 +118,8 @@ export default registerAs('pinoConfig', (): Params => {
         context: req.url || 'HTTP',
         correlationId: req.id || 'x-correlation-id-not-found',
       }),
-      redact: {
-        paths: [
-          'request.headers.authorization',
-          'request.headers.cookie',
-          '*.cookie',
-          'response.headers["set-cookie"]',
-          '*.password',
-          '*.passwordHash',
-          'request.body.password',
-          'request.body.passwordConfirmation',
-          '*.pin',
-          '*.accessToken',
-        ],
-        censor: '[REDACTED]',
+      formatters: {
+        log: (logObj: Record<string, unknown>) => redactSensitiveLogObject(logObj),
       },
     },
   };
