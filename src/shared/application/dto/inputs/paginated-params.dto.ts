@@ -1,4 +1,4 @@
-import { PAGINATION_TAKE_LIMITS } from '@/shared/domain/types/pagination.types';
+import { PAGINATION_TAKE_LIMITS } from '@/shared/domain/constants';
 import { ArgsType, Field, Int } from '@nestjs/graphql';
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Max, Min } from 'class-validator';
