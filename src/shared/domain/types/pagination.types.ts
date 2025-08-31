@@ -1,6 +1,6 @@
 /**
  * Type definitions for pagination operations
- * Provides interfaces and types for type-safe pagination handling
+ * Provides interfaces and types for type-safe pagination handling across all layers
  */
 
 // =============================================================================
@@ -53,6 +53,46 @@ export interface PaginatedResult<T> {
     /** Previous page number if available, null if on first page */
     readonly previous?: number | null;
   };
+}
+
+// =============================================================================
+// FACTORY INTERFACES
+// =============================================================================
+
+/**
+ * Configuration options for creating pagination information
+ * Used as input for pagination factory methods and use cases
+ * All properties are readonly to ensure immutability and prevent accidental modifications
+ */
+export interface PaginationOptions {
+  /** Total number of documents in the dataset */
+  readonly totalDocs: number;
+  /** Maximum number of documents per page */
+  readonly limit: number;
+  /** Current page number (1-based indexing) */
+  readonly page: number;
+}
+
+/**
+ * Calculated indices for pagination boundaries
+ * Used internally to determine document ranges within a page
+ */
+export interface PaginationIndices {
+  /** Zero-based index of the first document in the current page */
+  readonly start: number;
+  /** Zero-based index of the last document in the current page */
+  readonly end: number;
+}
+
+/**
+ * Navigation links for pagination
+ * Contains references to adjacent pages for user navigation
+ */
+export interface PaginationNavigation {
+  /** Next page number if available, null if on last page */
+  readonly next: number | null;
+  /** Previous page number if available, null if on first page */
+  readonly previous: number | null;
 }
 
 // =============================================================================

@@ -1,4 +1,9 @@
 import { PaginationInfoDto } from '../dto/responses/paginated-info-response.dto';
+import {
+  PaginationOptions,
+  PaginationIndices,
+  PaginationNavigation,
+} from '@shared/domain/types/pagination.types';
 
 /**
  * Factory class for creating PaginationInfoDto instances with proper validation
@@ -13,7 +18,7 @@ export class PaginationInfoFactory {
    * @param options - Configuration object with pagination parameters
    * @returns Properly constructed PaginationInfoDto instance
    */
-  static create(options: { totalDocs: number; limit: number; page: number }): PaginationInfoDto {
+  static create(options: PaginationOptions): PaginationInfoDto {
     const { totalDocs, limit, page } = options;
     const totalPages = this.calculateTotalPages(totalDocs, limit);
 
@@ -119,7 +124,7 @@ export class PaginationInfoFactory {
     page: number,
     limit: number,
     totalDocs: number,
-  ): { start: number; end: number } {
+  ): PaginationIndices {
     const start = (page - 1) * limit;
     const currentPageDocs = Math.min(limit, Math.max(0, totalDocs - start));
     const end = currentPageDocs > 0 ? start + currentPageDocs - 1 : -1;
@@ -133,10 +138,7 @@ export class PaginationInfoFactory {
    * @param totalPages - Total number of pages
    * @returns Object with next and previous page numbers
    */
-  private static calculateNavigationLinks(
-    page: number,
-    totalPages: number,
-  ): { next: number | null; previous: number | null } {
+  private static calculateNavigationLinks(page: number, totalPages: number): PaginationNavigation {
     const next = page < totalPages ? page + 1 : null;
     const previous = page > 1 ? page - 1 : null;
 
@@ -146,15 +148,16 @@ export class PaginationInfoFactory {
   /**
    * Creates a PaginationInfoDto instance for empty results
    * @param limit - The requested page limit
-   * @param page - The requested page number
+   * @param page - The requested page number (defaults to 1)
    * @returns PaginationInfoDto representing empty pagination state
    */
   static createEmpty(limit: number, page: number = 1): PaginationInfoDto {
-    return this.create({
+    const options: PaginationOptions = {
       totalDocs: 0,
       limit,
       page,
-    });
+    };
+    return this.create(options);
   }
 
   /**
@@ -164,10 +167,11 @@ export class PaginationInfoFactory {
    * @returns PaginationInfoDto representing single-page results
    */
   static createSinglePage(totalDocs: number, limit: number): PaginationInfoDto {
-    return this.create({
+    const options: PaginationOptions = {
       totalDocs,
       limit,
       page: 1,
-    });
+    };
+    return this.create(options);
   }
 }
