@@ -1,4 +1,5 @@
-import { SortOrder, UserOrderBy } from '@/modules/user/domain/enums';
+import { UserOrderBy } from '@/modules/user/domain/enums';
+import { SortOrder } from '@/shared/domain/enums';
 import { Field, InputType } from '@nestjs/graphql';
 import { IsEnum, IsOptional } from 'class-validator';
 

@@ -1,5 +1,6 @@
+import { SortOrder } from '@/shared/domain/enums';
 import { PaginateInputData } from '@shared/domain/types';
-import { SortOrder, UserOrderBy, UserRole, UserStatus } from '../enums';
+import { UserOrderBy, UserRole, UserStatus } from '../enums';
 
 /**
  * Data required to create a new user
