@@ -76,7 +76,7 @@ export class FindUsersPaginatedUseCase {
         paginationInfo,
       };
 
-      this.logger.debug({ searchResult: result }, 'Paginated user search completed');
+      this.logger.debug({ result }, 'Paginated user search completed');
 
       return result;
     } catch (error) {

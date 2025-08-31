@@ -236,11 +236,9 @@ export class UserPrismaAdapter extends UserRepository {
    */
   async findAllPaginated(query: UserFindAllPaginateData): Promise<PaginatedData<UserEntity>> {
     // Create a logger instance for this method
-    const logger = this.logger;
-    logger.assign({ method: 'findAllPaginated' });
+    this.logger.assign({ method: 'findAllPaginated' });
 
     try {
-      logger.assign({ query });
       const { filter, orderBy, page, take } = query;
       const skip = (page - 1) * take;
 
@@ -249,7 +247,7 @@ export class UserPrismaAdapter extends UserRepository {
 
       // Apply filters if query is provided
       if (filter) {
-        logger.debug('Applying filters to user search');
+        this.logger.debug('Applying filters to user search');
         /** Apply case-insensitive email filter using contains */
         if (filter.email) {
           conditions.push({ email: { contains: filter.email, mode: 'insensitive' } });
@@ -277,12 +275,11 @@ export class UserPrismaAdapter extends UserRepository {
           }
           conditions.push({ createdAt: createdAtCondition });
         }
-        logger.debug({ conditions }, 'Filter conditions constructed');
       }
 
       /** Combine all conditions with AND logic, or use empty object for no filtering */
       const where: Prisma.UserWhereInput = conditions.length > 0 ? { AND: conditions } : {};
-      logger.debug({ where }, 'Final where clause constructed');
+      this.logger.debug({ where }, 'Final where clause constructed');
 
       /** Build order by clause with fallback to creation date descending */
       const orderByClause: Prisma.UserOrderByWithRelationInput = {};
@@ -292,7 +289,7 @@ export class UserPrismaAdapter extends UserRepository {
         // Default sorting by createdAt desc if no sorting specified
         orderByClause.createdAt = 'desc';
       }
-      logger.debug({ orderBy: orderByClause }, 'Final order by clause constructed');
+      this.logger.debug({ orderBy: orderByClause }, 'Final order by clause constructed');
 
       // Execute queries in parallel for better performance
       const [users, totalDocs] = await Promise.all([
@@ -305,7 +302,7 @@ export class UserPrismaAdapter extends UserRepository {
         this.prisma.user.count({ where }),
       ]);
 
-      logger.debug({ users, totalDocs }, 'Found paginated users');
+      this.logger.debug({ queryResult: { users, totalDocs } }, 'Found paginated users');
 
       // Return only data and count - let use case handle pagination calculations
       return {
