@@ -11,7 +11,7 @@
  * Repository pagination parameters using direct database values
  * Used by repository adapters for database query operations (skip/take pattern)
  */
-export interface PaginateData {
+export interface PaginateInputData {
   /** Number of records to skip (0-based) */
   readonly skip: number;
   /** Number of records to take */

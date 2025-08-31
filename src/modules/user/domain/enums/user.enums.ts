@@ -43,7 +43,7 @@ registerEnumType(UserStatus, {
 /**
  * Available fields for sorting user queries
  */
-export enum UserSortBy {
+export enum UserOrderBy {
   /** Sort by account creation date */
   CREATED_AT = 'createdAt',
   /** Sort by last update date */
@@ -57,8 +57,8 @@ export enum UserSortBy {
 /**
  * Register GraphQL enum types for user sorting
  */
-registerEnumType(UserSortBy, {
-  name: 'UserSortBy',
+registerEnumType(UserOrderBy, {
+  name: 'UserOrderBy',
   description: 'Available fields for sorting user queries',
 });
 

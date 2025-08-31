@@ -1,1 +1,1 @@
-export * from './user-args.dto';
+export * from './user';

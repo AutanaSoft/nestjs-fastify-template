@@ -23,22 +23,22 @@ export class FindUserByIdUseCase {
   /**
    * Executes the find user by ID use case
    * Receives validated and normalized data through DTO
-   * @param args - Validated arguments containing the user ID
+   * @param params - Validated arguments containing the user ID
    * @returns Promise resolving to the found user entity
    * @throws NotFoundError when user with given ID does not exist
    * @throws InternalServerError for unexpected errors during execution
    */
-  async execute(args: UserFindByIdArgsDto): Promise<UserEntity> {
+  async execute(params: UserFindByIdArgsDto): Promise<UserEntity> {
     const logger = this.logger;
-    logger.assign({ method: 'execute' });
-    logger.assign({ query: { id: args.id } });
+    logger.assign({ method: 'execute', params });
 
     try {
+      const { input } = params;
       logger.debug('Finding user by ID');
 
       // Find user by ID using repository
       // ID is already validated and normalized through DTO validation
-      const user = await this.userRepository.findById(args.id);
+      const user = await this.userRepository.findById(input.id);
 
       // Handle case when user is not found
       if (!user) {

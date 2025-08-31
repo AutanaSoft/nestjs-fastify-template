@@ -241,7 +241,7 @@ export class UserPrismaAdapter extends UserRepository {
 
     try {
       logger.assign({ query });
-      const { filter, sort, skip, take } = query;
+      const { filter, orderBy, skip, take } = query;
 
       /** Build array of filter conditions to be combined with AND logic */
       const conditions: Prisma.UserWhereInput[] = [];
@@ -284,20 +284,20 @@ export class UserPrismaAdapter extends UserRepository {
       logger.debug({ where }, 'Final where clause constructed');
 
       /** Build order by clause with fallback to creation date descending */
-      const orderBy: Prisma.UserOrderByWithRelationInput = {};
-      if (sort?.sortBy) {
-        orderBy[sort.sortBy] = sort.sortOrder || 'asc';
+      const orderByClause: Prisma.UserOrderByWithRelationInput = {};
+      if (orderBy?.by) {
+        orderByClause[orderBy.by] = orderBy.order || 'asc';
       } else {
         // Default sorting by createdAt desc if no sorting specified
-        orderBy.createdAt = 'desc';
+        orderByClause.createdAt = 'desc';
       }
-      logger.debug({ orderBy }, 'Final order by clause constructed');
+      logger.debug({ orderBy: orderByClause }, 'Final order by clause constructed');
 
       // Execute queries in parallel for better performance
       const [users, totalDocs] = await Promise.all([
         this.prisma.user.findMany({
           where,
-          orderBy,
+          orderBy: orderByClause,
           skip,
           take,
         }),

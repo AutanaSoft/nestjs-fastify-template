@@ -6,7 +6,7 @@ import { Injectable } from '@nestjs/common';
 import { PaginationInfoFactory } from '@shared/application/factories';
 import { plainToInstance } from 'class-transformer';
 import { PinoLogger } from 'nestjs-pino';
-import { UserFindPaginatedArgsDto } from '../dto/args/user-args.dto';
+import { UserFindPaginatedArgsDto } from '../dto/args';
 import { UserDto } from '../dto/responses/user.dto';
 
 /**
@@ -48,7 +48,7 @@ export class FindUsersPaginatedUseCase {
       skip,
       take,
       filter: params.filter,
-      sort: params.sort,
+      orderBy: params.orderBy,
     };
 
     try {

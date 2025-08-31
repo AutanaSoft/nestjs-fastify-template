@@ -3,6 +3,7 @@ import { UserEntity } from '@modules/user/domain/entities/user.entity';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import { Injectable } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
+import { UserFindByEmailArgsDto } from '../dto/args';
 
 /**
  * Use case for finding a user by their email address
@@ -25,20 +26,14 @@ export class FindUserByEmailUseCase {
    * @returns Promise resolving to the found user entity
    * @throws NotFoundException when user with given email does not exist
    */
-  async execute(email: string): Promise<UserEntity> {
+  async execute(params: UserFindByEmailArgsDto): Promise<UserEntity> {
     const logger = this.logger;
-    logger.assign({ method: 'execute' });
-    logger.assign({ query: { email: email.trim().toLowerCase() } });
+    logger.assign({ method: 'execute', params });
 
     try {
-      // Validate email parameter
-      if (!email || email.trim().length === 0) {
-        logger.warn('Invalid email provided');
-        throw new NotFoundError('Email is required');
-      }
-
+      const { input } = params;
       // Normalize email to lowercase for consistent searching
-      const normalizedEmail = email.trim().toLowerCase();
+      const normalizedEmail = input.email.trim().toLowerCase();
 
       logger.debug('Finding user by email');
 

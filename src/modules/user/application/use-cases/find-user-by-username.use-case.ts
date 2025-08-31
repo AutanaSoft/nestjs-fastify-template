@@ -4,7 +4,7 @@ import { UserRepository } from '@modules/user/domain/repositories/user.repositor
 import { Injectable } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { PinoLogger } from 'nestjs-pino';
-import { UserFindByUsernameArgsDto } from '../dto/args';
+import { UserFindByUserNameArgsDto } from '../dto/args';
 
 /**
  * Use case for finding a user by their username
@@ -23,27 +23,27 @@ export class FindUserByUsernameUseCase {
   /**
    * Executes the find user by username use case
    * Receives validated and normalized data through DTO
-   * @param args - Validated arguments containing the username
+   * @param params - Validated arguments containing the username
    * @returns Promise resolving to the found user entity
    * @throws NotFoundError when user with given username does not exist
    * @throws InternalServerError for unexpected errors during execution
    */
-  async execute(args: UserFindByUsernameArgsDto): Promise<UserEntity> {
+  async execute(params: UserFindByUserNameArgsDto): Promise<UserEntity> {
     const logger = this.logger;
-    logger.assign({ method: 'execute' });
-    logger.assign({ query: { userName: args.userName } });
+    logger.assign({ method: 'execute', params });
 
     try {
+      const { input } = params;
       logger.debug('Finding user by username');
 
       // Find user by username using repository
       // Username is already validated and normalized (trimmed) through DTO validation
-      const user = await this.userRepository.findByUserName(args.userName);
+      const user = await this.userRepository.findByUserName(input.userName);
 
       // Handle case when user is not found
       if (!user) {
         logger.warn('User not found by username');
-        throw new NotFoundError(`User with username ${args.userName} not found`);
+        throw new NotFoundError(`User with username ${input.userName} not found`);
       }
 
       logger.debug({ user }, 'User found by username successfully');

@@ -1,8 +1,9 @@
 import {
   UserCreateArgsDto,
   UserDto,
+  UserFindByEmailArgsDto,
   UserFindByIdArgsDto,
-  UserFindByUsernameArgsDto,
+  UserFindByUserNameArgsDto,
   UserFindPaginatedArgsDto,
   UserPaginatedResponseDto,
   UserUpdateArgsDto,
@@ -81,11 +82,8 @@ export class UserResolver {
   @Query(() => UserDto, {
     description: 'Finds a user by their email address',
   })
-  async findUserByEmail(
-    @Args('email', { type: () => String, description: 'Email address to search for' })
-    email: string,
-  ): Promise<UserDto> {
-    return await this.findUserByEmailUseCase.execute(email);
+  async findUserByEmail(@Args() params: UserFindByEmailArgsDto): Promise<UserDto> {
+    return await this.findUserByEmailUseCase.execute(params);
   }
 
   /**
@@ -114,7 +112,7 @@ export class UserResolver {
   @Query(() => UserDto, {
     description: 'Finds a user by their username',
   })
-  async findUserByUsername(@Args() params: UserFindByUsernameArgsDto): Promise<UserDto> {
+  async findUserByUsername(@Args() params: UserFindByUserNameArgsDto): Promise<UserDto> {
     return await this.findUserByUsernameUseCase.execute(params);
   }
 
