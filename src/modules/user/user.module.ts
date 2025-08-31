@@ -6,11 +6,11 @@ import {
   FindUserByIdUseCase,
   FindUserByUsernameUseCase,
   FindUsersPaginatedUseCase,
+  UpdateUserUseCase,
 } from './application/use-cases';
-import { UpdateUserUseCase } from './application/use-cases/update-user.use-case';
-import { UserRepository } from './domain/repositories/user.repository';
-import { UserPrismaAdapter } from './infrastructure/adapters/user-prisma.adapter';
-import { UserResolver } from './infrastructure/resolvers/user.resolver';
+import { UserRepository } from './domain/repositories';
+import { UserPrismaAdapter } from './infrastructure/adapters';
+import { UserResolver } from './infrastructure/resolvers';
 
 @Module({
   imports: [SharedModule],
