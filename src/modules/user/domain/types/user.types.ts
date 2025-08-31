@@ -24,20 +24,10 @@ export type UserCreateData = {
 export type UserUpdateData = Partial<UserCreateData>;
 
 /**
- * Pagination parameters for user queries
- */
-export type UserPaginateData = {
-  /** Page number starting from 1 */
-  page: number;
-  /** Number of items to take for this page */
-  take: number;
-};
-
-/**
  * Filter criteria for finding users
  * All fields are optional and will be combined with AND logic
  */
-export type UserFindFilterInputData = {
+export type UserFindFilterData = {
   /** Filter by exact email match */
   email?: string;
   /** Filter by exact username match */
@@ -55,7 +45,7 @@ export type UserFindFilterInputData = {
 /**
  * Sorting configuration for user queries
  */
-export type UserOrderByInputData = {
+export type UserOrderByData = {
   /** Field to sort by */
   by?: UserOrderBy;
   /** Sort direction - ASC or DESC */
@@ -68,9 +58,9 @@ export type UserOrderByInputData = {
  */
 export type UserFindPaginatedInputData = {
   /** Optional filter criteria */
-  filter?: UserFindFilterInputData;
+  filter?: UserFindFilterData;
   /** Optional sort configuration */
-  orderBy?: UserOrderByInputData;
+  orderBy?: UserOrderByData;
 };
 
 /**
