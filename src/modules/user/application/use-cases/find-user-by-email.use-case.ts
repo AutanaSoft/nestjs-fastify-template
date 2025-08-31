@@ -27,26 +27,24 @@ export class FindUserByEmailUseCase {
    * @throws NotFoundException when user with given email does not exist
    */
   async execute(params: UserFindByEmailArgsDto): Promise<UserEntity> {
-    const logger = this.logger;
-    logger.assign({ method: 'execute', params });
+    this.logger.assign({ method: 'execute' });
+    this.logger.debug('Executing find user by email use case');
 
     try {
       const { input } = params;
       // Normalize email to lowercase for consistent searching
       const normalizedEmail = input.email.trim().toLowerCase();
 
-      logger.debug('Finding user by email');
-
       // Find user by email using repository
       const user = await this.userRepository.findByEmail(normalizedEmail);
 
       // Handle case when user is not found
       if (!user) {
-        logger.warn('User not found by email');
+        this.logger.warn('User not found by email');
         throw new NotFoundError(`User with email ${normalizedEmail} not found`);
       }
 
-      logger.debug({ user }, 'User found by email successfully');
+      this.logger.debug({ user }, 'User found by email successfully');
       return user;
     } catch (error) {
       // validate if error instance of DomainError
@@ -56,7 +54,7 @@ export class FindUserByEmailUseCase {
       }
 
       //If it is any other error, we create an error log and set an InternalServerError so as not to propagate the original error to the user.
-      logger.error({ error: error as Error }, 'Error finding user by email');
+      this.logger.error({ error: error as Error }, 'Error finding user by email');
       throw new InternalServerError('Error finding user by email');
     }
   }

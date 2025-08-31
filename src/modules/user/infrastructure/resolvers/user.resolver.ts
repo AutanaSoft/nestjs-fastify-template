@@ -9,6 +9,7 @@ import {
   UserUpdateArgsDto,
 } from '@modules/user/application/dto';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { PinoLogger } from 'nestjs-pino';
 import {
   CreateUserUseCase,
   FindUserByEmailUseCase,
@@ -26,6 +27,7 @@ import {
 export class UserResolver {
   /**
    * Initializes the UserResolver with required use cases.
+   * @param logger Logger instance for logging
    * @param createUserUseCase Use case for creating new users
    * @param updateUserUseCase Use case for updating existing users
    * @param findUsersUseCase Use case for finding and retrieving users
@@ -35,13 +37,16 @@ export class UserResolver {
    * @param findUserByUsernameUseCase Use case for finding a user by username
    */
   constructor(
+    private readonly logger: PinoLogger,
     private readonly createUserUseCase: CreateUserUseCase,
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly findUsersPaginatedUseCase: FindUsersPaginatedUseCase,
     private readonly findUserByIdUseCase: FindUserByIdUseCase,
     private readonly findUserByEmailUseCase: FindUserByEmailUseCase,
     private readonly findUserByUsernameUseCase: FindUserByUsernameUseCase,
-  ) {}
+  ) {
+    this.logger.setContext(UserResolver.name);
+  }
 
   /**
    * Creates a new user account with the provided data.
@@ -83,6 +88,8 @@ export class UserResolver {
     description: 'Finds a user by their email address',
   })
   async findUserByEmail(@Args() params: UserFindByEmailArgsDto): Promise<UserDto> {
+    this.logger.assign({ method: 'findUserByEmail', query: params });
+    this.logger.debug('Search for user by email address received');
     return await this.findUserByEmailUseCase.execute(params);
   }
 

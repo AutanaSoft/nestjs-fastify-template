@@ -150,26 +150,24 @@ export class UserPrismaAdapter extends UserRepository {
    * @returns Promise resolving to user entity if found, null otherwise
    */
   async findByEmail(email: string): Promise<UserEntity | null> {
-    // Create a logger instance for this method
-    const logger = this.logger;
     // Assign method context to the logger
-    logger.assign({ method: 'findByEmail' });
+    this.logger.assign({ method: 'findByEmail' });
+    this.logger.debug('Searching for user by email');
 
     try {
       // Find user by email
-      logger.debug({ query: { email } }, 'Finding user by email');
       const user = await this.prisma.user.findFirst({
         where: { email: { equals: email, mode: 'insensitive' } },
       });
 
       // Check if user was found
       if (!user) {
-        logger.debug({ user }, 'User not found by email');
+        this.logger.debug('User not found by email');
         return null;
       }
 
       // Map user to UserEntity
-      logger.debug({ user }, 'User found by email');
+      this.logger.debug({ user }, 'User found by email');
       return plainToInstance(UserEntity, user);
     } catch (error) {
       this.prismaErrorHandler.handleError(
@@ -181,7 +179,7 @@ export class UserPrismaAdapter extends UserRepository {
             unknown: 'An unexpected error occurred while finding user',
           },
         },
-        logger,
+        this.logger,
       );
     }
   }
