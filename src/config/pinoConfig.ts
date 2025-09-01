@@ -13,6 +13,7 @@ import { registerAs } from '@nestjs/config';
 import { Params } from 'nestjs-pino';
 import { IncomingMessage } from 'node:http';
 import { join } from 'node:path';
+import { stdSerializers } from 'pino-http';
 
 /**
  * List of sensitive keys that will be automatically redacted from logs
@@ -159,6 +160,11 @@ export default registerAs('pinoConfig', (): Params => {
       // Apply sensitive data redaction to all log objects
       formatters: {
         log: (logObj: Record<string, unknown>) => redactSensitiveLogObject(logObj),
+      },
+      serializers: {
+        err: stdSerializers.err,
+        req: stdSerializers.req,
+        res: stdSerializers.res,
       },
     },
   };
