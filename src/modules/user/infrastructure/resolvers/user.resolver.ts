@@ -14,10 +14,10 @@ import {
   CreateUserUseCase,
   FindUserByEmailUseCase,
   FindUserByIdUseCase,
-  FindUserByUsernameUseCase,
   FindUsersPaginatedUseCase,
   UpdateUserUseCase,
 } from '../../application/use-cases';
+import { FindUserByUserNameUseCase } from '../../application/use-cases/find-user-by-username.use-case';
 
 /**
  * GraphQL resolver for User entity operations.
@@ -34,7 +34,7 @@ export class UserResolver {
    * @param findUsersPaginatedUseCase Use case for finding and retrieving users with pagination
    * @param findUserByIdUseCase Use case for finding a user by ID
    * @param findUserByEmailUseCase Use case for finding a user by email address
-   * @param findUserByUsernameUseCase Use case for finding a user by username
+   * @param findUserByUserNameUseCase Use case for finding a user by username
    */
   constructor(
     private readonly logger: PinoLogger,
@@ -43,7 +43,7 @@ export class UserResolver {
     private readonly findUsersPaginatedUseCase: FindUsersPaginatedUseCase,
     private readonly findUserByIdUseCase: FindUserByIdUseCase,
     private readonly findUserByEmailUseCase: FindUserByEmailUseCase,
-    private readonly findUserByUsernameUseCase: FindUserByUsernameUseCase,
+    private readonly findUserByUserNameUseCase: FindUserByUserNameUseCase,
   ) {
     this.logger.setContext(UserResolver.name);
   }
@@ -58,6 +58,8 @@ export class UserResolver {
    */
   @Mutation(() => UserDto, { description: 'Creates a new user account with the provided data' })
   async createUser(@Args() params: UserCreateArgsDto): Promise<UserDto> {
+    this.logger.assign({ method: 'createUser', mutation: params });
+    this.logger.debug('Create user mutation received');
     return await this.createUserUseCase.execute(params);
   }
 
@@ -73,6 +75,8 @@ export class UserResolver {
     description: 'Updates an existing user account with the provided data',
   })
   async updateUser(@Args() params: UserUpdateArgsDto): Promise<UserDto> {
+    this.logger.assign({ method: 'updateUser', mutation: params });
+    this.logger.debug('Update user mutation received');
     return await this.updateUserUseCase.execute(params);
   }
 
@@ -105,6 +109,8 @@ export class UserResolver {
     description: 'Finds a user by their unique identifier',
   })
   async findUser(@Args() params: UserFindByIdArgsDto): Promise<UserDto> {
+    this.logger.assign({ method: 'findUser', query: params });
+    this.logger.debug('Search for user by ID received');
     return await this.findUserByIdUseCase.execute(params);
   }
 
@@ -119,8 +125,10 @@ export class UserResolver {
   @Query(() => UserDto, {
     description: 'Finds a user by their username',
   })
-  async findUserByUsername(@Args() params: UserFindByUserNameArgsDto): Promise<UserDto> {
-    return await this.findUserByUsernameUseCase.execute(params);
+  async findUserByUserName(@Args() params: UserFindByUserNameArgsDto): Promise<UserDto> {
+    this.logger.assign({ method: 'findUserByUserName', query: params });
+    this.logger.debug('Search for user by userName received');
+    return await this.findUserByUserNameUseCase.execute(params);
   }
 
   /**
@@ -137,6 +145,8 @@ export class UserResolver {
   async findUsersPaginated(
     @Args() params: UserFindPaginatedArgsDto,
   ): Promise<UserPaginatedResponseDto> {
+    this.logger.assign({ method: 'findUsersPaginated', query: params });
+    this.logger.debug('Search for users with pagination received');
     return await this.findUsersPaginatedUseCase.execute(params);
   }
 }

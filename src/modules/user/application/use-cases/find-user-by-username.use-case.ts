@@ -12,12 +12,12 @@ import { UserFindByUserNameArgsDto } from '../dto/args';
  * Handles validation through DTOs and error scenarios for username-based user searches
  */
 @Injectable()
-export class FindUserByUsernameUseCase {
+export class FindUserByUserNameUseCase {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly logger: PinoLogger,
   ) {
-    this.logger.setContext(FindUserByUsernameUseCase.name);
+    this.logger.setContext(FindUserByUserNameUseCase.name);
   }
 
   /**
