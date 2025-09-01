@@ -155,9 +155,12 @@ export class UserPrismaAdapter extends UserRepository {
     this.logger.debug('Searching for user by email');
 
     try {
+      const where: Prisma.UserWhereInput = { email: { equals: email, mode: 'insensitive' } };
+      this.logger.assign({ where });
+      this.logger.debug('Where clause for finding user by email');
       // Find user by email
       const user = await this.prisma.user.findFirst({
-        where: { email: { equals: email, mode: 'insensitive' } },
+        where,
       });
 
       // Check if user was found
@@ -167,7 +170,8 @@ export class UserPrismaAdapter extends UserRepository {
       }
 
       // Map user to UserEntity
-      this.logger.debug({ user }, 'User found by email');
+      this.logger.assign({ user });
+      this.logger.debug('User found by email');
       return plainToInstance(UserEntity, user);
     } catch (error) {
       this.prismaErrorHandler.handleError(
