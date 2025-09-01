@@ -21,6 +21,7 @@
     "mariadb",
     "mechatroner",
     "mercurius",
+    "mqemitter",
     "mysql",
     "MYSQL",
     "nestjs",
