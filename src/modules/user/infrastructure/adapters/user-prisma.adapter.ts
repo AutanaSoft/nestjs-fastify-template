@@ -67,23 +67,30 @@ export class UserPrismaAdapter extends UserRepository {
     }
   }
 
+  /**
+   * Updates an existing user record in the database
+   * Handles unique constraint violations and transforms Prisma errors to domain exceptions
+   * @param id - The unique identifier of the user to update
+   * @param data - User update data containing fields to be modified
+   * @returns Promise resolving to the updated user entity
+   * @throws NotFoundException when user with specified ID does not exist
+   * @throws ConflictException when update would violate unique constraints
+   * @throws InternalServerErrorException for database errors
+   */
   async update(id: string, data: UserUpdateData): Promise<UserEntity> {
-    // Create a logger instance for this method
-    const logger = this.logger;
     // Assign method context to the logger
-    logger.assign({ method: 'update' });
+    this.logger.assign({ method: 'update' });
 
     try {
-      logger.debug({ query: { id, data } }, 'Updating user');
-
-      const updatedUser = await this.prisma.user.update({
+      this.logger.debug('Updating user');
+      const user = await this.prisma.user.update({
         where: { id },
         data,
       });
+      this.logger.debug('User updated successfully');
 
-      logger.debug({ user: updatedUser }, 'User updated successfully');
-
-      return plainToInstance(UserEntity, updatedUser);
+      this.logger.debug('Transforming user to UserEntity');
+      return plainToInstance(UserEntity, user);
     } catch (error) {
       this.prismaErrorHandler.handleError(
         error,
@@ -100,7 +107,7 @@ export class UserPrismaAdapter extends UserRepository {
             notFound: 'USER_NOT_FOUND',
           },
         },
-        logger,
+        this.logger,
       );
     }
   }
@@ -111,23 +118,23 @@ export class UserPrismaAdapter extends UserRepository {
    * @returns Promise resolving to user entity if found, null otherwise
    */
   async findById(id: string): Promise<UserEntity | null> {
-    // Create a logger instance for this method
-    const logger = this.logger;
     // Assign method context to the logger
-    logger.assign({ method: 'findById' });
+    this.logger.assign({ method: 'findById' });
     try {
       // Find user by ID
-      logger.debug({ query: { id } }, 'Finding user by ID');
+      this.logger.debug('Finding user by ID');
       const user = await this.prisma.user.findUnique({ where: { id } });
+      this.logger.assign({ user });
 
       // Check if user was found
       if (!user) {
-        logger.debug('User not found by ID');
+        this.logger.debug('User not found by ID');
         return null;
       }
+      this.logger.debug('User found by ID');
 
       // Map user to UserEntity
-      logger.debug({ user }, 'User found by ID');
+      this.logger.debug('Transforming user to UserEntity');
       return plainToInstance(UserEntity, user);
     } catch (error) {
       this.prismaErrorHandler.handleError(
@@ -139,7 +146,7 @@ export class UserPrismaAdapter extends UserRepository {
             unknown: 'An unexpected error occurred while finding user',
           },
         },
-        logger,
+        this.logger,
       );
     }
   }
@@ -195,22 +202,23 @@ export class UserPrismaAdapter extends UserRepository {
    */
   async findByUserName(userName: string): Promise<UserEntity | null> {
     // Create a logger instance for this method
-    const logger = this.logger;
-    logger.assign({ method: 'findByUserName' });
+    this.logger.assign({ method: 'findByUserName' });
 
     try {
       // Find user by username
-      logger.debug({ query: { userName } }, 'Finding user by username');
+      this.logger.debug('Finding user by userName');
       const user = await this.prisma.user.findUnique({ where: { userName } });
+      this.logger.assign({ user });
 
       // Check if user was found
       if (!user) {
-        logger.debug({ user }, 'User not found by username');
+        this.logger.debug('User not found by userName');
         return null;
       }
+      this.logger.debug('User found by userName');
 
       // Map user to UserEntity
-      logger.debug({ user }, 'User found by username');
+      this.logger.debug('Transforming user to UserEntity');
       return plainToInstance(UserEntity, user);
     } catch (error) {
       this.prismaErrorHandler.handleError(
@@ -222,7 +230,7 @@ export class UserPrismaAdapter extends UserRepository {
             unknown: 'An unexpected error occurred while finding user',
           },
         },
-        logger,
+        this.logger,
       );
     }
   }
@@ -281,7 +289,8 @@ export class UserPrismaAdapter extends UserRepository {
 
       /** Combine all conditions with AND logic, or use empty object for no filtering */
       const where: Prisma.UserWhereInput = conditions.length > 0 ? { AND: conditions } : {};
-      this.logger.debug({ where }, 'Final where clause constructed');
+      this.logger.assign({ where });
+      this.logger.debug('Final where clause constructed');
 
       /** Build order by clause with fallback to creation date descending */
       const orderByClause: Prisma.UserOrderByWithRelationInput = {};
@@ -291,7 +300,9 @@ export class UserPrismaAdapter extends UserRepository {
         // Default sorting by createdAt desc if no sorting specified
         orderByClause.createdAt = 'desc';
       }
-      this.logger.debug({ orderBy: orderByClause }, 'Final order by clause constructed');
+
+      this.logger.assign({ orderBy: orderByClause });
+      this.logger.debug('Final order by clause constructed');
 
       // Execute queries in parallel for better performance
       const [users, totalDocs] = await Promise.all([
@@ -304,7 +315,8 @@ export class UserPrismaAdapter extends UserRepository {
         this.prisma.user.count({ where }),
       ]);
 
-      this.logger.debug({ queryResult: { users, totalDocs } }, 'Found paginated users');
+      this.logger.assign({ users, totalDocs });
+      this.logger.debug('Found paginated users');
 
       // Return only data and count - let use case handle pagination calculations
       return {
