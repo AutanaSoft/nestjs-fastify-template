@@ -22,12 +22,6 @@ export class UserEventHandler {
    */
   @OnEvent('user.created')
   handleUserCreatedEvent(event: UserCreatedEvent): void {
-    this.logger.assign({
-      event: event.name,
-      userId: event.user.id,
-      email: event.user.email,
-    });
-
     this.logger.info('User created event received');
 
     // Here you can implement side effects that should happen when a user is created
