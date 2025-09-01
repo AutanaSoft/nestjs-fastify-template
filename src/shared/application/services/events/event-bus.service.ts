@@ -22,10 +22,7 @@ export class EventBusService {
    */
   publish<T extends DomainEvent>(event: T): void {
     this.logger.assign({
-      eventCreate: {
-        eventName: event.name,
-        createdAt: event.createdAt,
-      },
+      eventCreate: { ...event },
     });
 
     this.logger.debug(`Publishing domain event: ${event.name}`);
