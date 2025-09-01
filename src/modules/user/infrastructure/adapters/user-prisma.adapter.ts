@@ -10,12 +10,28 @@ import { PinoLogger } from 'nestjs-pino';
 import { UserCreateData, UserFindAllPaginateData, UserUpdateData } from '../../domain/types';
 
 /**
- * Prisma adapter implementation for user repository operations
- * Handles data persistence and retrieval using Prisma ORM with PostgreSQL
- * Implements proper error handling and logging for infrastructure concerns
+ * Prisma adapter implementation for User repository
+ *
+ * This adapter implements the UserRepository interface from the domain layer
+ * using Prisma ORM to interact with the PostgreSQL database. It handles:
+ * - CRUD operations for user entities
+ * - Data transformation between Prisma models and domain entities
+ * - Advanced filtering and pagination for user queries
+ * - Proper error handling with domain-specific exceptions
+ * - Comprehensive logging for all database operations
+ *
+ * Following hexagonal architecture principles, this adapter isolates the
+ * infrastructure concerns (Prisma, database) from the domain logic.
  */
 @Injectable()
 export class UserPrismaAdapter extends UserRepository {
+  /**
+   * Creates a new UserPrismaAdapter instance
+   *
+   * @param prisma - Prisma service for database operations
+   * @param prismaErrorHandler - Service for handling Prisma-specific errors
+   * @param logger - Pino logger for structured logging
+   */
   constructor(
     private readonly prisma: PrismaService,
     private readonly prismaErrorHandler: PrismaErrorHandlerService,
