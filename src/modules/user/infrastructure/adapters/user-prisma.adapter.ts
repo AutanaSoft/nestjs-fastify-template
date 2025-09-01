@@ -63,23 +63,19 @@ export class UserPrismaAdapter extends UserRepository {
       this.logger.debug('Transforming user to UserEntity');
       return plainToInstance(UserEntity, user);
     } catch (error) {
-      this.prismaErrorHandler.handleError(
-        error,
-        {
-          messages: {
-            uniqueConstraint: 'User with this email or username already exists',
-            notFound: 'User not found',
-            foreignKeyConstraint: 'Invalid reference in user data',
-            validation: 'Invalid user data provided',
-            connection: 'Database unavailable',
-            unknown: 'An unexpected error occurred while creating user',
-          },
-          codes: {
-            notFound: 'USER_NOT_FOUND',
-          },
+      this.prismaErrorHandler.handleError(error, {
+        messages: {
+          uniqueConstraint: 'User with this email or username already exists',
+          notFound: 'User not found',
+          foreignKeyConstraint: 'Invalid reference in user data',
+          validation: 'Invalid user data provided',
+          connection: 'Database unavailable',
+          unknown: 'An unexpected error occurred while creating user',
         },
-        this.logger,
-      );
+        codes: {
+          notFound: 'USER_NOT_FOUND',
+        },
+      });
     }
   }
 
@@ -108,23 +104,19 @@ export class UserPrismaAdapter extends UserRepository {
       this.logger.debug('Transforming user to UserEntity');
       return plainToInstance(UserEntity, user);
     } catch (error) {
-      this.prismaErrorHandler.handleError(
-        error,
-        {
-          messages: {
-            uniqueConstraint: 'User with this email or username already exists',
-            notFound: 'User not found',
-            foreignKeyConstraint: 'Invalid reference in user data',
-            validation: 'Invalid user data provided',
-            connection: 'Database unavailable',
-            unknown: 'An unexpected error occurred while updating user',
-          },
-          codes: {
-            notFound: 'USER_NOT_FOUND',
-          },
+      this.prismaErrorHandler.handleError(error, {
+        messages: {
+          uniqueConstraint: 'User with this email or username already exists',
+          notFound: 'User not found',
+          foreignKeyConstraint: 'Invalid reference in user data',
+          validation: 'Invalid user data provided',
+          connection: 'Database unavailable',
+          unknown: 'An unexpected error occurred while updating user',
         },
-        this.logger,
-      );
+        codes: {
+          notFound: 'USER_NOT_FOUND',
+        },
+      });
     }
   }
 
@@ -153,17 +145,13 @@ export class UserPrismaAdapter extends UserRepository {
       this.logger.debug('Transforming user to UserEntity');
       return plainToInstance(UserEntity, user);
     } catch (error) {
-      this.prismaErrorHandler.handleError(
-        error,
-        {
-          messages: {
-            notFound: 'User not found',
-            connection: 'Database unavailable',
-            unknown: 'An unexpected error occurred while finding user',
-          },
+      this.prismaErrorHandler.handleError(error, {
+        messages: {
+          notFound: 'User not found',
+          connection: 'Database unavailable',
+          unknown: 'An unexpected error occurred while finding user',
         },
-        this.logger,
-      );
+      });
     }
   }
 
@@ -197,17 +185,13 @@ export class UserPrismaAdapter extends UserRepository {
       this.logger.debug('User found by email');
       return plainToInstance(UserEntity, user);
     } catch (error) {
-      this.prismaErrorHandler.handleError(
-        error,
-        {
-          messages: {
-            notFound: 'User not found',
-            connection: 'Database unavailable',
-            unknown: 'An unexpected error occurred while finding user',
-          },
+      this.prismaErrorHandler.handleError(error, {
+        messages: {
+          notFound: 'User not found',
+          connection: 'Database unavailable',
+          unknown: 'An unexpected error occurred while finding user',
         },
-        this.logger,
-      );
+      });
     }
   }
 
@@ -237,17 +221,13 @@ export class UserPrismaAdapter extends UserRepository {
       this.logger.debug('Transforming user to UserEntity');
       return plainToInstance(UserEntity, user);
     } catch (error) {
-      this.prismaErrorHandler.handleError(
-        error,
-        {
-          messages: {
-            notFound: 'User not found',
-            connection: 'Database unavailable',
-            unknown: 'An unexpected error occurred while finding user',
-          },
+      this.prismaErrorHandler.handleError(error, {
+        messages: {
+          notFound: 'User not found',
+          connection: 'Database unavailable',
+          unknown: 'An unexpected error occurred while finding user',
         },
-        this.logger,
-      );
+      });
     }
   }
 
@@ -340,17 +320,13 @@ export class UserPrismaAdapter extends UserRepository {
         totalDocs,
       };
     } catch (error) {
-      this.prismaErrorHandler.handleError(
-        error,
-        {
-          messages: {
-            validation: 'Invalid query parameters provided',
-            connection: 'Database unavailable',
-            unknown: 'An unexpected error occurred while fetching paginated users',
-          },
+      this.prismaErrorHandler.handleError(error, {
+        messages: {
+          validation: 'Invalid query parameters provided',
+          connection: 'Database unavailable',
+          unknown: 'An unexpected error occurred while fetching paginated users',
         },
-        this.logger,
-      );
+      });
     }
   }
 }

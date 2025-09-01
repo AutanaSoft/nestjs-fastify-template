@@ -2,6 +2,7 @@
 // Export all interfaces here as they are created
 
 export * from './error.interface';
+export * from './prisma-error-config.interface';
 
 // Example:
 // export * from './repositories';
