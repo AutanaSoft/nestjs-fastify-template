@@ -20,51 +20,21 @@ import { stdSerializers } from 'pino-http';
  * All keys containing these strings (case-insensitive) will have their values replaced with '[REDACTED]'
  */
 const SENSITIVE_KEYS: readonly string[] = [
-  'password',
-  'currentPassword',
-  'newPassword',
-  'token',
-  'accessToken',
-  'refreshToken',
-  'secret',
-  'apiKey',
+  '*.password',
+  '*.*.password',
+  '*.*.*.password',
+  '*.*.*.*.password',
+  '*.authorization',
+  '*.*.authorization',
+  '*.*.*.authorization',
+  '*.*.*.*.authorization',
+  '*.cookies',
+  '*.*.cookies',
+  '*.*.*.cookies',
+  '*.*.*.*.cookies',
+
   // Add more as needed
 ];
-
-/**
- * Recursively redacts sensitive information from log objects
- *
- * @param obj - The object to redact sensitive information from
- * @param seen - WeakSet used to prevent circular reference loops
- * @returns A new object with sensitive information redacted
- */
-function redactSensitiveLogObject(
-  obj: Record<string, unknown>,
-  seen = new WeakSet<object>(),
-): Record<string, unknown> {
-  if (seen.has(obj)) {
-    return {}; // Prevent circular reference infinite loop
-  }
-  seen.add(obj);
-  const result: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) {
-    if (SENSITIVE_KEYS.some(sensitive => k.toLowerCase().includes(sensitive.toLowerCase()))) {
-      result[k] = '[REDACTED]';
-    } else if (Array.isArray(v)) {
-      result[k] = (v as unknown[]).map(item =>
-        typeof item === 'object' && item !== null
-          ? redactSensitiveLogObject(item as Record<string, unknown>, seen)
-          : item,
-      );
-    } else if (typeof v === 'object' && v !== null) {
-      result[k] = redactSensitiveLogObject(v as Record<string, unknown>, seen);
-    } else {
-      result[k] = v;
-    }
-  }
-  seen.delete(obj);
-  return result;
-}
 
 /**
  * Pino configuration factory
@@ -158,13 +128,14 @@ export default registerAs('pinoConfig', (): Params => {
         correlationId: req.id || 'x-correlation-id-not-found',
       }),
       // Apply sensitive data redaction to all log objects
-      formatters: {
-        log: (logObj: Record<string, unknown>) => redactSensitiveLogObject(logObj),
-      },
       serializers: {
         err: stdSerializers.err,
         req: stdSerializers.req,
         res: stdSerializers.res,
+      },
+      redact: {
+        paths: SENSITIVE_KEYS.flatMap(key => key),
+        censor: '[REDACTED]',
       },
     },
   };
