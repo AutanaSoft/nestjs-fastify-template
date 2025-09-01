@@ -10,6 +10,7 @@ import {
 } from './application/use-cases';
 import { UserRepository } from './domain/repositories';
 import { UserPrismaAdapter } from './infrastructure/adapters';
+import { UserEventHandler } from './infrastructure/event-handlers';
 import { UserResolver } from './infrastructure/resolvers';
 
 @Module({
@@ -26,6 +27,7 @@ import { UserResolver } from './infrastructure/resolvers';
     FindUserByUsernameUseCase,
     FindUsersPaginatedUseCase,
     UserResolver,
+    UserEventHandler,
   ],
 })
 export class UserModule {}

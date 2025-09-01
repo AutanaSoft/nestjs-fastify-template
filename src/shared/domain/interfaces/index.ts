@@ -3,10 +3,10 @@
 
 export * from './error.interface';
 export * from './prisma-error-config.interface';
+export * from './events';
 
 // Example:
 // export * from './repositories';
 // export * from './services';
 // export * from './use-cases';
-// export * from './events';
 // export * from './gateways';

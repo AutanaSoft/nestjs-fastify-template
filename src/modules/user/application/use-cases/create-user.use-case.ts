@@ -1,6 +1,8 @@
 import { UserDto } from '@modules/user/application/dto';
+import { UserCreatedEvent } from '@modules/user/domain/events';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import { Injectable } from '@nestjs/common';
+import { EventBusService } from '@shared/application/services';
 import { ConflictError, DomainError, InternalServerError } from '@shared/domain/errors';
 import { HashUtils } from '@shared/infrastructure/utils';
 import { plainToInstance } from 'class-transformer';
@@ -15,6 +17,7 @@ import { UserCreateArgsDto } from '../dto/args';
 export class CreateUserUseCase {
   constructor(
     private readonly userRepository: UserRepository,
+    private readonly eventBus: EventBusService,
     @InjectPinoLogger(CreateUserUseCase.name)
     private readonly logger: PinoLogger,
   ) {}
@@ -64,6 +67,11 @@ export class CreateUserUseCase {
       this.logger.debug('Creating user in repository');
       const createdUser = await this.userRepository.create(userData);
       this.logger.debug('User created in repository');
+
+      // Emit user created domain event
+      this.logger.debug('Publishing UserCreatedEvent');
+      const userCreatedEvent = new UserCreatedEvent(createdUser);
+      this.eventBus.publish(userCreatedEvent);
 
       // Transform entity to response DTO
       this.logger.debug('Transforming created user entity to DTO');
