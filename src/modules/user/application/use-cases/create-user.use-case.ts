@@ -1,7 +1,7 @@
 import { UserDto } from '@modules/user/application/dto';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import { Injectable } from '@nestjs/common';
-import { ConflictError, UseCaseError } from '@shared/domain/errors';
+import { ConflictError, DomainError, InternalServerError } from '@shared/domain/errors';
 import { HashUtils } from '@shared/infrastructure/utils';
 import { plainToInstance } from 'class-transformer';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
@@ -28,53 +28,57 @@ export class CreateUserUseCase {
    * @throws ApplicationError when creation fails
    */
   async execute(params: UserCreateArgsDto): Promise<UserDto> {
+    this.logger.assign({ method: 'execute' });
+    this.logger.debug('User creation process started');
+
     try {
       const { data } = params;
 
       // Check if user already exists
+      this.logger.debug(`Checking if user with email ${data.email} already exists`);
       const existingUser = await this.userRepository.findByEmail(data.email);
       if (existingUser) {
+        this.logger.debug('Conflict detected: User with this email already exists');
         throw new ConflictError('User with this email already exists');
       }
 
       // Check if username already exists
+      this.logger.debug(`Checking if user with username ${data.userName} already exists`);
       const existingUserName = await this.userRepository.findByUserName(data.userName);
       if (existingUserName) {
+        this.logger.debug('Conflict detected: User with this username already exists');
         throw new ConflictError('User with this username already exists');
       }
 
       // Hash the password
+      this.logger.debug('Hashing user password');
       const hashedPassword = await HashUtils.hashPassword(data.password);
 
       // Create user entity with hashed password
+      this.logger.debug('Creating user entity');
       const userData = {
         ...data,
         password: hashedPassword,
       };
 
+      this.logger.debug('Creating user in repository');
       const createdUser = await this.userRepository.create(userData);
+      this.logger.debug('User created in repository');
 
       // Transform entity to response DTO
+      this.logger.debug('Transforming created user entity to DTO');
       return plainToInstance(UserDto, createdUser);
     } catch (error) {
-      // Re-throw domain errors
-      if (error instanceof ConflictError) {
+      // validate if error instance of DomainError
+      if (error instanceof DomainError) {
+        // only throw the error, it will be handled by exception filters
         throw error;
       }
 
       // Log and wrap other errors
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.error(
-        {
-          error: errorMessage,
-          data: { email: params.data.email, userName: params.data.userName },
-        },
-        'Failed to create user',
-      );
-
-      throw new UseCaseError(`Failed to create user: ${errorMessage}`, {
-        originalError: error as Error,
-      });
+      const message = 'Failed to create user';
+      this.logger.error({ error: error as Error }, message);
+      throw new InternalServerError(message);
     }
   }
 }

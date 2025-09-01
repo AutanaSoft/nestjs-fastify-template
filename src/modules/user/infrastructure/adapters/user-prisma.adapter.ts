@@ -34,18 +34,18 @@ export class UserPrismaAdapter extends UserRepository {
    * @throws InternalServerErrorException for database errors
    */
   async create(data: UserCreateData): Promise<UserEntity> {
-    // Create a logger instance for this method
-    const logger = this.logger;
     // Assign method context to the logger
-    logger.assign({ method: 'create' });
+    this.logger.assign({ method: 'create' });
 
     try {
-      logger.debug({ data }, 'Creating user');
-      const createdUser = await this.prisma.user.create({
+      this.logger.debug('Creating new user');
+      const user = await this.prisma.user.create({
         data,
       });
-      logger.debug({ user: createdUser }, 'User created successfully');
-      return plainToInstance(UserEntity, createdUser);
+      this.logger.assign({ user });
+      this.logger.debug('User created successfully');
+      this.logger.debug('Transforming user to UserEntity');
+      return plainToInstance(UserEntity, user);
     } catch (error) {
       this.prismaErrorHandler.handleError(
         error,
@@ -62,7 +62,7 @@ export class UserPrismaAdapter extends UserRepository {
             notFound: 'USER_NOT_FOUND',
           },
         },
-        logger,
+        this.logger,
       );
     }
   }
