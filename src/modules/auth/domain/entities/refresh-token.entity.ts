@@ -17,11 +17,17 @@ export class RefreshTokenEntity {
   userId: string;
 
   /**
-   * The actual refresh token string.
-   * Should be cryptographically secure and unique.
-   * @example "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+   * The SHA-256 hash of the refresh token string.
+   * Stored as hex string for security purposes.
+   * @example "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
    */
-  token: string;
+  tokenHash: string;
+
+  /**
+   * Timestamp when the refresh token was created.
+   * @example new Date('2023-12-01T00:00:00Z')
+   */
+  createdAt: Date;
 
   /**
    * Timestamp when the refresh token expires.
@@ -31,22 +37,11 @@ export class RefreshTokenEntity {
   expiresAt: Date;
 
   /**
-   * Timestamp when the refresh token was created.
-   * @example new Date('2023-12-01T00:00:00Z')
-   */
-  createdAt: Date;
-
-  /**
-   * Timestamp when the refresh token was last updated.
+   * Timestamp when the refresh token was revoked (optional).
+   * If null, the token has not been revoked.
    * @example new Date('2023-12-15T10:30:00Z')
    */
-  updatedAt: Date;
-
-  /**
-   * Flag indicating whether the refresh token has been revoked.
-   * Revoked tokens should not be accepted for token refresh.
-   */
-  isRevoked: boolean;
+  revokedAt?: Date;
 
   /**
    * Checks if the refresh token is still valid (not expired and not revoked).
@@ -54,14 +49,32 @@ export class RefreshTokenEntity {
    */
   isValid(): boolean {
     const now = new Date();
-    return !this.isRevoked && this.expiresAt > now;
+    return !this.revokedAt && this.expiresAt > now;
+  }
+
+  /**
+   * Checks if the refresh token has been revoked.
+   * @returns true if the token is revoked, false otherwise
+   */
+  isRevoked(): boolean {
+    return !!this.revokedAt;
+  }
+
+  /**
+   * Checks if the refresh token has expired.
+   * @returns true if the token has expired, false otherwise
+   */
+  isExpired(): boolean {
+    const now = new Date();
+    return this.expiresAt <= now;
   }
 
   /**
    * Revokes the refresh token, making it invalid for future use.
    */
   revoke(): void {
-    this.isRevoked = true;
-    this.updatedAt = new Date();
+    if (!this.revokedAt) {
+      this.revokedAt = new Date();
+    }
   }
 }

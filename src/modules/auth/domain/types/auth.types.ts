@@ -87,18 +87,19 @@ export interface TokenPair {
 
 /**
  * Refresh token data for token management
+ * Matches the RefreshTokenEntity structure for type consistency
  */
 export interface RefreshTokenData {
   /** Token identifier */
   readonly id: string;
   /** Associated user ID */
   readonly userId: string;
-  /** The refresh token string */
-  readonly token: string;
-  /** Token expiration date */
-  readonly expiresAt: Date;
+  /** The SHA-256 hash of the refresh token string */
+  readonly tokenHash: string;
   /** Token creation date */
   readonly createdAt: Date;
-  /** Whether the token is revoked */
-  readonly isRevoked: boolean;
+  /** Token expiration date */
+  readonly expiresAt: Date;
+  /** Token revocation date (optional) */
+  readonly revokedAt?: Date;
 }

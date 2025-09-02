@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { randomUUID } from 'crypto';
+import { randomUUID, createHash } from 'crypto';
 import { PinoLogger } from 'nestjs-pino';
 
 import { jwtConfig } from '@/config';
@@ -150,11 +150,9 @@ export class JwtTokenAdapter implements TokenRepository {
       const refreshToken = new RefreshTokenEntity();
       refreshToken.id = randomUUID();
       refreshToken.userId = user.id;
-      refreshToken.token = jwtToken; // Store the JWT token instead of random bytes
+      refreshToken.tokenHash = createHash('sha256').update(jwtToken).digest('hex');
       refreshToken.expiresAt = expiresAt;
       refreshToken.createdAt = now;
-      refreshToken.updatedAt = now;
-      refreshToken.isRevoked = false;
 
       this.logger.debug(
         { tokenId: refreshToken.id, userId: user.id },
@@ -174,17 +172,21 @@ export class JwtTokenAdapter implements TokenRepository {
     this.logger.assign({ method: 'generateTokenPair' });
 
     try {
-      const [accessToken, refreshTokenEntity] = await Promise.all([
-        this.generateAccessToken(payload),
-        this.generateRefreshToken(payload.user),
-      ]);
+      // Generate access token
+      const accessToken = await this.generateAccessToken(payload);
+
+      // Generate JWT temporary token for refresh token (this is what the client will use)
+      const refreshJwtToken = await this.generateTempToken(
+        payload.user,
+        JwtTempTokenType.REFRESH_TOKEN,
+      );
 
       const now = new Date();
       const expiresAt = new Date(now.getTime() + this.parseTimeToMs(this.config.expiresIn));
 
       const tokenPair: TokenPair = {
         accessToken,
-        refreshToken: refreshTokenEntity.token,
+        refreshToken: refreshJwtToken, // Return the actual JWT token for the client
         expiresAt,
         createdAt: now,
       };
