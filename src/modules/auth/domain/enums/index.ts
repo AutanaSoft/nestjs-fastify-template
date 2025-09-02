@@ -1,4 +1,4 @@
 // Domain layer enums barrel exports
 // Import and export all domain enums here as they are implemented
 
-export {};
+export * from './auth.enums';
