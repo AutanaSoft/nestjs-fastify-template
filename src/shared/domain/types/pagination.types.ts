@@ -1,0 +1,110 @@
+/**
+ * Type definitions for pagination operations
+ * Provides interfaces and types for type-safe pagination handling across all layers
+ */
+
+// =============================================================================
+// CORE INTERFACES
+// =============================================================================
+
+/**
+ * Repository pagination parameters for database operations
+ * Used by infrastructure layer adapters to handle pagination queries with page-based approach
+ */
+export interface PaginateData {
+  /** Current page number requested (1-based indexing) */
+  readonly page: number;
+  /** Number of items per page to retrieve from the database */
+  readonly take: number;
+}
+
+/**
+ * Simple interface for paginated data from repositories (infrastructure layer)
+ * Contains raw data and minimal metadata needed for use case layer processing
+ */
+export interface PaginatedData<T> {
+  /** Array of data items for the current page */
+  readonly data: T[];
+  /** Total number of documents available in the complete dataset */
+  readonly totalDocs: number;
+}
+
+/**
+ * Complete interface for paginated results in the application layer
+ * Provides rich metadata for client consumption with navigation information
+ */
+export interface PaginatedResult<T> {
+  /** Array of data items for the current page */
+  readonly data: T[];
+  /** Pagination metadata including total counts and navigation information */
+  readonly paginationInfo: {
+    /** Total number of documents available in the complete dataset */
+    readonly totalDocs: number;
+    /** Zero-based index of the first record in the current page */
+    readonly start: number;
+    /** Zero-based index of the last record in the current page */
+    readonly end: number;
+    /** Total number of pages available in the dataset */
+    readonly totalPages: number;
+    /** Current page number (1-based indexing) */
+    readonly page: number;
+    /** Next page number if available, null if on last page */
+    readonly next?: number | null;
+    /** Previous page number if available, null if on first page */
+    readonly previous?: number | null;
+  };
+}
+
+// =============================================================================
+// FACTORY INTERFACES
+// =============================================================================
+
+/**
+ * Configuration options for creating pagination information
+ * Used as input for pagination factory methods and use cases
+ * All properties are readonly to ensure immutability and prevent accidental modifications
+ */
+export interface PaginationOptions {
+  /** Total number of documents in the dataset */
+  readonly totalDocs: number;
+  /** Maximum number of documents per page */
+  readonly take: number;
+  /** Current page number requested (1-based indexing) */
+  readonly page: number;
+}
+
+/**
+ * Calculated indices for pagination boundaries
+ * Used internally to determine document ranges within a page
+ */
+export interface PaginationIndices {
+  /** Zero-based index of the first document in the current page */
+  readonly start: number;
+  /** Zero-based index of the last document in the current page */
+  readonly end: number;
+}
+
+/**
+ * Navigation links for pagination
+ * Contains references to adjacent pages for user navigation
+ */
+export interface PaginationNavigation {
+  /** Next page number if available, null if on last page */
+  readonly next: number | null;
+  /** Previous page number if available, null if on first page */
+  readonly previous: number | null;
+}
+
+// =============================================================================
+// QUERY INTERFACES
+// =============================================================================
+
+/**
+ * Interface for pagination query parameters from clients
+ * Used for incoming pagination requests with optional parameters
+ */
+export interface PaginationQueryParams {
+  readonly page?: number;
+  readonly take?: number;
+  readonly offset?: number;
+}

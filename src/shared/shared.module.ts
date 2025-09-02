@@ -1,43 +1,20 @@
-import { ThrottlerConfig } from '@config/throttlerConfig';
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { CorrelationService } from './application/services';
-import { DatabaseModule } from './infrastructure/adapters';
-import { CorrelationIdMiddleware } from './infrastructure/middleware';
-import { PinoLoggerModule } from './pino-logger.module';
+import { Module } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { EventBusService, PrismaService } from './application/services';
+import { PrismaErrorHandlerService } from './infrastructure/services';
 
 @Module({
   imports: [
-    PinoLoggerModule,
-    DatabaseModule,
-    ThrottlerModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => {
-        const config = configService.get<ThrottlerConfig>('throttlerConfig')!;
-        return [
-          {
-            ttl: config.ttl,
-            limit: config.limit,
-            skipIf: config.skipIf,
-          },
-        ];
-      },
-      inject: [ConfigService],
+    EventEmitterModule.forRoot({
+      // Enable wildcard event matching
+      wildcard: true,
+      // Limit maximum event listeners (0 = unlimited)
+      maxListeners: 20,
+      // Enable verbosity for debugging
+      verboseMemoryLeak: true,
     }),
   ],
-  providers: [
-    CorrelationService,
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
-  ],
-  exports: [CorrelationService],
+  providers: [PrismaService, PrismaErrorHandlerService, EventBusService],
+  exports: [PrismaService, PrismaErrorHandlerService, EventBusService],
 })
-export class SharedModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(CorrelationIdMiddleware).forRoutes('*');
-  }
-}
+export class SharedModule {}

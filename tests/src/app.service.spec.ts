@@ -1,9 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
 import { AppService } from '@/app.service';
-import { PrismaService } from '@shared/infrastructure/adapters';
-import { CorrelationService } from '@shared/application';
+import { PrismaService } from '@/shared/application/services';
 import { AppConfig } from '@config/appConfig';
+import { ConfigService } from '@nestjs/config';
+import { Test, TestingModule } from '@nestjs/testing';
 import { AppInfoResponseDto } from '@shared/application/dto';
 import { DatabaseHealthDto } from '@shared/application/dto/health-check-response.dto';
 
@@ -45,10 +44,6 @@ describe('AppService', () => {
           provide: PrismaService,
           useValue: mockPrismaService,
         },
-        {
-          provide: CorrelationService,
-          useValue: mockCorrelationService,
-        },
       ],
     }).compile();
 
@@ -75,7 +70,6 @@ describe('AppService', () => {
         name: appConfig.name,
         version: appConfig.version,
         message: 'Welcome to NestJS Template API',
-        correlationId,
       };
 
       const result = service.getAppInfo();
@@ -86,7 +80,7 @@ describe('AppService', () => {
   describe('getHealth', () => {
     it('should return health status', async () => {
       const correlationId = 'test-correlation-id';
-      const dbHealth: DatabaseHealthDto = { status: 'ok' };
+      const dbHealth: DatabaseHealthDto = { status: 'ok', message: 'Database is healthy' };
 
       mockCorrelationService.get.mockReturnValue(correlationId);
       mockPrismaService.healthCheck.mockResolvedValue(dbHealth);
@@ -97,7 +91,6 @@ describe('AppService', () => {
       expect(result.version).toBe(appConfig.version);
       expect(result.status).toBe('ok');
       expect(result.database).toEqual(dbHealth);
-      expect(result.correlationId).toBe(correlationId);
       expect(result.timestamp).toBeDefined();
     });
   });

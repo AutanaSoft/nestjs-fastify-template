@@ -1,30 +1,23 @@
-import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { Field, ObjectType, OmitType } from '@nestjs/graphql';
 import { AppInfoResponseDto } from './app-info-response.dto';
 
+@ObjectType({ description: 'Database health status' })
 export class DatabaseHealthDto {
-  @ApiProperty({
-    description: 'Database health status',
-    example: 'ok',
-  })
+  @Field(() => String, { description: 'Database connection status' })
   readonly status: string;
+
+  @Field(() => String, { description: 'Database response message' })
+  readonly message: string;
 }
 
+@ObjectType({ description: 'Health check response' })
 export class HealthCheckResponseDto extends OmitType(AppInfoResponseDto, ['message'] as const) {
-  @ApiProperty({
-    description: 'Application health status',
-    example: 'ok',
-  })
+  @Field(() => String, { description: 'Health check status' })
   readonly status: string;
 
-  @ApiProperty({
-    description: 'Timestamp of the health check',
-    example: '2025-07-30T12:00:00.000Z',
-  })
+  @Field(() => String, { description: 'Health check timestamp' })
   readonly timestamp: string;
 
-  @ApiProperty({
-    description: 'Database health information',
-    type: DatabaseHealthDto,
-  })
+  @Field(() => DatabaseHealthDto, { description: 'Database health status' })
   readonly database: DatabaseHealthDto;
 }

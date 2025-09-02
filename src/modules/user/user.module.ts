@@ -1,27 +1,33 @@
+import { SharedModule } from '@/shared/shared.module';
 import { Module } from '@nestjs/common';
 import {
   CreateUserUseCase,
   FindUserByEmailUseCase,
   FindUserByIdUseCase,
-  FindUsersUseCase,
+  FindUserByUsernameUseCase,
+  FindUsersPaginatedUseCase,
   UpdateUserUseCase,
 } from './application/use-cases';
-import { UserRepository } from './domain/repositories/user.repository';
-import { UserPrismaAdapter } from './infrastructure/adapters/user-prisma.adapter';
-import { UserController } from './infrastructure/controllers/user.controller';
+import { UserRepository } from './domain/repositories';
+import { UserPrismaAdapter } from './infrastructure/adapters';
+import { UserEventHandler } from './infrastructure/event-handlers';
+import { UserResolver } from './infrastructure/resolvers';
 
 @Module({
-  controllers: [UserController],
+  imports: [SharedModule],
   providers: [
-    CreateUserUseCase,
-    FindUserByIdUseCase,
-    FindUserByEmailUseCase,
-    UpdateUserUseCase,
-    FindUsersUseCase,
     {
       provide: UserRepository,
       useClass: UserPrismaAdapter,
     },
+    CreateUserUseCase,
+    UpdateUserUseCase,
+    FindUserByIdUseCase,
+    FindUserByEmailUseCase,
+    FindUserByUsernameUseCase,
+    FindUsersPaginatedUseCase,
+    UserResolver,
+    UserEventHandler,
   ],
 })
 export class UserModule {}

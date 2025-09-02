@@ -1,34 +1,32 @@
-import { UserRepository } from '@modules/user/domain/repositories/user.repository';
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { HashUtils } from '@/shared/infrastructure/utils';
+import { UserRepository } from '@modules/user/domain/repositories';
+import { Injectable } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { UserUpdateInputDto } from '../dto/user-update-input.dto';
-import { UserDto } from '../dto/user.dto';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { UserDto, UserUpdateArgsDto } from '../dto';
 
 @Injectable()
 export class UpdateUserUseCase {
   constructor(
-    @Inject(UserRepository)
     private readonly userRepository: UserRepository,
+    @InjectPinoLogger(UpdateUserUseCase.name)
+    private readonly logger: PinoLogger,
   ) {}
 
-  async execute(id: string, updateUserInputDto: UserUpdateInputDto): Promise<UserDto> {
-    const userToUpdate = await this.userRepository.findById(id);
-    if (!userToUpdate) {
-      throw new NotFoundException(`User with ID ${id} not found.`);
+  async execute(params: UserUpdateArgsDto): Promise<UserDto> {
+    this.logger.debug({ params }, 'Updating user');
+
+    const { id, data } = params;
+    // verify is password set
+    if (data.password) {
+      this.logger.debug('Hashing password');
+      data.password = await HashUtils.hashPassword(data.password);
     }
 
-    // Build update data with only role and status
-    const updateData: UserUpdateInputDto = {};
+    this.logger.debug({ id, data }, 'User data prepared for update');
+    const updatedUser = await this.userRepository.update(id, data);
 
-    if (updateUserInputDto.status !== undefined) {
-      updateData.status = updateUserInputDto.status;
-    }
-
-    if (updateUserInputDto.role !== undefined) {
-      updateData.role = updateUserInputDto.role;
-    }
-
-    const updatedUser = await this.userRepository.update(id, updateData);
+    this.logger.debug({ userId: updatedUser.id }, 'User updated successfully');
 
     return plainToInstance(UserDto, updatedUser);
   }
