@@ -1,5 +1,13 @@
-import { SharedModule } from '@/shared/shared.module';
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+
+import { jwtConfig, createJwtModuleOptions } from '@/config';
+import { SharedModule } from '@/shared/shared.module';
+
+import { TokenRepository } from './domain/repositories';
+import { JwtTokenService } from './infrastructure/adapters';
+import { AuthGuard } from './infrastructure/guards';
 
 /**
  * Authentication module responsible for handling user authentication,
@@ -12,14 +20,30 @@ import { Module } from '@nestjs/common';
  * @description Provides authentication and authorization capabilities for the application
  */
 @Module({
-  imports: [SharedModule],
+  imports: [
+    SharedModule,
+    ConfigModule.forFeature(jwtConfig),
+    JwtModule.registerAsync({
+      imports: [ConfigModule.forFeature(jwtConfig)],
+      useFactory: createJwtModuleOptions,
+      inject: [jwtConfig.KEY],
+    }),
+  ],
   providers: [
-    // Repository implementations will be registered here
+    // Repository implementations
+    {
+      provide: TokenRepository,
+      useClass: JwtTokenService,
+    },
+    // Guards
+    AuthGuard,
     // Use cases will be registered here
     // Resolvers will be registered here
     // Domain services will be registered here
   ],
   exports: [
+    TokenRepository,
+    AuthGuard,
     // Export services that other modules might need
   ],
 })
