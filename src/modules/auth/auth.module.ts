@@ -6,7 +6,7 @@ import { jwtConfig, createJwtModuleOptions } from '@/config';
 import { SharedModule } from '@/shared/shared.module';
 
 import { TokenRepository } from './domain/repositories';
-import { JwtTokenService } from './infrastructure/adapters';
+import { JwtTokenAdapter } from './infrastructure/adapters';
 import { AuthGuard } from './infrastructure/guards';
 
 /**
@@ -33,7 +33,7 @@ import { AuthGuard } from './infrastructure/guards';
     // Repository implementations
     {
       provide: TokenRepository,
-      useClass: JwtTokenService,
+      useClass: JwtTokenAdapter,
     },
     // Guards
     AuthGuard,

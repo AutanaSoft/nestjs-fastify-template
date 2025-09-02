@@ -1,40 +1,39 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { PinoLogger } from 'nestjs-pino';
 import { randomBytes, randomUUID } from 'crypto';
+import { PinoLogger } from 'nestjs-pino';
 
 import { jwtConfig } from '@/config';
-import { TokenRepository } from '../../domain/repositories';
-import { JwtPayload, TokenPair } from '../../domain/types';
 import { RefreshTokenEntity } from '../../domain/entities';
 import {
+  InvalidRefreshTokenDomainException,
   InvalidTokenDomainException,
   TokenExpiredDomainException,
-  InvalidRefreshTokenDomainException,
 } from '../../domain/exceptions';
+import { TokenRepository } from '../../domain/repositories';
+import { JwtPayload, TokenPair } from '../../domain/types';
 
 /**
- * JWT token service implementing the TokenRepository interface
+ * JWT token adapter implementing the TokenRepository interface
  * Handles JWT token generation, validation, and refresh operations
  */
 @Injectable()
-export class JwtTokenService implements TokenRepository {
+export class JwtTokenAdapter implements TokenRepository {
   constructor(
     private readonly jwtService: JwtService,
     @Inject(jwtConfig.KEY)
     private readonly config: ConfigType<typeof jwtConfig>,
     private readonly logger: PinoLogger,
   ) {
-    this.logger.setContext(JwtTokenService.name);
+    this.logger.setContext(JwtTokenAdapter.name);
   }
 
   /**
    * Generates a JWT access token for the given user payload
    */
   async generateAccessToken(payload: JwtPayload): Promise<string> {
-    const logger = this.logger;
-    logger.assign({ method: 'generateAccessToken', userId: payload.sub });
+    this.logger.assign({ method: 'generateAccessToken' });
 
     try {
       const token = await this.jwtService.signAsync(
@@ -50,11 +49,10 @@ export class JwtTokenService implements TokenRepository {
         },
       );
 
-      logger.debug({ userId: payload.sub }, 'Access token generated successfully');
+      this.logger.debug({ token }, 'Access token generated successfully');
       return token;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error({ error: errorMessage, userId: payload.sub }, 'Failed to generate access token');
+      this.logger.error({ error }, 'Failed to generate access token');
       throw new Error('Failed to generate access token');
     }
   }
@@ -63,8 +61,7 @@ export class JwtTokenService implements TokenRepository {
    * Generates a new refresh token for the given user
    */
   generateRefreshToken(userId: string): Promise<RefreshTokenEntity> {
-    const logger = this.logger;
-    logger.assign({ method: 'generateRefreshToken', userId });
+    this.logger.assign({ method: 'generateRefreshToken' });
 
     const now = new Date();
     const expiresAt = new Date(now.getTime() + this.parseTimeToMs(this.config.refreshExpiresIn));
@@ -78,7 +75,7 @@ export class JwtTokenService implements TokenRepository {
     refreshToken.updatedAt = now;
     refreshToken.isRevoked = false;
 
-    logger.debug({ userId, tokenId: refreshToken.id }, 'Refresh token generated successfully');
+    this.logger.debug({ refreshToken }, 'Refresh token generated successfully');
     return Promise.resolve(refreshToken);
   }
 
@@ -86,8 +83,7 @@ export class JwtTokenService implements TokenRepository {
    * Generates both access and refresh tokens for a user
    */
   async generateTokenPair(payload: JwtPayload): Promise<TokenPair> {
-    const logger = this.logger;
-    logger.assign({ method: 'generateTokenPair', userId: payload.sub });
+    this.logger.assign({ method: 'generateTokenPair' });
 
     try {
       const [accessToken, refreshTokenEntity] = await Promise.all([
@@ -105,11 +101,10 @@ export class JwtTokenService implements TokenRepository {
         createdAt: now,
       };
 
-      logger.debug({ userId: payload.sub }, 'Token pair generated successfully');
+      this.logger.debug({ tokenPair }, 'Token pair generated successfully');
       return tokenPair;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error({ error: errorMessage, userId: payload.sub }, 'Failed to generate token pair');
+      this.logger.error({ error }, 'Failed to generate token pair');
       throw new Error('Failed to generate token pair');
     }
   }
@@ -118,8 +113,7 @@ export class JwtTokenService implements TokenRepository {
    * Validates and verifies a JWT access token
    */
   async validateAccessToken(token: string): Promise<JwtPayload | null> {
-    const logger = this.logger;
-    logger.assign({ method: 'validateAccessToken' });
+    this.logger.assign({ method: 'validateAccessToken' });
 
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token, {
@@ -128,16 +122,16 @@ export class JwtTokenService implements TokenRepository {
         audience: this.config.audience,
       });
 
-      logger.debug({ userId: payload.sub }, 'Access token validated successfully');
+      this.logger.debug({ userId: payload.sub }, 'Access token validated successfully');
       return payload;
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'TokenExpiredError') {
-        logger.warn('Access token has expired');
+        this.logger.warn('Access token has expired');
         throw new TokenExpiredDomainException();
       }
 
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.warn({ error: errorMessage }, 'Invalid access token');
+      this.logger.warn({ error: errorMessage }, 'Invalid access token');
       throw new InvalidTokenDomainException();
     }
   }
@@ -147,44 +141,41 @@ export class JwtTokenService implements TokenRepository {
    * These will be implemented when we add database persistence
    */
   validateRefreshToken(token: string): Promise<RefreshTokenEntity | null> {
-    const logger = this.logger;
-    logger.assign({ method: 'validateRefreshToken', token: token.substring(0, 10) + '...' });
-    logger.warn('Refresh token validation not implemented yet');
+    this.logger.assign({ method: 'validateRefreshToken', token });
+    this.logger.warn('Refresh token validation not implemented yet');
     throw new InvalidRefreshTokenDomainException();
   }
 
   revokeRefreshToken(token: string): Promise<void> {
-    const logger = this.logger;
-    logger.assign({ method: 'revokeRefreshToken' });
-    logger.info({ token: token.substring(0, 10) + '...' }, 'Refresh token revoked (placeholder)');
+    this.logger.assign({ method: 'revokeRefreshToken' });
+    this.logger.info(
+      { token: token.substring(0, 10) + '...' },
+      'Refresh token revoked (placeholder)',
+    );
     return Promise.resolve();
   }
 
   revokeAllUserTokens(userId: string): Promise<void> {
-    const logger = this.logger;
-    logger.assign({ method: 'revokeAllUserTokens', userId });
-    logger.info({ userId }, 'All user refresh tokens revoked (placeholder)');
+    this.logger.assign({ method: 'revokeAllUserTokens', userId });
+    this.logger.info('All user refresh tokens revoked (placeholder)');
     return Promise.resolve();
   }
 
   refreshAccessToken(refreshToken: string): Promise<TokenPair | null> {
-    const logger = this.logger;
-    logger.assign({ method: 'refreshAccessToken', token: refreshToken.substring(0, 10) + '...' });
-    logger.warn('Token refresh not implemented yet');
+    this.logger.assign({ method: 'refreshAccessToken', refreshToken });
+    this.logger.warn('Token refresh not implemented yet');
     return Promise.resolve(null);
   }
 
   storeRefreshToken(refreshToken: RefreshTokenEntity): Promise<RefreshTokenEntity> {
-    const logger = this.logger;
-    logger.assign({ method: 'storeRefreshToken', tokenId: refreshToken.id });
-    logger.debug({ tokenId: refreshToken.id }, 'Refresh token stored (placeholder)');
+    this.logger.assign({ method: 'storeRefreshToken', tokenId: refreshToken.id });
+    this.logger.debug({ tokenId: refreshToken.id }, 'Refresh token stored (placeholder)');
     return Promise.resolve(refreshToken);
   }
 
   findRefreshToken(token: string): Promise<RefreshTokenEntity | null> {
-    const logger = this.logger;
-    logger.assign({ method: 'findRefreshToken', token: token.substring(0, 10) + '...' });
-    logger.debug('Finding refresh token (placeholder)');
+    this.logger.assign({ method: 'findRefreshToken', token });
+    this.logger.debug('Finding refresh token (placeholder)');
     return Promise.resolve(null);
   }
 
