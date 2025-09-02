@@ -1,5 +1,6 @@
+import { UserEntity } from '@/modules/user/domain/entities';
 import { RefreshTokenEntity } from '../entities/refresh-token.entity';
-import { TokenPair, JwtPayload } from '../types';
+import { TokenPair, JwtPayload, TempTokenPayload, JwtTempTokenType } from '../types';
 
 /**
  * Abstract repository interface for token management operations
@@ -12,6 +13,27 @@ export abstract class TokenRepository {
    * @returns Promise resolving to the generated JWT token string
    */
   abstract generateAccessToken(payload: JwtPayload): Promise<string>;
+
+  /**
+   * Generates a temporary JWT token for specific actions (password recovery, email verification, etc.)
+   * @param user - The user entity for whom the token is being generated
+   * @param type - The type of temporary token being generated
+   * @returns Promise resolving to the generated temporary JWT token string
+   */
+  abstract generateTempToken(user: UserEntity, type: JwtTempTokenType): Promise<string>;
+
+  /**
+   * Validates a temporary JWT token and ensures it's of the expected type
+   * @param token - The temporary JWT token string to validate
+   * @param expectedType - The expected token type for validation
+   * @returns Promise resolving to the decoded payload if valid and of correct type
+   * @throws InvalidTokenDomainException if token is invalid
+   * @throws TokenExpiredDomainException if token has expired
+   */
+  abstract validateTempToken(
+    token: string,
+    expectedType: JwtTempTokenType,
+  ): Promise<TempTokenPayload>;
 
   /**
    * Generates a new refresh token for the given user

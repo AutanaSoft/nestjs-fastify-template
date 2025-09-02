@@ -5,6 +5,7 @@ import { randomBytes, randomUUID } from 'crypto';
 import { PinoLogger } from 'nestjs-pino';
 
 import { jwtConfig } from '@/config';
+import { UserEntity } from '@/modules/user/domain/entities';
 import { RefreshTokenEntity } from '../../domain/entities';
 import {
   InvalidRefreshTokenDomainException,
@@ -12,7 +13,7 @@ import {
   TokenExpiredDomainException,
 } from '../../domain/exceptions';
 import { TokenRepository } from '../../domain/repositories';
-import { JwtPayload, TokenPair } from '../../domain/types';
+import { JwtPayload, JwtTempTokenType, TempTokenPayload, TokenPair } from '../../domain/types';
 
 /**
  * JWT token adapter implementing the TokenRepository interface
@@ -49,11 +50,84 @@ export class JwtTokenAdapter implements TokenRepository {
         },
       );
 
-      this.logger.debug({ token }, 'Access token generated successfully');
+      this.logger.info({ userId: payload.sub }, 'Access token generated successfully');
       return token;
     } catch (error: unknown) {
       this.logger.error({ error }, 'Failed to generate access token');
       throw new Error('Failed to generate access token');
+    }
+  }
+
+  /**
+   * Generates a temporary JWT token for specific actions
+   */
+  async generateTempToken(user: UserEntity, type: JwtTempTokenType): Promise<string> {
+    this.logger.assign({ method: 'generateTempToken', userId: user.id, type });
+
+    try {
+      const expiresIn = this.getTempTokenExpiration(type);
+      const tokenId = randomUUID(); // Generate unique UUID for token identification
+
+      const payload: TempTokenPayload = {
+        sub: tokenId, // Unique token identifier for database validation
+        user, // Complete user entity
+        type,
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + this.parseTimeToSeconds(expiresIn),
+      };
+
+      const token = await this.jwtService.signAsync(payload, {
+        expiresIn,
+        issuer: this.config.issuer,
+        audience: this.config.audience,
+      });
+
+      this.logger.assign({ tokenId });
+      this.logger.info('Temporary token generated successfully');
+      return token;
+    } catch (error: unknown) {
+      this.logger.error({ error }, 'Failed to generate temporary token');
+      throw new Error('Failed to generate temporary token');
+    }
+  }
+
+  /**
+   * Validates a temporary JWT token and ensures it's of the expected type
+   */
+  async validateTempToken(
+    token: string,
+    expectedType: JwtTempTokenType,
+  ): Promise<TempTokenPayload> {
+    this.logger.assign({ method: 'validateTempToken', expectedType });
+
+    try {
+      const payload = await this.jwtService.verifyAsync<TempTokenPayload>(token, {
+        secret: this.config.secret,
+        issuer: this.config.issuer,
+        audience: this.config.audience,
+      });
+
+      // Verify token type matches expected type
+      if (payload.type !== expectedType) {
+        this.logger.assign({ actualType: payload.type });
+        this.logger.warn('Token type mismatch');
+        throw new InvalidTokenDomainException();
+      }
+
+      this.logger.info(
+        { tokenId: payload.sub, userId: payload.user.id, type: payload.type },
+        'Temporary token validated successfully',
+      );
+      return payload;
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'TokenExpiredError') {
+        this.logger.warn('Temporary token has expired');
+        throw new TokenExpiredDomainException();
+      }
+
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.warn({ error: errorMessage }, 'Invalid temporary token');
+      throw new InvalidTokenDomainException();
     }
   }
 
@@ -177,6 +251,35 @@ export class JwtTokenAdapter implements TokenRepository {
     this.logger.assign({ method: 'findRefreshToken', token });
     this.logger.debug('Finding refresh token (placeholder)');
     return Promise.resolve(null);
+  }
+
+  /**
+   * Helper method to get expiration time for temporary tokens based on type
+   */
+  private getTempTokenExpiration(type: JwtTempTokenType): string {
+    switch (type) {
+      case JwtTempTokenType.FORGOT_PASSWORD:
+        return this.config.tempTokens.forgotPassword;
+      case JwtTempTokenType.FORGOT_PIN:
+        return this.config.tempTokens.forgotPin;
+      case JwtTempTokenType.RESET_PASSWORD:
+        return this.config.tempTokens.resetPassword;
+      case JwtTempTokenType.RESET_PIN:
+        return this.config.tempTokens.resetPin;
+      case JwtTempTokenType.VERIFY_EMAIL:
+        return this.config.tempTokens.verifyEmail;
+      case JwtTempTokenType.REFERRAL:
+        return this.config.tempTokens.referral;
+      default:
+        return '15m'; // Default fallback
+    }
+  }
+
+  /**
+   * Helper method to parse time string to seconds
+   */
+  private parseTimeToSeconds(time: string): number {
+    return Math.floor(this.parseTimeToMs(time) / 1000);
   }
 
   /**

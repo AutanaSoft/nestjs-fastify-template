@@ -5,6 +5,7 @@
  * - JWT secret key for token signing and verification
  * - Token expiration times (access and refresh tokens)
  * - JWT claims (issuer and audience)
+ * - Temporary token configurations for specific actions
  * - NestJS JWT module options factory
  */
 
@@ -26,6 +27,21 @@ export type JwtConfig = {
   issuer: string;
   /** JWT audience claim identifying the intended token recipients */
   audience: string;
+  /** Temporary token configurations for specific actions */
+  tempTokens: {
+    /** Password recovery token expiration */
+    forgotPassword: string;
+    /** PIN recovery token expiration */
+    forgotPin: string;
+    /** Password reset token expiration */
+    resetPassword: string;
+    /** PIN reset token expiration */
+    resetPin: string;
+    /** Email verification token expiration */
+    verifyEmail: string;
+    /** Referral token expiration */
+    referral: string;
+  };
 };
 
 /**
@@ -38,6 +54,7 @@ export type JwtConfig = {
  * - JWT_REFRESH_EXPIRES_IN: Refresh token expiration (default: '7d')
  * - JWT_ISSUER: Token issuer identifier (default: 'nestjs-auth-api')
  * - JWT_AUDIENCE: Token audience identifier (default: 'nestjs-auth-client')
+ * - JWT_TEMP_TOKEN_*: Temporary token expiration times
  *
  * @returns The JWT configuration object
  */
@@ -49,6 +66,14 @@ export default registerAs(
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     issuer: process.env.JWT_ISSUER || 'nestjs-auth-api',
     audience: process.env.JWT_AUDIENCE || 'nestjs-auth-client',
+    tempTokens: {
+      forgotPassword: process.env.JWT_TEMP_TOKEN_FORGOT_PASSWORD || '15m',
+      forgotPin: process.env.JWT_TEMP_TOKEN_FORGOT_PIN || '15m',
+      resetPassword: process.env.JWT_TEMP_TOKEN_RESET_PASSWORD || '15m',
+      resetPin: process.env.JWT_TEMP_TOKEN_RESET_PIN || '15m',
+      verifyEmail: process.env.JWT_TEMP_TOKEN_VERIFY_EMAIL || '24h',
+      referral: process.env.JWT_TEMP_TOKEN_REFERRAL || '30d',
+    },
   }),
 );
 

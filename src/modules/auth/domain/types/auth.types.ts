@@ -1,6 +1,19 @@
 import { UserEntity } from '@/modules/user/domain/entities';
 
 /**
+ * Enum for different types of temporary JWT tokens
+ * Used for specific actions like password recovery, email verification, etc.
+ */
+export enum JwtTempTokenType {
+  FORGOT_PASSWORD = 'FORGOT_PASSWORD',
+  FORGOT_PIN = 'FORGOT_PIN',
+  RESET_PASSWORD = 'RESET_PASSWORD',
+  RESET_PIN = 'RESET_PIN',
+  VERIFY_EMAIL = 'VERIFY_EMAIL',
+  REFERRAL = 'REFERRAL',
+}
+
+/**
  * Authentication credentials for user sign-in
  * Supports both email and username for flexible authentication
  */
@@ -35,6 +48,17 @@ export interface JwtPayload {
   iat?: number;
   /** Token expiration timestamp */
   exp?: number;
+}
+
+/**
+ * Temporary token payload structure for specific actions
+ * Uses a unique identifier (UUID) instead of user ID for database validation
+ */
+export interface TempTokenPayload extends Omit<JwtPayload, 'sub'> {
+  /** Unique token identifier (UUID) for database validation */
+  sub: string;
+  /** Type of temporary token */
+  type: JwtTempTokenType;
 }
 
 /**
