@@ -1,16 +1,12 @@
 import { UserEntity } from '@/modules/user/domain/entities';
 
 /**
- * Enum for different types of temporary JWT tokens
- * Used for specific actions like password recovery, email verification, etc.
+ * Enum defining different types of temporary JWT tokens used for various authentication flows
  */
 export enum JwtTempTokenType {
-  FORGOT_PASSWORD = 'FORGOT_PASSWORD',
-  FORGOT_PIN = 'FORGOT_PIN',
-  RESET_PASSWORD = 'RESET_PASSWORD',
-  RESET_PIN = 'RESET_PIN',
-  VERIFY_EMAIL = 'VERIFY_EMAIL',
-  REFERRAL = 'REFERRAL',
+  FORGOT_PASSWORD = 'forgot_password',
+  RESET_PASSWORD = 'reset_password',
+  REFRESH_TOKEN = 'refresh_token',
 }
 
 /**

@@ -37,10 +37,10 @@ export abstract class TokenRepository {
 
   /**
    * Generates a new refresh token for the given user
-   * @param userId - The unique identifier of the user
+   * @param user - The user entity for whom the refresh token is being generated
    * @returns Promise resolving to the refresh token entity
    */
-  abstract generateRefreshToken(userId: string): Promise<RefreshTokenEntity>;
+  abstract generateRefreshToken(user: UserEntity): Promise<RefreshTokenEntity>;
 
   /**
    * Generates both access and refresh tokens for a user

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { randomBytes, randomUUID } from 'crypto';
+import { randomUUID } from 'crypto';
 import { PinoLogger } from 'nestjs-pino';
 
 import { jwtConfig } from '@/config';
@@ -133,24 +133,38 @@ export class JwtTokenAdapter implements TokenRepository {
 
   /**
    * Generates a new refresh token for the given user
+   * Now uses JWT temporary token instead of random bytes
    */
-  generateRefreshToken(userId: string): Promise<RefreshTokenEntity> {
+  async generateRefreshToken(user: UserEntity): Promise<RefreshTokenEntity> {
     this.logger.assign({ method: 'generateRefreshToken' });
 
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + this.parseTimeToMs(this.config.refreshExpiresIn));
+    try {
+      // Generate JWT temporary token for refresh token
+      const jwtToken = await this.generateTempToken(user, JwtTempTokenType.REFRESH_TOKEN);
 
-    const refreshToken = new RefreshTokenEntity();
-    refreshToken.id = randomUUID();
-    refreshToken.userId = userId;
-    refreshToken.token = randomBytes(32).toString('hex');
-    refreshToken.expiresAt = expiresAt;
-    refreshToken.createdAt = now;
-    refreshToken.updatedAt = now;
-    refreshToken.isRevoked = false;
+      const now = new Date();
+      const expiresAt = new Date(
+        now.getTime() + this.parseTimeToMs(this.config.tempTokens.refreshToken),
+      );
 
-    this.logger.debug({ refreshToken }, 'Refresh token generated successfully');
-    return Promise.resolve(refreshToken);
+      const refreshToken = new RefreshTokenEntity();
+      refreshToken.id = randomUUID();
+      refreshToken.userId = user.id;
+      refreshToken.token = jwtToken; // Store the JWT token instead of random bytes
+      refreshToken.expiresAt = expiresAt;
+      refreshToken.createdAt = now;
+      refreshToken.updatedAt = now;
+      refreshToken.isRevoked = false;
+
+      this.logger.debug(
+        { tokenId: refreshToken.id, userId: user.id },
+        'Refresh token generated successfully',
+      );
+      return refreshToken;
+    } catch (error: unknown) {
+      this.logger.error({ error, userId: user.id }, 'Failed to generate refresh token');
+      throw new Error('Failed to generate refresh token');
+    }
   }
 
   /**
@@ -162,7 +176,7 @@ export class JwtTokenAdapter implements TokenRepository {
     try {
       const [accessToken, refreshTokenEntity] = await Promise.all([
         this.generateAccessToken(payload),
-        this.generateRefreshToken(payload.sub),
+        this.generateRefreshToken(payload.user),
       ]);
 
       const now = new Date();
@@ -260,16 +274,10 @@ export class JwtTokenAdapter implements TokenRepository {
     switch (type) {
       case JwtTempTokenType.FORGOT_PASSWORD:
         return this.config.tempTokens.forgotPassword;
-      case JwtTempTokenType.FORGOT_PIN:
-        return this.config.tempTokens.forgotPin;
       case JwtTempTokenType.RESET_PASSWORD:
         return this.config.tempTokens.resetPassword;
-      case JwtTempTokenType.RESET_PIN:
-        return this.config.tempTokens.resetPin;
-      case JwtTempTokenType.VERIFY_EMAIL:
-        return this.config.tempTokens.verifyEmail;
-      case JwtTempTokenType.REFERRAL:
-        return this.config.tempTokens.referral;
+      case JwtTempTokenType.REFRESH_TOKEN:
+        return this.config.tempTokens.refreshToken;
       default:
         return '15m'; // Default fallback
     }
