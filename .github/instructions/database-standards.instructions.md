@@ -110,7 +110,23 @@ model Post {
 }
 ```
 
-## 4. Transaction Management
+## 4. Database Documentation Standards
+
+### Repository Adapter Documentation
+
+- **All adapter classes** must include JSDoc describing their architectural role
+- **Database operations** must document transaction behavior and error handling
+- **Include Prisma-specific considerations**: Model transformations, query optimization
+- **Document business constraints**: Unique validations, relationships, and cascade behavior
+
+### Schema Documentation Requirements
+
+- **Prisma models**: Use `/// Comments` for schema documentation
+- **Field documentation**: Explain business purpose, validation rules, and relationships
+- **Migration documentation**: Document breaking changes and migration impacts
+- **Index documentation**: Explain performance rationale and query patterns
+
+## 5. Transaction Management
 
 ### Interactive Transactions
 
@@ -142,7 +158,7 @@ async createUserWithProfile(userData: CreateUserInput): Promise<UserEntity> {
 - Use `findMany` with proper pagination for large datasets
 - Consider performance implications of batch sizes
 
-## 5. Performance Optimization
+## 6. Performance Optimization
 
 ### Query Optimization
 
@@ -183,7 +199,7 @@ const users = await this.prisma.user.findMany({
 - Implement cache invalidation strategies
 - Consider GraphQL DataLoader pattern for batching
 
-## 6. Prisma Migrate Best Practices
+## 7. Prisma Migrate Best Practices
 
 ### Migration Management
 
@@ -209,7 +225,7 @@ const users = await this.prisma.user.findMany({
 - Monitor migration performance on large tables
 - Implement rollback strategies for critical changes
 
-## 7. Security and Data Protection
+## 8. Security and Data Protection
 
 ### Input Validation and Sanitization
 
@@ -245,7 +261,7 @@ prisma.$use(async (params, next) => {
 - Implement data anonymization for development environments
 - Handle GDPR compliance with data deletion capabilities
 
-## 8. Prisma Error Handling
+## 9. Prisma Error Handling
 
 ### Known Prisma Error Types
 
@@ -286,7 +302,7 @@ async findById(id: string): Promise<UserEntity> {
 - Handle transaction deadlock and serialization failures
 - Implement proper cleanup on transaction failures
 
-## 9. Testing Strategies with Prisma
+## 10. Testing Strategies with Prisma
 
 ### Unit Testing Repository Adapters
 
@@ -329,7 +345,7 @@ describe('UserPrismaAdapter', () => {
 - Test migration scenarios in E2E environment
 - Verify data consistency across related entities
 
-## 10. Code Organization and Architecture
+## 11. Code Organization and Architecture
 
 ### Hexagonal Architecture Integration
 
@@ -367,7 +383,7 @@ infrastructure/
 - Implement proper lifecycle management (onModuleDestroy)
 - Configure connection pooling based on environment
 
-## 11. Development Workflow and Tools
+## 12. Development Workflow and Tools
 
 ### Prisma CLI Best Practices
 

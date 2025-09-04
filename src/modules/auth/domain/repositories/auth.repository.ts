@@ -1,46 +1,50 @@
 import { UserEntity } from '@/modules/user/domain/entities';
-import { AuthSignInData, AuthSignUpData } from '../types';
+import { AuthSignUpData } from '../types';
 
 /**
- * Abstract repository interface for authentication operations
- * This repository defines the contract for user authentication and credential validation
+ * Abstract repository interface for authentication operations following hexagonal architecture principles.
+ *
+ * This repository defines the contract for user authentication and credential validation.
+ * It serves as a port in the hexagonal architecture, providing a stable interface
+ * that can be implemented by different adapters (Prisma, MongoDB, etc.).
  */
 export abstract class AuthRepository {
   /**
-   * Validates user credentials for sign-in process
-   * @param credentials - Authentication credentials containing identifier (email or username) and password
-   * @returns Promise resolving to the authenticated user entity if credentials are valid, null if invalid
+   * Registers a new user in the system with validation for unique constraints.
+   *
+   * This method handles the complete user registration process including:
+   * - Email uniqueness validation
+   * - Username uniqueness validation
+   * - Password hashing (handled by domain service)
+   * - User entity creation with default values
+   *
+   * @param params - User registration data containing email, username, and password
+   * @param params.email - User's email address (must be unique across the system)
+   * @param params.userName - User's chosen username (must be unique across the system)
+   * @param params.password - Plain text password (will be hashed before storage)
+   *
+   * @returns Promise resolving to the newly created user entity with generated ID and timestamps
+   *
+   * @throws {EmailAlreadyExistsDomainException} When the email is already registered
+   * @throws {UsernameAlreadyExistsDomainException} When the username is already taken
+   * @throws {Error} For unexpected database errors during user creation
    */
-  abstract validateCredentials(credentials: AuthSignInData): Promise<UserEntity | null>;
+  abstract register(params: AuthSignUpData): Promise<UserEntity>;
 
   /**
-   * Registers a new user in the system
-   * @param registrationData - User registration data containing email, username, and password
-   * @returns Promise resolving to the created user entity
-   * @throws Error if email or username already exists
+   * Finds a user by email address or username for authentication and validation purposes.
+   *
+   * This method supports flexible user lookup using either email or username,
+   * enabling multiple authentication strategies. It's used for:
+   * - User authentication during sign-in
+   * - Duplicate validation during registration
+   * - User existence checks
+   *
+   * @param emailOrUserName - The email address or username to search for
+   *
+   * @returns Promise resolving to:
+   *   - UserEntity if a user is found with the given email or username
+   *   - null if no user exists with the provided identifier
    */
-  abstract registerUser(registrationData: AuthSignUpData): Promise<UserEntity>;
-
-  /**
-   * Finds a user by email address
-   * Used for duplicate email validation during registration
-   * @param email - The email address to search for
-   * @returns Promise resolving to the user entity if found, null otherwise
-   */
-  abstract findUserByEmail(email: string): Promise<UserEntity | null>;
-
-  /**
-   * Finds a user by username
-   * Used for duplicate username validation during registration
-   * @param userName - The username to search for
-   * @returns Promise resolving to the user entity if found, null otherwise
-   */
-  abstract findUserByUserName(userName: string): Promise<UserEntity | null>;
-
-  /**
-   * Finds a user by their unique identifier
-   * @param id - The unique identifier of the user to find
-   * @returns Promise resolving to the user entity if found, null otherwise
-   */
-  abstract findUserById(id: string): Promise<UserEntity | null>;
+  abstract findUser(emailOrUserName: string): Promise<UserEntity | null>;
 }

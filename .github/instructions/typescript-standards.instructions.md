@@ -109,7 +109,41 @@ export * from './user.enums';
 export class UserModule {}
 ```
 
-## 3. Repository Pattern and Dependency Injection
+## 4. Repository Pattern and Dependency Injection
+
+### Comprehensive Documentation Requirements
+
+- **All public classes, interfaces, and abstract classes** must have JSDoc documentation
+- **All public methods and functions** must include complete JSDoc with all relevant tags
+- **Multi-paragraph descriptions** for complex components with architectural context
+- **Business logic explanation** including validation rules and constraints
+- **Architectural role explanation** describing how the component fits in hexagonal architecture
+
+### JSDoc Structure Requirements
+
+- **First paragraph**: Brief description of the component's primary purpose
+- **Second paragraph**: Detailed explanation of functionality and business context
+- **Third paragraph**: Implementation details, validation rules, or architectural notes
+- **Parameter documentation**: Use `@param` with detailed descriptions including validation rules
+- **Return documentation**: Use `@returns` with complete description of possible return states
+- **Exception documentation**: Use `@throws` for all possible exceptions with specific conditions
+
+### Documentation Requirements by Component Type
+
+- **Domain Entities**: Document business purpose, validation rules, and relationships
+- **Use Cases**: Document business flow, validation steps, and error scenarios
+- **Repositories**: Document data access patterns, constraints, and architectural role
+- **DTOs**: Document validation rules, transformation logic, and usage context
+- **Services**: Document business logic, dependencies, and integration points
+- **Resolvers**: Document GraphQL operations, authorization, and data flow
+
+### JSDoc Tag Usage Standards
+
+- **@param**: Include parameter type, validation rules, constraints, and business meaning
+- **@returns**: Describe all possible return values and their conditions
+- **@throws**: Document specific exception types with triggering conditions
+- **@deprecated**: Include migration path and version information
+- **@since**: Version information for new features
 
 ### Abstract Repository Interfaces
 
@@ -200,7 +234,7 @@ export class CreateUserUseCase {
 }
 ```
 
-## 4. Advanced TypeScript Patterns
+## 5. Advanced TypeScript Patterns
 
 ### Generic Constraints and Utility Types
 
@@ -262,7 +296,7 @@ export type ApiResponse<T> = T extends UserEntity
     : never;
 ```
 
-## 5. Error Handling and Domain Exceptions
+## 6. Error Handling and Domain Exceptions
 
 ### Domain Exception Hierarchy
 
@@ -338,7 +372,7 @@ export class UpdateUserUseCase {
 }
 ```
 
-## 6. Testing with TypeScript
+## 7. Testing with TypeScript
 
 ### Unit Testing with Proper Mocking
 

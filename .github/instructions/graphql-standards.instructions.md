@@ -186,7 +186,24 @@ export class UserConnection {
 }
 ```
 
-## 2. Resolver Implementation with Hexagonal Architecture
+## 2. GraphQL Documentation Standards
+
+### Resolver Documentation Requirements
+
+- **All resolvers** must include comprehensive JSDoc documentation
+- **Mutation and query methods** must document business flow and validation
+- **Include GraphQL-specific context**: Authorization requirements, field relationships
+- **Document error scenarios**: All possible GraphQL errors with codes and conditions
+- **Schema descriptions**: Use GraphQL description fields for self-documenting schema
+
+### GraphQL Schema Description Standards
+
+- **Types**: Include business purpose and field relationships
+- **Fields**: Document validation rules, nullability reasons, and business meaning
+- **Mutations**: Document side effects, validation rules, and authorization requirements
+- **Queries**: Document filtering options, pagination, and performance considerations
+
+## 3. Resolver Implementation with Hexagonal Architecture
 
 ### Resolver Structure in Infrastructure Layer
 
@@ -262,7 +279,7 @@ async postCount(@Parent() user: User): Promise<number> {
 }
 ```
 
-## 3. GraphQL Custom Decorators and Context
+## 4. GraphQL Custom Decorators and Context
 
 ### Custom Parameter Decorators
 
@@ -344,7 +361,7 @@ async posts(
 }
 ```
 
-## 4. DataLoader Pattern for N+1 Query Prevention
+## 5. DataLoader Pattern for N+1 Query Prevention
 
 ### DataLoader Implementation
 
@@ -393,7 +410,7 @@ async author(
 }
 ```
 
-## 5. GraphQL Error Handling
+## 6. GraphQL Error Handling
 
 ### Domain Error Mapping
 
@@ -466,7 +483,7 @@ private transformValidationErrors(errors: ValidationError[]): GraphQLFormattedEr
 }
 ```
 
-## 6. Mercurius Subscriptions
+## 7. Mercurius Subscriptions
 
 ### PubSub Configuration
 
@@ -540,7 +557,7 @@ export class PostSubscriptionResolver {
 - Handle connection timeouts and reconnections
 - Monitor subscription performance and resource usage
 
-## 7. Testing GraphQL Resolvers
+## 8. Testing GraphQL Resolvers
 
 ### Unit Testing Resolvers
 
@@ -756,7 +773,7 @@ describe('UserResolver Integration', () => {
 });
 ```
 
-## 8. Performance Optimization
+## 9. Performance Optimization
 
 ### Query Complexity Analysis
 
@@ -852,7 +869,7 @@ async users(
 }
 ```
 
-## 9. Code Organization and Architecture
+## 10. Code Organization and Architecture
 
 ### Hexagonal Architecture Integration
 
@@ -959,7 +976,7 @@ export class DateTimeScalar implements CustomScalar<string, Date> {
 }
 ```
 
-## 10. Development Workflow and Tools
+## 11. Development Workflow and Tools
 
 ### Schema-First vs Code-First Approach
 

@@ -46,11 +46,20 @@ Your task is to generate code, fixes, and refactoring that comply with fundament
 
 - Always respond in Spanish when communicating with developers
 - Use English for all code and technical documentation:
-  - Source code comments
-  - JSDoc and function documentation
-  - Component descriptions
-  - Type and interface definitions
+  - **Comprehensive JSDoc documentation** for all classes, methods, and functions
+  - **Detailed inline comments** for complex business logic
+  - Component descriptions and architectural context
+  - Type and interface definitions with descriptions
   - README files and developer guides
+
+### JSDoc Documentation Standards
+
+- **Classes**: Document purpose, architectural role, and usage context
+- **Methods**: Include description, architectural context, parameters, returns, and exceptions
+- **Multi-paragraph structure**: Separate general description, detailed explanation, and usage notes
+- **Use JSDoc tags**: `@param`, `@returns`, `@throws` when applicable
+- **Include architectural context**: Explain how the component fits in hexagonal architecture
+- **Business context**: Explain the business purpose and validation rules
 
 ## Technology Stack
 
