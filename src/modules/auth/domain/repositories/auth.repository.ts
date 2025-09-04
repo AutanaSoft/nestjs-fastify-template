@@ -1,5 +1,5 @@
 import { UserEntity } from '@/modules/user/domain/entities';
-import { AuthCredentials, UserRegistrationData } from '../types';
+import { AuthSignInData, AuthSignUpData } from '../types';
 
 /**
  * Abstract repository interface for authentication operations
@@ -11,7 +11,7 @@ export abstract class AuthRepository {
    * @param credentials - Authentication credentials containing identifier (email or username) and password
    * @returns Promise resolving to the authenticated user entity if credentials are valid, null if invalid
    */
-  abstract validateCredentials(credentials: AuthCredentials): Promise<UserEntity | null>;
+  abstract validateCredentials(credentials: AuthSignInData): Promise<UserEntity | null>;
 
   /**
    * Registers a new user in the system
@@ -19,7 +19,7 @@ export abstract class AuthRepository {
    * @returns Promise resolving to the created user entity
    * @throws Error if email or username already exists
    */
-  abstract registerUser(registrationData: UserRegistrationData): Promise<UserEntity>;
+  abstract registerUser(registrationData: AuthSignUpData): Promise<UserEntity>;
 
   /**
    * Finds a user by email address

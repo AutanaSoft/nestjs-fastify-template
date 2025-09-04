@@ -26,7 +26,7 @@ applyTo: '**'
 ## File Organization
 
 - Group related files in feature modules following hexagonal architecture
-- Use barrel exports with `index.ts` files for clean imports
+- Use barrel exports with `index.ts` files only in subdirectories within each layer (not in the layer directories themselves)
 - Place configuration files in `src/config/` with typed factory pattern
 - Store shared utilities in `src/shared/` organized by layer (domain/application/infrastructure)
 

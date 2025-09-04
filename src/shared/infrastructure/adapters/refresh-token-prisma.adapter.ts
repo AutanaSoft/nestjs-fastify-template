@@ -3,8 +3,8 @@ import { PinoLogger } from 'nestjs-pino';
 
 import { PrismaService } from '@/shared/application/services';
 import { RefreshTokenRepository } from '@/shared/domain/repositories';
+import { RefreshTokenData } from '@/shared/domain/types';
 import { plainToInstance } from 'class-transformer';
-import { RefreshTokenData } from '../../../modules/auth/domain/types';
 import { RefreshTokenEntity } from '../../domain/entities';
 
 /**

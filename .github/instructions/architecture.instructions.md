@@ -8,7 +8,7 @@ applyTo: '**'
 
 - Organize code in feature modules following hexagonal architecture
 - Keep each layer (application, domain, infrastructure) isolated
-- Use proper barrel exports for each layer
+- Use proper barrel exports only in subdirectories within each layer (not in the layer directories themselves)
 - Follow the defined folder structure:
 
 ### Module Structure (Hexagonal Architecture)
@@ -78,8 +78,7 @@ src/shared/
 │   ├── services/          # Infrastructure services (external APIs)
 │   └── utils/             # Infrastructure utilities (bcrypt, crypto, etc.)
 ├── pino-logger.module.ts  # Pino logger configuration
-├── shared.module.ts       # Shared module registration
-└── index.ts              # Barrel exports
+└── shared.module.ts       # Shared module registration
 ```
 
 ## 2. Domain Layer

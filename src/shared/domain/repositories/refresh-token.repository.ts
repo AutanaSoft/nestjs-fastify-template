@@ -1,5 +1,5 @@
-import { RefreshTokenData } from '@/modules/auth/domain/types';
 import { RefreshTokenEntity } from '../entities';
+import { RefreshTokenData } from '../types';
 
 /**
  * Abstract repository interface for refresh token persistence operations
