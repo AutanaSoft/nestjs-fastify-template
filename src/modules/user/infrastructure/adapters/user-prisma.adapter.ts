@@ -1,10 +1,10 @@
+import { PrismaErrorHandlerService } from '@/shared/application/services';
 import { PrismaService } from '@/shared/application/services/prisma.service';
 import { PaginatedData } from '@/shared/domain/types';
 import { UserEntity } from '@modules/user/domain/entities/user.entity';
 import { UserRepository } from '@modules/user/domain/repositories/user.repository';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaErrorHandlerService } from '@shared/infrastructure/services';
 import { plainToInstance } from 'class-transformer';
 import { PinoLogger } from 'nestjs-pino';
 import { UserCreateData, UserFindAllPaginateData, UserUpdateData } from '../../domain/types';

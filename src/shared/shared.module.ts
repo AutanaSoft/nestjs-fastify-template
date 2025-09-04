@@ -1,20 +1,37 @@
+import jwtConfig, { createJwtModuleOptions } from '@/config/jwtConfig';
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { JwtModule } from '@nestjs/jwt';
 import { EventBusService, PrismaService } from './application/services';
-import { PrismaErrorHandlerService } from './infrastructure/services';
+import { JwtTokenService } from './application/services/jwt-token.service';
+import { PrismaErrorHandlerService } from './application/services/prisma-error-handler.service';
+import { RefreshTokenRepository } from './domain/repositories';
+import { RefreshTokenPrismaAdapter } from './infrastructure/adapters';
 
 @Module({
   imports: [
     EventEmitterModule.forRoot({
-      // Enable wildcard event matching
       wildcard: true,
-      // Limit maximum event listeners (0 = unlimited)
       maxListeners: 20,
-      // Enable verbosity for debugging
       verboseMemoryLeak: true,
     }),
+    // Configure JWT module for token operations
+    JwtModule.registerAsync({
+      imports: [ConfigModule.forFeature(jwtConfig)],
+      useFactory: createJwtModuleOptions,
+      inject: [jwtConfig.KEY],
+    }),
   ],
-  providers: [PrismaService, PrismaErrorHandlerService, EventBusService],
-  exports: [PrismaService, PrismaErrorHandlerService, EventBusService],
+  providers: [
+    PrismaService,
+    PrismaErrorHandlerService,
+    EventBusService,
+    {
+      provide: RefreshTokenRepository,
+      useClass: RefreshTokenPrismaAdapter,
+    },
+  ],
+  exports: [PrismaService, PrismaErrorHandlerService, EventBusService, JwtTokenService],
 })
 export class SharedModule {}

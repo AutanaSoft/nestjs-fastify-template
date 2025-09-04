@@ -1,3 +1,4 @@
+import { RefreshTokenData } from '@/modules/auth/domain/types';
 import { RefreshTokenEntity } from '../entities';
 
 /**
@@ -17,7 +18,7 @@ export abstract class RefreshTokenRepository {
    * @param refreshToken - The refresh token entity to create
    * @returns Promise resolving to the created refresh token entity
    */
-  abstract create(refreshToken: RefreshTokenEntity): Promise<RefreshTokenEntity>;
+  abstract create(refreshToken: RefreshTokenData): Promise<RefreshTokenData>;
 
   /**
    * Finds a refresh token by its unique identifier

@@ -6,6 +6,7 @@ import {
   corsConfig,
   databaseConfig,
   graphqlConfig,
+  jwtConfig,
   pinoConfig,
   throttlerConfig,
 } from '@config/index';
@@ -14,7 +15,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 import { MercuriusDriver, MercuriusDriverConfig } from '@nestjs/mercurius';
-import { GraphQLExceptionFilter } from '@shared/infrastructure/filters';
+import { GraphQLExceptionFilter } from '@/shared/application/filters';
 import { SharedModule } from '@shared/shared.module';
 import { LoggerModule, Params } from 'nestjs-pino';
 import { UserModule } from './modules/user/user.module';
@@ -31,6 +32,7 @@ import { AppController } from './app.controller';
         throttlerConfig,
         graphqlConfig,
         pinoConfig,
+        jwtConfig,
       ],
       envFilePath: ['.env'],
       isGlobal: true,

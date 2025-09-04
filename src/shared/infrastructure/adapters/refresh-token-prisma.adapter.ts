@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
 
 import { PrismaService } from '@/shared/application/services';
+import { RefreshTokenRepository } from '@/shared/domain/repositories';
 import { plainToInstance } from 'class-transformer';
+import { RefreshTokenData } from '../../../modules/auth/domain/types';
 import { RefreshTokenEntity } from '../../domain/entities';
-import { RefreshTokenRepository } from '../../domain/repositories';
-import { RefreshTokenData } from '../../domain/types';
 
 /**
  * Prisma adapter for refresh token persistence operations
@@ -29,7 +29,7 @@ export class RefreshTokenPrismaAdapter implements RefreshTokenRepository {
     this.logger.assign({ method: 'generateSubId' });
     try {
       const subId = await this.prisma.$queryRaw<{ id: string }[]>`SELECT gen_random_uuid() AS id`;
-      this.logger.debug({ subId }, 'Generated new refresh token sub ID');
+      this.logger.info({ subId }, 'Generated new refresh token sub ID');
       return subId[0].id;
     } catch (error: unknown) {
       this.logger.error({ error }, 'Failed to generate refresh token sub ID');
@@ -42,7 +42,6 @@ export class RefreshTokenPrismaAdapter implements RefreshTokenRepository {
    */
   async create(refreshToken: RefreshTokenData): Promise<RefreshTokenEntity> {
     this.logger.assign({ method: 'create' });
-
     try {
       const createdToken = await this.prisma.refreshToken.create({ data: refreshToken });
       return plainToInstance(RefreshTokenEntity, createdToken);
