@@ -31,6 +31,7 @@ import { RefreshTokenPrismaAdapter } from './infrastructure/adapters';
       provide: RefreshTokenRepository,
       useClass: RefreshTokenPrismaAdapter,
     },
+    JwtTokenService,
   ],
   exports: [PrismaService, PrismaErrorHandlerService, EventBusService, JwtTokenService],
 })
