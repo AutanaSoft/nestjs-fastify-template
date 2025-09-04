@@ -10,7 +10,8 @@ import {
 } from '@/modules/auth/domain/exceptions';
 import { UserEntity } from '@/modules/user/domain/entities';
 import { RefreshTokenRepository } from '@/shared/domain/repositories';
-import { JwtPayload, JwtTempTokenType, TempTokenPayload } from '@/shared/domain/types';
+import { JwtPayload, TempTokenPayload } from '@/shared/domain/types';
+import { JwtTempTokenType } from '@/shared/domain/enums';
 
 /**
  * JWT service for handling generic JWT token operations
