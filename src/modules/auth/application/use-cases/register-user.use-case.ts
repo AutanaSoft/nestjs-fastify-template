@@ -1,9 +1,8 @@
+import { UserDto } from '@/modules/user/application/dto';
+import { CreateUserUseCase } from '@/modules/user/application/use-cases';
 import { Injectable } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
-import { CreateUserUseCase } from '@/modules/user/application/use-cases';
-import { UserCreateArgsDto } from '@/modules/user/application/dto/args';
-import { UserDto } from '@/modules/user/application/dto';
-import { AuthSignUpData } from '../../domain/types';
+import { SignUpArgsDto } from '../dto/args';
 
 /**
  * Use case for user registration through the authentication system.
@@ -44,7 +43,7 @@ export class RegisterUserUseCase {
    * which in turn uses the user repository for persistence operations.
    * This ensures consistent user creation logic across the application.
    *
-   * @param registrationData - User registration information
+   * @param params - User registration information
    * @param registrationData.email - User's email address (must be unique)
    * @param registrationData.userName - User's chosen username (must be unique)
    * @param registrationData.password - Plain text password (will be hashed)
@@ -56,25 +55,15 @@ export class RegisterUserUseCase {
    * @throws {ValidationException} When registration data is invalid
    * @throws {InternalServerErrorException} For unexpected errors during registration
    */
-  async execute(registrationData: AuthSignUpData): Promise<UserDto> {
+  async execute(params: SignUpArgsDto): Promise<UserDto> {
     this.logger.assign({ method: 'execute' });
-    this.logger.assign({
-      registrationData: {
-        ...registrationData,
-        password: '[REDACTED]',
-      },
-    });
     this.logger.debug('Starting user registration process');
 
     try {
-      // Create the args DTO required by the CreateUserUseCase
-      const createUserArgs: UserCreateArgsDto = {
-        data: registrationData,
-      };
-
+      const data = params.input;
       // Delegate user registration to the CreateUserUseCase
       // The use case handles validation, constraint checking, password hashing, and persistence
-      const userDto = await this.createUserUseCase.execute(createUserArgs);
+      const userDto = await this.createUserUseCase.execute({ data });
 
       this.logger.assign({ userId: userDto.id, userEmail: userDto.email });
       this.logger.debug('User registration completed successfully');
@@ -84,6 +73,8 @@ export class RegisterUserUseCase {
       // - Create user preferences
       // - Log registration event
       // - Trigger user creation domain events
+
+      console.log('Registered user:', userDto);
 
       return userDto;
     } catch (error) {

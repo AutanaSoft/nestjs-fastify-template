@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 
-import { SharedModule } from '@/shared/shared.module';
 import { UserModule } from '@/modules/user/user.module';
-import { RegisterUserUseCase, FindUserUseCase } from './application/use-cases';
+import { SharedModule } from '@/shared/shared.module';
+import { FindUserUseCase, RegisterUserUseCase } from './application/use-cases';
 import { AuthRepository } from './domain/repositories';
 import { AuthUserAdapter } from './infrastructure/adapters';
+import { AuthResolver } from './infrastructure/resolvers/auth.resolver';
 
 /**
  * Authentication module responsible for handling user authentication,
@@ -27,6 +28,7 @@ import { AuthUserAdapter } from './infrastructure/adapters';
     },
     RegisterUserUseCase,
     FindUserUseCase,
+    AuthResolver,
   ],
   exports: [AuthRepository],
 })

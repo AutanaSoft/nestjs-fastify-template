@@ -29,5 +29,6 @@ import { UserResolver } from './infrastructure/resolvers';
     UserResolver,
     UserEventHandler,
   ],
+  exports: [CreateUserUseCase, FindUserByEmailUseCase, FindUserByUsernameUseCase],
 })
 export class UserModule {}

@@ -1,7 +1,7 @@
 import { UserEntity } from '@/modules/user/domain/entities';
 import { Injectable } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
-import { RegisterUserUseCase, FindUserUseCase } from '../../application/use-cases';
+import { FindUserUseCase, RegisterUserUseCase } from '../../application/use-cases';
 import { AuthRepository } from '../../domain/repositories';
 import { AuthSignUpData } from '../../domain/types';
 
@@ -60,7 +60,7 @@ export class AuthUserAdapter extends AuthRepository {
     this.logger.debug('User registration data prepared');
 
     // Delegate to RegisterUserUseCase which handles all business logic
-    const userDto = await this.registerUserUseCase.execute(params);
+    const userDto = await this.registerUserUseCase.execute({ input: params });
 
     // Convert DTO to entity for the repository interface
     const userEntity: UserEntity = {

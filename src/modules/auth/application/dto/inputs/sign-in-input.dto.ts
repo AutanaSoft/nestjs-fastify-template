@@ -1,4 +1,3 @@
-import { IsValidPassword } from '@/shared/application/decorators';
 import { Field, InputType } from '@nestjs/graphql';
 
 @InputType()
@@ -7,6 +6,5 @@ export class SignInInputDto {
   credential: string;
 
   @Field(() => String)
-  @IsValidPassword()
   password: string;
 }
