@@ -18,7 +18,7 @@ export abstract class RefreshTokenRepository {
    * @param refreshToken - The refresh token entity to create
    * @returns Promise resolving to the created refresh token entity
    */
-  abstract create(refreshToken: RefreshTokenData): Promise<RefreshTokenData>;
+  abstract create(refreshToken: RefreshTokenData): Promise<RefreshTokenEntity>;
 
   /**
    * Finds a refresh token by its unique identifier

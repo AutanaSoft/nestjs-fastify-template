@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
 
 import { PrismaService } from '@/shared/application/services';
-import { RefreshTokenRepository } from '@/shared/domain/repositories';
-import { RefreshTokenData } from '@/shared/domain/types';
-import { plainToInstance } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 import { RefreshTokenEntity } from '../../domain/entities';
+import { RefreshTokenRepository } from '../../domain/repositories';
+import { RefreshTokenData } from '../../domain/types';
 
 /**
  * Prisma adapter for refresh token persistence operations
@@ -44,7 +44,7 @@ export class RefreshTokenPrismaAdapter implements RefreshTokenRepository {
     this.logger.assign({ method: 'create' });
     try {
       const createdToken = await this.prisma.refreshToken.create({ data: refreshToken });
-      return plainToInstance(RefreshTokenEntity, createdToken);
+      return plainToClass(RefreshTokenEntity, createdToken);
     } catch (error: unknown) {
       this.logger.error({ error }, 'Failed to create refresh token');
       throw new Error('Failed to create refresh token');

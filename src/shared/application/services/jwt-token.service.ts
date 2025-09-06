@@ -8,10 +8,10 @@ import {
   InvalidTokenDomainException,
   TokenExpiredDomainException,
 } from '@/modules/auth/domain/exceptions';
+import { RefreshTokenRepository } from '@/modules/auth/domain/repositories';
 import { UserEntity } from '@/modules/user/domain/entities';
-import { RefreshTokenRepository } from '@/shared/domain/repositories';
-import { JwtPayload, TempTokenPayload } from '@/shared/domain/types';
 import { JwtTempTokenType } from '@/shared/domain/enums';
+import { JwtPayload, TempTokenPayload } from '@/shared/domain/types';
 
 /**
  * JWT service for handling generic JWT token operations
@@ -54,20 +54,18 @@ export class JwtTokenService {
    * @param type Type of temporary token being generated
    * @returns Promise resolving to the signed JWT temporary token string
    */
-  async generateTempToken(user: UserEntity, type: JwtTempTokenType): Promise<string> {
-    this.logger.assign({ method: 'generateTempToken', userId: user.id, type });
+  async generateTempToken(sub: string, user: UserEntity, type: JwtTempTokenType): Promise<string> {
+    this.logger.assign({ method: 'generateTempToken' });
 
     try {
       const expiresIn = this.getTempTokenExpiration(type);
-      const tokenId = await this.refreshTokenRepository.generateSubId();
 
       const payload: TempTokenPayload = {
-        sub: tokenId,
+        sub,
         user,
         type,
       };
 
-      this.logger.assign({ tokenId });
       return this.generateToken(payload, expiresIn, 'temporary token');
     } catch (error: unknown) {
       this.logger.error({ error }, 'Failed to generate temporary token');

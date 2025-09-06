@@ -3,8 +3,8 @@ import { Module } from '@nestjs/common';
 import { UserModule } from '@/modules/user/user.module';
 import { SharedModule } from '@/shared/shared.module';
 import { FindUserUseCase, RegisterUserUseCase } from './application/use-cases';
-import { AuthRepository } from './domain/repositories';
-import { AuthUserAdapter } from './infrastructure/adapters';
+import { AuthRepository, RefreshTokenRepository } from './domain/repositories';
+import { AuthUserAdapter, RefreshTokenPrismaAdapter } from './infrastructure/adapters';
 import { AuthResolver } from './infrastructure/resolvers/auth.resolver';
 
 /**
@@ -29,7 +29,11 @@ import { AuthResolver } from './infrastructure/resolvers/auth.resolver';
     RegisterUserUseCase,
     FindUserUseCase,
     AuthResolver,
+    {
+      provide: RefreshTokenRepository,
+      useClass: RefreshTokenPrismaAdapter,
+    },
   ],
-  exports: [AuthRepository],
+  exports: [AuthRepository, RefreshTokenRepository],
 })
 export class AuthModule {}

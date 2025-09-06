@@ -6,8 +6,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { EventBusService, PrismaService } from './application/services';
 import { JwtTokenService } from './application/services/jwt-token.service';
 import { PrismaErrorHandlerService } from './application/services/prisma-error-handler.service';
-import { RefreshTokenRepository } from './domain/repositories';
-import { RefreshTokenPrismaAdapter } from './infrastructure/adapters';
 
 @Module({
   imports: [
@@ -23,16 +21,7 @@ import { RefreshTokenPrismaAdapter } from './infrastructure/adapters';
       inject: [jwtConfig.KEY],
     }),
   ],
-  providers: [
-    PrismaService,
-    PrismaErrorHandlerService,
-    EventBusService,
-    {
-      provide: RefreshTokenRepository,
-      useClass: RefreshTokenPrismaAdapter,
-    },
-    JwtTokenService,
-  ],
+  providers: [PrismaService, PrismaErrorHandlerService, EventBusService, JwtTokenService],
   exports: [PrismaService, PrismaErrorHandlerService, EventBusService, JwtTokenService],
 })
 export class SharedModule {}
