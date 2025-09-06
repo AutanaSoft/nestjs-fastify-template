@@ -58,16 +58,13 @@ export class RefreshTokenEntity {
   /**
    * Factory method to create a new refresh token for a user.
    */
-  static createNew(data: RefreshTokenCreateData, expirationDays: number = 7): RefreshTokenEntity {
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + expirationDays * 24 * 60 * 60 * 1000);
-
+  static createNew(data: RefreshTokenCreateData): RefreshTokenEntity {
     return new RefreshTokenEntity({
       id: data.id,
       userId: data.userId,
       tokenHash: data.tokenHash,
-      createdAt: now,
-      expiresAt,
+      createdAt: data.createdAt,
+      expiresAt: data.expiresAt,
     });
   }
 
