@@ -2,18 +2,13 @@
  * Refresh token data structure for entity creation and updates.
  */
 export interface RefreshTokenData {
-  /** Token identifier */
   readonly id: string;
-  /** Associated user ID */
   readonly userId: string;
-  /** The SHA-256 hash of the refresh token string */
   readonly tokenHash: string;
-  /** Token creation date */
-  readonly createdAt: Date;
-  /** Token expiration date */
   readonly expiresAt: Date;
-  /** Token revocation date (optional) */
-  readonly revokedAt?: Date;
+  readonly revokedAt?: Date | null;
+  readonly createdAt?: Date;
+  readonly updatedAt?: Date;
 }
 
 /**
@@ -24,8 +19,8 @@ export type RefreshTokenCreateData = {
   readonly id: string;
   readonly userId: string;
   readonly tokenHash: string;
-  readonly createdAt: Date;
   readonly expiresAt: Date;
+  readonly revokedAt?: Date;
 };
 
 /**

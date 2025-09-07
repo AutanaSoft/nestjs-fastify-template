@@ -1,4 +1,4 @@
-import { RefreshTokenData, RefreshTokenCreateData } from '../types';
+import { RefreshTokenCreateData, RefreshTokenData } from '../types';
 
 /**
  * Domain entity representing a refresh token in the system.
@@ -7,9 +7,10 @@ export class RefreshTokenEntity {
   readonly id: string;
   readonly userId: string;
   readonly tokenHash: string;
-  readonly createdAt: Date;
   readonly expiresAt: Date;
   private _revokedAt?: Date;
+  readonly createdAt?: Date;
+  readonly updatedAt?: Date;
 
   /**
    * Creates a new RefreshTokenEntity instance from refresh token data.
@@ -27,28 +28,30 @@ export class RefreshTokenEntity {
       throw new Error('Token hash is required and cannot be empty');
     }
 
-    if (!data.createdAt) {
-      throw new Error('Creation date is required');
-    }
-
     if (!data.expiresAt) {
       throw new Error('Expiration date is required');
     }
 
-    if (data.expiresAt <= data.createdAt) {
+    if (data.createdAt && data.expiresAt <= data.createdAt) {
       throw new Error('Expiration date must be after creation date');
     }
 
-    if (data.revokedAt && data.revokedAt < data.createdAt) {
+    if (data.revokedAt && data.createdAt && data.revokedAt < data.createdAt) {
       throw new Error('Revocation date cannot be before creation date');
     }
 
     this.id = data.id.trim();
     this.userId = data.userId.trim();
     this.tokenHash = data.tokenHash.trim();
-    this.createdAt = new Date(data.createdAt);
     this.expiresAt = new Date(data.expiresAt);
     this._revokedAt = data.revokedAt ? new Date(data.revokedAt) : undefined;
+
+    if (data.createdAt) {
+      this.createdAt = new Date(data.createdAt);
+    }
+    if (data.updatedAt) {
+      this.updatedAt = new Date(data.updatedAt);
+    }
   }
 
   get revokedAt(): Date | undefined {
@@ -63,16 +66,31 @@ export class RefreshTokenEntity {
       id: data.id,
       userId: data.userId,
       tokenHash: data.tokenHash,
-      createdAt: data.createdAt,
       expiresAt: data.expiresAt,
+      revokedAt: data.revokedAt,
     });
   }
 
   /**
    * Factory method to reconstruct entity from persistence layer.
    */
-  static fromPersistence(data: RefreshTokenData): RefreshTokenEntity {
-    return new RefreshTokenEntity(data);
+  static fromPersistence(refreshToken: RefreshTokenData): RefreshTokenEntity {
+    return new RefreshTokenEntity(refreshToken);
+  }
+
+  /**
+   * Returns a plain object representation of the entity for persistence.
+   * This method prepares the data to be consumed by the infrastructure layer (e.g., Prisma).
+   * @returns A plain object with persistence-ready data.
+   */
+  toPersistence(): RefreshTokenCreateData {
+    return {
+      id: this.id,
+      userId: this.userId,
+      tokenHash: this.tokenHash,
+      expiresAt: this.expiresAt,
+      revokedAt: this.revokedAt, // Usamos el getter público
+    };
   }
 
   /**
