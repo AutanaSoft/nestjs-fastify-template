@@ -8,7 +8,6 @@ import {
   InvalidTokenDomainException,
   TokenExpiredDomainException,
 } from '@/modules/auth/domain/exceptions';
-import { RefreshTokenRepository } from '@/modules/auth/domain/repositories';
 import { UserEntity } from '@/modules/user/domain/entities';
 import { JwtTempTokenType } from '@/shared/domain/enums';
 import { JwtPayload, TempTokenPayload } from '@/shared/domain/types';
@@ -25,7 +24,6 @@ export class JwtTokenService {
     @Inject(jwtConfig.KEY)
     private readonly config: ConfigType<typeof jwtConfig>,
     private readonly logger: PinoLogger,
-    private readonly refreshTokenRepository: RefreshTokenRepository,
   ) {
     this.logger.setContext(JwtTokenService.name);
   }
