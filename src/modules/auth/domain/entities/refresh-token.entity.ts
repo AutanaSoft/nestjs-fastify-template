@@ -1,4 +1,4 @@
-import { RefreshTokenCreateData, RefreshTokenData } from '../types';
+import { RefreshTokenData } from '../types';
 
 /**
  * Domain entity representing a refresh token in the system.
@@ -59,38 +59,10 @@ export class RefreshTokenEntity {
   }
 
   /**
-   * Factory method to create a new refresh token for a user.
-   */
-  static createNew(data: RefreshTokenCreateData): RefreshTokenEntity {
-    return new RefreshTokenEntity({
-      id: data.id,
-      userId: data.userId,
-      tokenHash: data.tokenHash,
-      expiresAt: data.expiresAt,
-      revokedAt: data.revokedAt,
-    });
-  }
-
-  /**
    * Factory method to reconstruct entity from persistence layer.
    */
   static fromPersistence(refreshToken: RefreshTokenData): RefreshTokenEntity {
     return new RefreshTokenEntity(refreshToken);
-  }
-
-  /**
-   * Returns a plain object representation of the entity for persistence.
-   * This method prepares the data to be consumed by the infrastructure layer (e.g., Prisma).
-   * @returns A plain object with persistence-ready data.
-   */
-  toPersistence(): RefreshTokenCreateData {
-    return {
-      id: this.id,
-      userId: this.userId,
-      tokenHash: this.tokenHash,
-      expiresAt: this.expiresAt,
-      revokedAt: this.revokedAt, // Usamos el getter público
-    };
   }
 
   /**
