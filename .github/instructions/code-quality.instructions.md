@@ -68,3 +68,33 @@ applyTo: '**'
 - Validate required environment variables on startup
 - Use readonly properties for configuration objects
 - Centralize all configuration in `src/config/` directory
+
+## Language Guidelines
+
+- Always respond in Spanish when communicating with developers
+- Use English for all code and technical documentation:
+  - **Comprehensive JSDoc documentation** for all classes, methods, and functions
+  - **Concise inline comments** for complex business logic - short and specific explanations
+  - Component descriptions and architectural context
+  - Type and interface definitions with descriptions
+
+### JSDoc Documentation Standards
+
+- **Classes**: Document purpose, architectural role, and usage context
+- **Methods**: Include description, architectural context, parameters, returns, and exceptions
+- **Properties**: Use concise, single-line descriptions focusing on essential information
+- **Multi-paragraph structure**: Separate general description, detailed explanation, and usage notes
+- **Use JSDoc tags**: `@param`, `@returns`, `@throws` when applicable
+- **Include architectural context**: Explain how the component fits in hexagonal architecture
+- **Business context**: Explain the business purpose and validation rules
+- **Parameter documentation**: Reference the interface or type being used instead of documenting individual properties
+- **Avoid code examples**: Keep documentation focused on purpose and behavior, not implementation examples
+- **Concise descriptions**: Provide comprehensive information without excessive verbosity
+
+#### Property Documentation Guidelines
+
+- **Concise documentation**: Use single-line descriptive comments for each property
+- **Essential information**: Include only the most important and necessary data
+- **Immediate clarity**: Provide direct descriptions without extensive paragraphs
+- **Consistent formatting**: Maintain uniform format across all properties
+- **Avoid redundancy**: Don't repeat information that's obvious from the type or name

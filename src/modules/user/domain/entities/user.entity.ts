@@ -1,59 +1,86 @@
 import { UserRole, UserStatus } from '../enums/user.enums';
+import { UserEntityData } from '../types/user.types';
 
 /**
  * Domain entity representing a user in the system.
- * Contains all user-related data and business logic at the domain level.
- * This entity is framework-agnostic and contains pure business rules.
+ *
+ * This class encapsulates all user-related data and business logic at the domain level.
+ * It defines the fundamental properties such as email, password, username, status, and role
+ * that determine the user's identity and capabilities within the system.
+ *
+ * As part of the domain layer in hexagonal architecture, this entity serves as the central
+ * business object that use cases interact with. It maintains complete independence from
+ * external infrastructure concerns and defines the core business model for users.
+ *
+ * The entity enforces business invariants through its constructor and provides a consistent
+ * representation of user data throughout the application domain.
  */
 export class UserEntity {
   /**
-   * Unique identifier for the user.
-   * @example "123e4567-e89b-12d3-a456-426614174000"
+   * Unique identifier for the user (UUID).
    */
-  id: string;
+  readonly id: string;
 
   /**
-   * User's email address. Must be unique across the system.
-   * Used for authentication and communication purposes.
-   * @example "user@example.com"
+   * User's email address. Must be unique and used for authentication.
    */
-  email: string;
+  readonly email: string;
 
   /**
    * User's hashed password for authentication.
-   * Should never be stored in plain text.
-   * @example "$2b$10$..."
    */
-  password: string;
+  readonly password: string;
 
   /**
-   * Display name chosen by the user.
-   * Used for identification within the application.
-   * @example "john_doe"
+   * User-chosen display name. Must be unique within the system.
    */
-  userName: string;
+  readonly userName: string;
 
   /**
    * Current status of the user account.
-   * Determines if the user can access the system.
    */
-  status: UserStatus;
+  readonly status: UserStatus;
 
   /**
-   * Role assigned to the user.
-   * Determines the permissions and access levels within the system.
+   * Role assigned to the user, determining permissions and capabilities.
    */
-  role: UserRole;
+  readonly role: UserRole;
 
   /**
-   * Timestamp when the user account was created.
-   * @example new Date('2023-01-01T00:00:00Z')
+   * Date and time when the user account was created.
    */
-  createdAt: Date;
+  readonly createdAt: Date;
 
   /**
-   * Timestamp when the user account was last updated.
-   * @example new Date('2023-01-15T10:30:00Z')
+   * Date and time of the last account update.
    */
-  updatedAt: Date;
+  readonly updatedAt: Date;
+
+  /**
+   * Creates a new UserEntity instance with the provided properties.
+   *
+   * This constructor implements an initialization pattern through a complete properties object,
+   * following the immutability principle for domain entities. All necessary data must be
+   * provided at the time of creation to ensure entity consistency and completeness.
+   *
+   * Within the hexagonal architecture context, this constructor is primarily invoked by
+   * repository adapters when hydrating entities from persistence, and by use cases when
+   * creating new entity instances.
+   *
+   * The constructor performs no validation as it assumes the data has already been validated
+   * by the calling use case or adapter. This maintains the separation of concerns between
+   * validation logic and entity creation.
+   *
+   * @param props Object containing all required user properties as defined in UserEntityData
+   */
+  constructor(props: UserEntityData) {
+    this.id = props.id;
+    this.email = props.email;
+    this.password = props.password;
+    this.userName = props.userName;
+    this.status = props.status;
+    this.role = props.role;
+    this.createdAt = props.createdAt;
+    this.updatedAt = props.updatedAt;
+  }
 }

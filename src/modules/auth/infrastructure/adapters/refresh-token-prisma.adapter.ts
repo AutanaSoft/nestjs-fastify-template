@@ -4,7 +4,7 @@ import { PinoLogger } from 'nestjs-pino';
 import { PrismaService } from '@/shared/application/services';
 import { RefreshTokenEntity } from '../../domain/entities';
 import { RefreshTokenRepository } from '../../domain/repositories';
-import { RefreshTokenUpdateData } from '../../domain/types';
+import { RefreshTokenCreateData, RefreshTokenUpdateData } from '../../domain/types';
 
 /**
  * Prisma adapter for refresh token persistence.
@@ -54,13 +54,11 @@ export class RefreshTokenPrismaAdapter implements RefreshTokenRepository {
    * @returns A promise that resolves to the created `RefreshTokenEntity`.
    * @throws An error if the database operation fails.
    */
-  async create(refreshToken: RefreshTokenEntity): Promise<RefreshTokenEntity> {
+  async create(refreshToken: RefreshTokenCreateData): Promise<RefreshTokenEntity> {
     this.logger.assign({ method: 'create' });
     try {
-      const data = refreshToken.toPersistence();
-
       const createdToken = await this.prisma.refreshToken.create({
-        data,
+        data: refreshToken,
       });
 
       this.logger.info('Successfully created refresh token');
