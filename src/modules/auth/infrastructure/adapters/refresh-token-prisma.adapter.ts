@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
 
 import { PrismaService } from '@/shared/application/services';
+import { plainToInstance } from 'class-transformer';
 import { RefreshTokenEntity } from '../../domain/entities';
 import { RefreshTokenRepository } from '../../domain/repositories';
 import { RefreshTokenCreateData, RefreshTokenUpdateData } from '../../domain/types';
@@ -62,7 +63,7 @@ export class RefreshTokenPrismaAdapter implements RefreshTokenRepository {
       });
 
       this.logger.info('Successfully created refresh token');
-      return RefreshTokenEntity.fromPersistence(createdToken);
+      return plainToInstance(RefreshTokenEntity, createdToken);
     } catch (error: unknown) {
       this.logger.error({ error }, 'Failed to create refresh token');
       throw new Error('Failed to create refresh token.');
@@ -89,7 +90,7 @@ export class RefreshTokenPrismaAdapter implements RefreshTokenRepository {
       }
 
       this.logger.info('Successfully found refresh token by ID');
-      return RefreshTokenEntity.fromPersistence(refreshToken);
+      return plainToInstance(RefreshTokenEntity, refreshToken);
     } catch (error: unknown) {
       this.logger.error({ error }, 'Failed to find refresh token by ID');
       throw new Error('Failed to find refresh token by ID.');
@@ -116,7 +117,7 @@ export class RefreshTokenPrismaAdapter implements RefreshTokenRepository {
       }
 
       this.logger.info('Successfully found refresh token by hash');
-      return RefreshTokenEntity.fromPersistence(refreshToken);
+      return plainToInstance(RefreshTokenEntity, refreshToken);
     } catch (error: unknown) {
       this.logger.error({ error }, 'Failed to find refresh token by token hash');
       throw new Error('Failed to find refresh token by token hash.');
@@ -139,7 +140,7 @@ export class RefreshTokenPrismaAdapter implements RefreshTokenRepository {
       });
 
       this.logger.info(`Found ${tokens.length} tokens for the user`);
-      return tokens.map(token => RefreshTokenEntity.fromPersistence(token));
+      return tokens.map(token => plainToInstance(RefreshTokenEntity, token));
     } catch (error: unknown) {
       this.logger.error({ error }, 'Failed to find refresh tokens by user ID');
       throw new Error('Failed to find refresh tokens by user ID.');
@@ -162,7 +163,7 @@ export class RefreshTokenPrismaAdapter implements RefreshTokenRepository {
       });
 
       this.logger.info('Successfully updated refresh token');
-      return RefreshTokenEntity.fromPersistence(updatedToken);
+      return plainToInstance(RefreshTokenEntity, updatedToken);
     } catch (error: unknown) {
       this.logger.error({ error }, 'Failed to update refresh token');
       throw new Error('Failed to update refresh token.');

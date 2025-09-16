@@ -1,99 +1,45 @@
-import { RefreshTokenData } from '../types';
-
 /**
  * Domain entity representing a refresh token in the system.
+ * Contains all refresh token-related data and business logic at the domain level.
+ * This entity is framework-agnostic and contains pure business rules.
  */
 export class RefreshTokenEntity {
-  readonly id: string;
-  readonly userId: string;
-  readonly tokenHash: string;
-  readonly expiresAt: Date;
-  private _revokedAt?: Date;
-  readonly createdAt?: Date;
-  readonly updatedAt?: Date;
+  /**
+   * Unique identifier for the refresh token.
+   * @example "123e4567-e89b-12d3-a456-426614174000"
+   */
+  id: string;
 
   /**
-   * Creates a new RefreshTokenEntity instance from refresh token data.
+   * The unique identifier of the user who owns this refresh token.
+   * @example "user123"
    */
-  constructor(data: RefreshTokenData) {
-    if (!data.id?.trim()) {
-      throw new Error('RefreshToken ID is required and cannot be empty');
-    }
-
-    if (!data.userId?.trim()) {
-      throw new Error('User ID is required and cannot be empty');
-    }
-
-    if (!data.tokenHash?.trim()) {
-      throw new Error('Token hash is required and cannot be empty');
-    }
-
-    if (!data.expiresAt) {
-      throw new Error('Expiration date is required');
-    }
-
-    if (data.createdAt && data.expiresAt <= data.createdAt) {
-      throw new Error('Expiration date must be after creation date');
-    }
-
-    if (data.revokedAt && data.createdAt && data.revokedAt < data.createdAt) {
-      throw new Error('Revocation date cannot be before creation date');
-    }
-
-    this.id = data.id.trim();
-    this.userId = data.userId.trim();
-    this.tokenHash = data.tokenHash.trim();
-    this.expiresAt = new Date(data.expiresAt);
-    this._revokedAt = data.revokedAt ? new Date(data.revokedAt) : undefined;
-
-    if (data.createdAt) {
-      this.createdAt = new Date(data.createdAt);
-    }
-    if (data.updatedAt) {
-      this.updatedAt = new Date(data.updatedAt);
-    }
-  }
-
-  get revokedAt(): Date | undefined {
-    return this._revokedAt;
-  }
+  userId: string;
 
   /**
-   * Factory method to reconstruct entity from persistence layer.
+   * The SHA-256 hash of the refresh token string.
+   * Stored as hex string for security purposes.
+   * @example "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
    */
-  static fromPersistence(refreshToken: RefreshTokenData): RefreshTokenEntity {
-    return new RefreshTokenEntity(refreshToken);
-  }
+  tokenHash: string;
 
   /**
-   * Checks if the refresh token is still valid (not expired and not revoked).
+   * Timestamp when the refresh token was created.
+   * @example new Date('2023-12-01T00:00:00Z')
    */
-  isValid(): boolean {
-    const now = new Date();
-    return !this._revokedAt && this.expiresAt > now;
-  }
+  createdAt: Date;
 
   /**
-   * Checks if the refresh token has been revoked.
+   * Timestamp when the refresh token expires.
+   * After this date, the token should not be accepted.
+   * @example new Date('2024-01-01T00:00:00Z')
    */
-  isRevoked(): boolean {
-    return !!this._revokedAt;
-  }
+  expiresAt: Date;
 
   /**
-   * Checks if the refresh token has expired.
+   * Timestamp when the refresh token was revoked (optional).
+   * If null, the token has not been revoked.
+   * @example new Date('2023-12-15T10:30:00Z')
    */
-  isExpired(): boolean {
-    const now = new Date();
-    return this.expiresAt <= now;
-  }
-
-  /**
-   * Revokes the refresh token, making it invalid for future use.
-   */
-  revoke(): void {
-    if (!this._revokedAt) {
-      this._revokedAt = new Date();
-    }
-  }
+  revokedAt?: Date;
 }
