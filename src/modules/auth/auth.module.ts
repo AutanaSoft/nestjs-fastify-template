@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 
+import { createJwtModuleOptions, jwtConfig } from '@/config';
 import { UserModule } from '@/modules/user/user.module';
 import { SharedModule } from '@/shared/shared.module';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { FindUserUseCase, RegisterUserUseCase } from './application/use-cases';
 import { AuthRepository, RefreshTokenRepository } from './domain/repositories';
 import { AuthUserAdapter, RefreshTokenPrismaAdapter } from './infrastructure/adapters';
@@ -20,7 +23,15 @@ import { AuthResolver } from './infrastructure/resolvers/auth.resolver';
  * @description Provides authentication and authorization capabilities for the application
  */
 @Module({
-  imports: [SharedModule, UserModule],
+  imports: [
+    JwtModule.registerAsync({
+      imports: [ConfigModule.forFeature(jwtConfig)],
+      useFactory: createJwtModuleOptions,
+      inject: [jwtConfig.KEY],
+    }),
+    SharedModule,
+    UserModule,
+  ],
   providers: [
     {
       provide: AuthRepository,
