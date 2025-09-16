@@ -8,6 +8,7 @@ import {
   UserPaginatedResponseDto,
   UserUpdateArgsDto,
 } from '@modules/user/application/dto';
+import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { PinoLogger } from 'nestjs-pino';
 import {
@@ -18,11 +19,13 @@ import {
   UpdateUserUseCase,
 } from '../../application/use-cases';
 import { FindUserByUserNameUseCase } from '../../application/use-cases/find-user-by-username.use-case';
+import { GqlJwtAuthGuard } from '@/modules/auth/infrastructure/guards';
 
 /**
  * GraphQL resolver for User entity operations.
  * Handles user-related queries and mutations through the application layer.
  */
+@UseGuards(GqlJwtAuthGuard)
 @Resolver(() => UserDto)
 export class UserResolver {
   /**
