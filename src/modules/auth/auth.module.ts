@@ -5,10 +5,13 @@ import { UserModule } from '@/modules/user/user.module';
 import { SharedModule } from '@/shared/shared.module';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { FindUserUseCase, RegisterUserUseCase } from './application/use-cases';
 import { AuthRepository, RefreshTokenRepository } from './domain/repositories';
 import { AuthUserAdapter, RefreshTokenPrismaAdapter } from './infrastructure/adapters';
 import { AuthResolver } from './infrastructure/resolvers/auth.resolver';
+import { JwtStrategy } from './infrastructure/strategies';
+import { JwtAuthGuard, GqlJwtAuthGuard } from './infrastructure/guards';
 
 /**
  * Authentication module responsible for handling user authentication,
@@ -19,11 +22,19 @@ import { AuthResolver } from './infrastructure/resolvers/auth.resolver';
  * the UserModule through use case composition, maintaining proper architectural
  * boundaries between auth and user domains.
  *
+ * Features:
+ * - JWT token authentication with Passport integration
+ * - AuthGuards for protecting routes (HTTP and GraphQL)
+ * - User authentication and authorization
+ * - Refresh token management
+ * - Clean architecture with proper layer separation
+ *
  * @module AuthModule
  * @description Provides authentication and authorization capabilities for the application
  */
 @Module({
   imports: [
+    PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule.forFeature(jwtConfig)],
       useFactory: createJwtModuleOptions,
@@ -33,18 +44,26 @@ import { AuthResolver } from './infrastructure/resolvers/auth.resolver';
     UserModule,
   ],
   providers: [
+    // Authentication repositories
     {
       provide: AuthRepository,
       useClass: AuthUserAdapter,
     },
-    RegisterUserUseCase,
-    FindUserUseCase,
-    AuthResolver,
     {
       provide: RefreshTokenRepository,
       useClass: RefreshTokenPrismaAdapter,
     },
+    // Use cases
+    RegisterUserUseCase,
+    FindUserUseCase,
+    // Passport strategy
+    JwtStrategy,
+    // Guards
+    JwtAuthGuard,
+    GqlJwtAuthGuard,
+    // Resolvers
+    AuthResolver,
   ],
-  exports: [AuthRepository, RefreshTokenRepository],
+  exports: [AuthRepository, RefreshTokenRepository, JwtAuthGuard, GqlJwtAuthGuard, JwtStrategy],
 })
 export class AuthModule {}
