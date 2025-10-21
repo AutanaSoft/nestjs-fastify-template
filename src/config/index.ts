@@ -3,5 +3,6 @@ export { default as cookieConfig } from './cookieConfig';
 export { default as corsConfig } from './corsConfig';
 export { default as databaseConfig, DatabaseConfig } from './databaseConfig';
 export { default as graphqlConfig } from './graphqlConfig';
+export { default as jwtConfig, JwtConfig, createJwtModuleOptions } from './jwtConfig';
 export { default as pinoConfig } from './pinoConfig';
 export { default as throttlerConfig, ThrottlerConfig } from './throttlerConfig';

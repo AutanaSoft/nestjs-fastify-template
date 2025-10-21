@@ -3,6 +3,7 @@
 
 export * from './correlation-id.decorator';
 export * from './email-validation.decorator';
+export * from './password-validation.decorator';
 export * from './username-validation.decorator';
 
 // Example:
